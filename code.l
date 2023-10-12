@@ -11,9 +11,17 @@ and main() ***/
 matches with capital letters, second rule
 matches with any character except newline and 
 third rule does not take input after the enter***/
+%x SINGLE_LINE_COMMENT
 %%
-while {printf("Found while token: %s\n", yytext);};
-[a-zA-Z0-9]+ {printf("Found token: %s\n", yytext);};
+-- {BEGIN(SINGLE_LINE_COMMENT);}
+<SINGLE_LINE_COMMENT>\n {BEGIN(INITIAL);}
+<SINGLE_LINE_COMMENT>[^\n] {}
+; {printf("Separator: %s\n", yytext);};
+\* {printf("Operator: %s\n", yytext);};
+= {printf("Operator: %s\n", yytext);};
+[0-9]+ {printf("Number: %s\n", yytext);};
+[\s\n ] {}
+[a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext);};
 %%
  
 /*** Code Section prints the number of
