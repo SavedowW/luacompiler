@@ -7,6 +7,7 @@
     #include <stdlib.h>
     char str[1000];
     int stringOpenerLevel = 0;
+    long long number = 0;
 %}
  
 /*** Rule Section ***/
@@ -111,9 +112,11 @@ print {printf("Print call: %s\n", yytext);};
 \. {printf("Operator: %s\n", yytext);};
 \.\. {printf("Operator: %s\n", yytext);};
 \.\.\. {printf("Operator: %s\n", yytext);};
-[0-9]+ {printf("Number: %s\n", yytext);};
+0x[0-9a-fA-F]+ {number = strtol(yytext, NULL, 16); printf("Number: %d\n", number);};
+[0-9]+ {number = atoi(yytext); printf("Number: %d\n", number);};
 [\s\n ] {}
 [a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext);};
+[0-9]([a-zA-Z_0-9]*) {printf("Impossible token: %s\n", yytext);};
 %%
  
 /*** Code Section ***/

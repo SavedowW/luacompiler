@@ -1,15 +1,25 @@
-    a = 1
-    b = a*2
+a = 1
+b = a*2
+a=0xFf5
+0var1
+a = true
+a = false
 
-    b = a*2;
+b = a*2;
     
-    a = 1 ; b = a*2
+a = 1 ; b = a*2
     
-    a = 1   b = a*2    -- ugly, but valid
-    b = a*2
-    for a in range
-    call(a, c)
-    a >> c
+a = 1   b = a*2    -- ugly, but valid
+b = a*2
+for a in range
+call(a, c)
+a >> c
+
+a=nil
+a=false
+a=true
+print "data"
+print("data")
 
 "jghnchm hg"
 "part1\"part2"
