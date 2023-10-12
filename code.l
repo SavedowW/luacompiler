@@ -1,49 +1,94 @@
 
-/*** Definition Section has one variable
-which can be accessed inside yylex() 
-and main() ***/
+/*** Definition Section ***/
 %option noyywrap
 %option never-interactive
 %{
+    #include <string.h>
+    #include <stdlib.h>
+    char str[1000];
 %}
  
-/*** Rule Section has three rules, first rule 
-matches with capital letters, second rule
-matches with any character except newline and 
-third rule does not take input after the enter***/
+/*** Rule Section ***/
 %x SINGLE_LINE_COMMENT
+%x SINGLE_QUOTE_STRING
+%x DOUBLE_QUOTE_STRING
 %%
--- {BEGIN(SINGLE_LINE_COMMENT);}
-<SINGLE_LINE_COMMENT>\n {BEGIN(INITIAL);}
-<SINGLE_LINE_COMMENT>[^\n] {}
-; {printf("Separator: %s\n", yytext);};
+-- {BEGIN(SINGLE_LINE_COMMENT);};
+<SINGLE_LINE_COMMENT>\n {BEGIN(INITIAL);};
+<SINGLE_LINE_COMMENT>[^\n] {};
+\" {strcpy(str, ""); BEGIN(DOUBLE_QUOTE_STRING);};
+<DOUBLE_QUOTE_STRING>[^\\\"]+ {strcat(str, yytext);};
+<DOUBLE_QUOTE_STRING>\\\" {strcat(str, "\"");};
+<DOUBLE_QUOTE_STRING>\" {printf("String literal: %s\n", str); BEGIN(INITIAL);};
+and {printf("Keyword: %s\n", yytext);};
+false {printf("Keyword: %s\n", yytext);};
+local {printf("Keyword: %s\n", yytext);};
+then {printf("Keyword: %s\n", yytext);};
+break {printf("Keyword: %s\n", yytext);};
+for {printf("Keyword: %s\n", yytext);};
+nil {printf("Keyword: %s\n", yytext);};
+true {printf("Keyword: %s\n", yytext);};
+do {printf("Keyword: %s\n", yytext);};
+function {printf("Keyword: %s\n", yytext);};
+not {printf("Keyword: %s\n", yytext);};
+until {printf("Keyword: %s\n", yytext);};
+else {printf("Keyword: %s\n", yytext);};
+goto {printf("Keyword: %s\n", yytext);};
+or {printf("Keyword: %s\n", yytext);};
+while {printf("Keyword: %s\n", yytext);};
+elseif {printf("Keyword: %s\n", yytext);};
+if {printf("Keyword: %s\n", yytext);};
+repeat {printf("Keyword: %s\n", yytext);};
+end {printf("Keyword: %s\n", yytext);};
+in {printf("Keyword: %s\n", yytext);};
+return {printf("Keyword: %s\n", yytext);};
+; {printf("Empty statement: %s\n", yytext);};
+\+ {printf("Operator: %s\n", yytext);};
+- {printf("Operator: %s\n", yytext);};
 \* {printf("Operator: %s\n", yytext);};
+\/ {printf("Operator: %s\n", yytext);};
+% {printf("Operator: %s\n", yytext);};
+\^ {printf("Operator: %s\n", yytext);};
+# {printf("Operator: %s\n", yytext);};
+& {printf("Operator: %s\n", yytext);};
+~ {printf("Operator: %s\n", yytext);};
+\| {printf("Operator: %s\n", yytext);};
+\<\< {printf("Operator: %s\n", yytext);};
+\>\> {printf("Operator: %s\n", yytext);};
+\/\/ {printf("Operator: %s\n", yytext);};
+== {printf("Operator: %s\n", yytext);};
+~= {printf("Operator: %s\n", yytext);};
+\<= {printf("Operator: %s\n", yytext);};
+\>= {printf("Operator: %s\n", yytext);};
+\< {printf("Operator: %s\n", yytext);};
+\> {printf("Operator: %s\n", yytext);};
 = {printf("Operator: %s\n", yytext);};
+\( {printf("Operator: %s\n", yytext);};
+\) {printf("Operator: %s\n", yytext);};
+\{ {printf("Operator: %s\n", yytext);};
+\} {printf("Operator: %s\n", yytext);};
+\[ {printf("Operator: %s\n", yytext);};
+\] {printf("Operator: %s\n", yytext);};
+:: {printf("Operator: %s\n", yytext);};
+: {printf("Operator: %s\n", yytext);};
+, {printf("Operator: %s\n", yytext);};
+\. {printf("Operator: %s\n", yytext);};
+\.\. {printf("Operator: %s\n", yytext);};
+\.\.\. {printf("Operator: %s\n", yytext);};
 [0-9]+ {printf("Number: %s\n", yytext);};
 [\s\n ] {}
 [a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext);};
 %%
  
-/*** Code Section prints the number of
-capital letter present in the given input***/
+/*** Code Section ***/
 int main(){
  
-// Explanation:
-// yywrap() - wraps the above rule section
-/* yyin - takes the file pointer 
-          which contains the input*/
-/* yylex() - this is the main flex function
-          which runs the Rule Section*/
-// yytext is the text in the buffer
- 
-// Uncomment the lines below 
-// to take input from file
- FILE *fp;
- char filename[50];
- printf("Enter the filename: \n");
- scanf("%s",filename);
- fp = fopen(filename,"r");
- yyin = fp;
+FILE *fp;
+char filename[50];
+printf("Enter the filename: \n");
+scanf("%s",filename);
+fp = fopen(filename,"r");
+yyin = fp;
  
 yylex();
  
