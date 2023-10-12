@@ -25,3 +25,11 @@
 'part1\rpart2'
 'part1\tpart2'
 'part1\vpart2'
+
+[==[gfrj
+fdgy  ]=]   hjtd\n
+grgr.]==]
+
+[[gfrj
+fdgy  ]=]   hjtd\n
+grgr.]]

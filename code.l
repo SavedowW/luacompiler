@@ -6,18 +6,32 @@
     #include <string.h>
     #include <stdlib.h>
     char str[1000];
+    int stringOpenerLevel = 0;
 %}
  
 /*** Rule Section ***/
 %x SINGLE_LINE_COMMENT
 %x SINGLE_QUOTE_STRING
 %x DOUBLE_QUOTE_STRING
+%x LONG_BRACKET_STRING
 %%
 -- {BEGIN(SINGLE_LINE_COMMENT);};
 <SINGLE_LINE_COMMENT>\n {BEGIN(INITIAL);};
 <SINGLE_LINE_COMMENT>[^\n] {};
 \" {strcpy(str, ""); BEGIN(DOUBLE_QUOTE_STRING);};
 ' {strcpy(str, ""); BEGIN(SINGLE_QUOTE_STRING);};
+\[[=]*\[ {strcpy(str, ""); stringOpenerLevel = yyleng; BEGIN(LONG_BRACKET_STRING);};
+<LONG_BRACKET_STRING>[^\]]+ {strcat(str, yytext);};
+<LONG_BRACKET_STRING>\][^=\]] {strcat(str, yytext);};
+<LONG_BRACKET_STRING>\][=]*\] {
+    if(stringOpenerLevel == yyleng)
+    {
+        printf("String literal: %s\n", str);
+        BEGIN(INITIAL);
+    }
+    else
+        strcat(str, yytext);
+};
 <DOUBLE_QUOTE_STRING>[^\\\"]+ {strcat(str, yytext);};
 <SINGLE_QUOTE_STRING>[^\\']+ {strcat(str, yytext);};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\" {strcat(str, "\"");};
@@ -28,6 +42,7 @@
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\t {strcat(str, "\t");};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\v {strcat(str, "\v");};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\n {strcat(str, "\n");};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\z[ \n]* {};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\' {strcat(str, "'");};
 <DOUBLE_QUOTE_STRING>\" {printf("String literal: %s\n", str); BEGIN(INITIAL);};
 <SINGLE_QUOTE_STRING>' {printf("String literal: %s\n", str); BEGIN(INITIAL);};
@@ -53,6 +68,7 @@ repeat {printf("Keyword: %s\n", yytext);};
 end {printf("Keyword: %s\n", yytext);};
 in {printf("Keyword: %s\n", yytext);};
 return {printf("Keyword: %s\n", yytext);};
+print {printf("Print call: %s\n", yytext);};
 ; {printf("Empty statement: %s\n", yytext);};
 \+ {printf("Operator: %s\n", yytext);};
 - {printf("Operator: %s\n", yytext);};
@@ -92,7 +108,7 @@ return {printf("Keyword: %s\n", yytext);};
 %%
  
 /*** Code Section ***/
-int main(){
+int main() {
  
 FILE *fp;
 char filename[50];
