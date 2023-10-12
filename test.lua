@@ -33,3 +33,15 @@ grgr.]==]
 [[gfrj
 fdgy  ]=]   hjtd\n
 grgr.]]
+
+--[[
+print(a)
+--]]
+
+--[[
+print(a)
+]]
+
+---[[
+print(a)
+--]]

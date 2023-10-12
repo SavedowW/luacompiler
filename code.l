@@ -11,15 +11,20 @@
  
 /*** Rule Section ***/
 %x SINGLE_LINE_COMMENT
+%x MULTILINE_COMMENT
 %x SINGLE_QUOTE_STRING
 %x DOUBLE_QUOTE_STRING
 %x LONG_BRACKET_STRING
 %%
--- {BEGIN(SINGLE_LINE_COMMENT);};
+-- {printf("Found single-line comment\n"); BEGIN(SINGLE_LINE_COMMENT);};
 <SINGLE_LINE_COMMENT>\n {BEGIN(INITIAL);};
 <SINGLE_LINE_COMMENT>[^\n] {};
-\" {strcpy(str, ""); BEGIN(DOUBLE_QUOTE_STRING);};
-' {strcpy(str, ""); BEGIN(SINGLE_QUOTE_STRING);};
+
+([^-]|\A)--\[\[ {printf("Found multiline comment\n"); BEGIN(MULTILINE_COMMENT);};
+<MULTILINE_COMMENT>[^\]] {};
+<MULTILINE_COMMENT>\]\] {printf("Ended multiline comment\n"); BEGIN(INITIAL);};
+<MULTILINE_COMMENT>\] {};
+
 \[[=]*\[ {strcpy(str, ""); stringOpenerLevel = yyleng; BEGIN(LONG_BRACKET_STRING);};
 <LONG_BRACKET_STRING>[^\]]+ {strcat(str, yytext);};
 <LONG_BRACKET_STRING>\][^=\]] {strcat(str, yytext);};
@@ -32,6 +37,9 @@
     else
         strcat(str, yytext);
 };
+
+\" {strcpy(str, ""); BEGIN(DOUBLE_QUOTE_STRING);};
+' {strcpy(str, ""); BEGIN(SINGLE_QUOTE_STRING);};
 <DOUBLE_QUOTE_STRING>[^\\\"]+ {strcat(str, yytext);};
 <SINGLE_QUOTE_STRING>[^\\']+ {strcat(str, yytext);};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\" {strcat(str, "\"");};
@@ -46,6 +54,7 @@
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\' {strcat(str, "'");};
 <DOUBLE_QUOTE_STRING>\" {printf("String literal: %s\n", str); BEGIN(INITIAL);};
 <SINGLE_QUOTE_STRING>' {printf("String literal: %s\n", str); BEGIN(INITIAL);};
+
 and {printf("Keyword: %s\n", yytext);};
 false {printf("Keyword: %s\n", yytext);};
 local {printf("Keyword: %s\n", yytext);};
