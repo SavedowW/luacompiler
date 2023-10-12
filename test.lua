@@ -12,4 +12,16 @@
     a >> c
 
 "jghnchm hg"
-"hdfb\"stbnxdrtgxfb"
+"part1\"part2"
+"part1\'part2"
+"part1'part2"
+'part1\'part2'
+'part1\"part2'
+'part1"part2'
+'part1\npart2'
+'part1\apart2'
+'part1\bpart2'
+'part1\fpart2'
+'part1\rpart2'
+'part1\tpart2'
+'part1\vpart2'
