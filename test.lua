@@ -1,3 +1,6 @@
+"text\x00text"
+"text\0text"
+
 a = 1
 b = a*2
 a=0xFf5
