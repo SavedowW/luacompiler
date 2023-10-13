@@ -8,9 +8,8 @@
     #include <stdlib.h>
     char str[1000];
     int stringOpenerLevel = 0;
-    long long iNumber = 0;
-    double fNumber;
 %}
+POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
  
 /*** Rule Section ***/
 %x SINGLE_LINE_COMMENT
@@ -21,10 +20,10 @@
 %%
 -- {printf("Found single-line comment\n"); BEGIN(SINGLE_LINE_COMMENT);};
 <SINGLE_LINE_COMMENT>\n {BEGIN(INITIAL);};
-<SINGLE_LINE_COMMENT>[^\n] {};
+<SINGLE_LINE_COMMENT>[^\n]+ {};
 
 ([^-]|\A)--\[\[ {printf("Found multiline comment\n"); BEGIN(MULTILINE_COMMENT);};
-<MULTILINE_COMMENT>[^\]] {};
+<MULTILINE_COMMENT>[^\]]+ {};
 <MULTILINE_COMMENT>\]\] {printf("Ended multiline comment\n"); BEGIN(INITIAL);};
 <MULTILINE_COMMENT>\] {};
 
@@ -43,8 +42,8 @@
 
 \" {strcpy(str, ""); BEGIN(DOUBLE_QUOTE_STRING);};
 ' {strcpy(str, ""); BEGIN(SINGLE_QUOTE_STRING);};
-<DOUBLE_QUOTE_STRING>[^\\\"]+ {strcat(str, yytext);};
-<SINGLE_QUOTE_STRING>[^\\']+ {strcat(str, yytext);};
+<DOUBLE_QUOTE_STRING>[^\\\"\n]+ {strcat(str, yytext);};
+<SINGLE_QUOTE_STRING>[^\\'\n]+ {strcat(str, yytext);};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\" {strcat(str, "\"");};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\a {strcat(str, "\a");};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\b {strcat(str, "\b");};
@@ -58,13 +57,9 @@
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\' {strcat(str, "'");};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\u\{[0-9]{1,3}\} {
     // \u{123}
-    int len = strlen(yytext);
-    char s[4];
-    strncpy(s, yytext + 3, len - 4);
-    s[len - 4] = '\0';
-    int id = atoi(s);
+    int id = atoi(yytext + 3);
     if (id >= 256)
-        printf("Number near \\u is too big: %i\n", id);
+        printf("ERROR: number near \\u is too big: %i\n", id);
     else
     {
         char temp[2] = {id, '\0'};
@@ -73,19 +68,15 @@
 };
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\x[0-9a-fA-F]{2} {
     // \xFF
-    char s[3] = {yytext[2], yytext[3], '\0'};
-    int id = strtol(s, NULL, 16);
+    int id = strtol(yytext + 2, NULL, 16);
     char temp[2] = {id, '\0'};
     strcat(str, temp);
 };
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\[0-9]{1,3} {
     // \ddd
-    int len = strlen(yytext);
-    char s[4];
-    strcpy(s, yytext + 1);
-    int id = atoi(s);
+    int id = atoi(yytext + 1);
     if (id >= 256)
-        printf("Number near \\u is too big: %i\n", id);
+        printf("ERROR: number near \\u is too big: %i\n", id);
     else
     {
         char temp[2] = {id, '\0'};
@@ -93,9 +84,11 @@
     }
 };
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\\ {strcat(str, "\\");};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\n {printf("ERROR: unfinished string near '%s'\n", str);};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING><<EOF>> {printf("ERROR: unfinished string near <EOF>\n"); return 0;};
 <DOUBLE_QUOTE_STRING>\" {printf("String literal: %s\n", str); BEGIN(INITIAL);};
 <SINGLE_QUOTE_STRING>' {printf("String literal: %s\n", str); BEGIN(INITIAL);};
-<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\. {printf("Unknown escape sequence: %s\n", yytext);};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\. {printf("ERROR: unknown escape sequence: %s\n", yytext);};
 
 ; {printf("Empty statement: %s\n", yytext);};
 and {printf("Keyword: %s\n", yytext);};
@@ -153,39 +146,20 @@ print {printf("Print call: %s\n", yytext);};
 \. {printf("Operator: %s\n", yytext);};
 \.\. {printf("Operator: %s\n", yytext);};
 \.\.\. {printf("Operator: %s\n", yytext);};
-0x[0-9a-fA-F]+ {iNumber = strtol(yytext, NULL, 16); printf("Integral number: %d\n", iNumber);};
-[0-9]+ {iNumber = atoi(yytext); printf("Integral number: %d\n", iNumber);};
-[0-9]+\.[0-9]+ {
-    fNumber = atof(yytext);
+0x[0-9a-fA-F]+ {long long iNumber = strtol(yytext, NULL, 16); printf("Integral number: %d\n", iNumber);};
+[0-9]+ {long long iNumber = atoi(yytext); printf("Integral number: %d\n", iNumber);};
+{POINT_NUM} {
+    double fNumber = atof(yytext);
     printf("Floating-point number: %f\n", fNumber);
     };
-[0-9]+(\.[0-9]+)?[eE]-?[0-9]+ {
-    int sign = 1;
-    char *eEntry = strchr(yytext, 'e');
-    if (eEntry == NULL)
-        eEntry = strchr(yytext, 'E');
-    char p1[100];
-    char p2[100];
-    strncpy(p1, yytext, (eEntry - yytext));
-    p1[(eEntry - yytext)] = '\0';
-    char *p2ptr = eEntry + 1;
-    if (*p2ptr == '-')
-    {
-        sign = -1;
-        p2ptr += 1;
-    }
-    strcpy(p2, p2ptr);
-    double f1 = atof(p1);
-    int f2 = atoi(p2);
-
-    fNumber = f1 * pow(10, f2 * sign);
+{POINT_NUM}[eE][+-]?[0-9]+ {
+    double fNumber = atof(yytext);
     printf("Floating-point number: %f\n", fNumber);
 };
-[0-9\.Ee]+ {printf("Impossible number literal: %s\n", yytext);};
-[0-9]+(\.[0-9]+)?[eE]-?[0-9\.eE]+ {printf("Impossible number literal: %s\n", yytext);};
+{POINT_NUM}[0-9\.Ee_]+ {printf("ERROR: impossible number literal r1: %s\n", yytext);};
 [\s\n ] {}
 [a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext);};
-[0-9]([a-zA-Z_0-9]*) {printf("Impossible token: %s\n", yytext);};
+[0-9]([a-zA-Z_0-9]*) {printf("ERROR: impossible token: %s\n", yytext);};
 %%
  
 /*** Code Section ***/

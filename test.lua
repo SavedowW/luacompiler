@@ -8,6 +8,8 @@ a = false
 
 12.53
 0.53
+.53
+53.
 35e2
 35E2
 35e-2
@@ -17,6 +19,11 @@ a = false
 0.2.35e2
 0.35e2e2
 0.35e2.2
+3_5
+f.e+3
+.e+3
+
+eee
 
 b = a*2;
     
@@ -87,3 +94,8 @@ function add (a)
     end
     return sum
   end
+
+"text
+text"
+
+"eofrighthere
