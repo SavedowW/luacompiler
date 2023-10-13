@@ -27,10 +27,10 @@ POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
 <MULTILINE_COMMENT>\]\] {printf("Ended multiline comment\n"); BEGIN(INITIAL);};
 <MULTILINE_COMMENT>\] {};
 
-\[[=]*\[ {strcpy(str, ""); stringOpenerLevel = yyleng; BEGIN(LONG_BRACKET_STRING);};
+\[=*\[ {strcpy(str, ""); stringOpenerLevel = yyleng; BEGIN(LONG_BRACKET_STRING);};
 <LONG_BRACKET_STRING>[^\]]+ {strcat(str, yytext);};
-<LONG_BRACKET_STRING>\][^=\]] {strcat(str, yytext);};
-<LONG_BRACKET_STRING>\][=]*\] {
+<LONG_BRACKET_STRING>\] {strcat(str, yytext);};
+<LONG_BRACKET_STRING>\]=*\] {
     if(stringOpenerLevel == yyleng)
     {
         printf("String literal: %s\n", str);

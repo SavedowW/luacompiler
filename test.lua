@@ -23,6 +23,7 @@ a = false
 f.e+3
 .e+3
 
+.
 eee
 
 b = a*2;
@@ -70,6 +71,12 @@ part3"
 fdgy  ]=]   hjtd\n
 grgr.]==]
 
+[==[line1
+]
+]=
+[
+line2]==]
+
 [[gfrj
 fdgy  ]=]   hjtd\n
 grgr.]]
@@ -79,6 +86,7 @@ print(a)
 --]]
 
 --[[
+]
 print(a)
 ]]
 
