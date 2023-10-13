@@ -97,6 +97,7 @@
 <SINGLE_QUOTE_STRING>' {printf("String literal: %s\n", str); BEGIN(INITIAL);};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\. {printf("Unknown escape sequence: %s\n", yytext);};
 
+; {printf("Empty statement: %s\n", yytext);};
 and {printf("Keyword: %s\n", yytext);};
 false {printf("Keyword: %s\n", yytext);};
 local {printf("Keyword: %s\n", yytext);};
@@ -120,7 +121,6 @@ end {printf("Keyword: %s\n", yytext);};
 in {printf("Keyword: %s\n", yytext);};
 return {printf("Keyword: %s\n", yytext);};
 print {printf("Print call: %s\n", yytext);};
-; {printf("Empty statement: %s\n", yytext);};
 \+ {printf("Operator: %s\n", yytext);};
 - {printf("Operator: %s\n", yytext);};
 \* {printf("Operator: %s\n", yytext);};

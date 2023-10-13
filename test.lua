@@ -78,3 +78,12 @@ print(a)
 ---[[
 print(a)
 --]]
+
+-- add all elements of array `a'
+function add (a)
+    local sum = 0
+    for i,v in ipairs(a) do
+      sum = sum + v
+    end
+    return sum
+  end
