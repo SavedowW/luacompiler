@@ -4,6 +4,7 @@ a=0xFf5
 0var1
 a = true
 a = false
+-123
 
 12.53
 0.53
@@ -47,6 +48,12 @@ print("data")
 'part1\rpart2'
 'part1\tpart2'
 'part1\vpart2'
+'part1\Qpart2'
+"text\u{49}text"
+"text\xA5text"
+"text\49text"
+"text\u{260}text"
+"text\260text"
 
 "part1\
 part2 \

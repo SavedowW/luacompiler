@@ -56,8 +56,46 @@
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\n {};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\z[ \n]* {};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\' {strcat(str, "'");};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\u\{[0-9]{1,3}\} {
+    // \u{123}
+    int len = strlen(yytext);
+    char s[4];
+    strncpy(s, yytext + 3, len - 4);
+    s[len - 4] = '\0';
+    int id = atoi(s);
+    if (id >= 256)
+        printf("Number near \\u is too big: %i\n", id);
+    else
+    {
+        char temp[2] = {id, '\0'};
+        strcat(str, temp);
+    }
+};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\x[0-9a-fA-F]{2} {
+    // \xFF
+    char s[3] = {yytext[2], yytext[3], '\0'};
+    int id = strtol(s, NULL, 16);
+    char temp[2] = {id, '\0'};
+    strcat(str, temp);
+};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\[0-9]{1,3} {
+    // \ddd
+    int len = strlen(yytext);
+    char s[4];
+    strcpy(s, yytext + 1);
+    int id = atoi(s);
+    if (id >= 256)
+        printf("Number near \\u is too big: %i\n", id);
+    else
+    {
+        char temp[2] = {id, '\0'};
+        strcat(str, temp);
+    }
+};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\\ {strcat(str, "\\");};
 <DOUBLE_QUOTE_STRING>\" {printf("String literal: %s\n", str); BEGIN(INITIAL);};
 <SINGLE_QUOTE_STRING>' {printf("String literal: %s\n", str); BEGIN(INITIAL);};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\. {printf("Unknown escape sequence: %s\n", yytext);};
 
 and {printf("Keyword: %s\n", yytext);};
 false {printf("Keyword: %s\n", yytext);};
