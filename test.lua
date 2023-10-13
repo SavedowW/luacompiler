@@ -5,6 +5,18 @@ a=0xFf5
 a = true
 a = false
 
+12.53
+0.53
+35e2
+35E2
+35e-2
+0.35e2
+0.35e-2
+0.35e2-2
+0.2.35e2
+0.35e2e2
+0.35e2.2
+
 b = a*2;
     
 a = 1 ; b = a*2
@@ -35,6 +47,10 @@ print("data")
 'part1\rpart2'
 'part1\tpart2'
 'part1\vpart2'
+
+"part1\
+part2 \
+part3"
 
 [==[gfrj
 fdgy  ]=]   hjtd\n

@@ -4,10 +4,12 @@
 %option never-interactive
 %{
     #include <string.h>
+    #include <math.h>
     #include <stdlib.h>
     char str[1000];
     int stringOpenerLevel = 0;
-    long long number = 0;
+    long long iNumber = 0;
+    double fNumber;
 %}
  
 /*** Rule Section ***/
@@ -51,6 +53,7 @@
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\t {strcat(str, "\t");};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\v {strcat(str, "\v");};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\n {strcat(str, "\n");};
+<DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\n {};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\z[ \n]* {};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\' {strcat(str, "'");};
 <DOUBLE_QUOTE_STRING>\" {printf("String literal: %s\n", str); BEGIN(INITIAL);};
@@ -112,8 +115,36 @@ print {printf("Print call: %s\n", yytext);};
 \. {printf("Operator: %s\n", yytext);};
 \.\. {printf("Operator: %s\n", yytext);};
 \.\.\. {printf("Operator: %s\n", yytext);};
-0x[0-9a-fA-F]+ {number = strtol(yytext, NULL, 16); printf("Number: %d\n", number);};
-[0-9]+ {number = atoi(yytext); printf("Number: %d\n", number);};
+0x[0-9a-fA-F]+ {iNumber = strtol(yytext, NULL, 16); printf("Integral number: %d\n", iNumber);};
+[0-9]+ {iNumber = atoi(yytext); printf("Integral number: %d\n", iNumber);};
+[0-9]+\.[0-9]+ {
+    fNumber = atof(yytext);
+    printf("Floating-point number: %f\n", fNumber);
+    };
+[0-9]+(\.[0-9]+)?[eE]-?[0-9]+ {
+    int sign = 1;
+    char *eEntry = strchr(yytext, 'e');
+    if (eEntry == NULL)
+        eEntry = strchr(yytext, 'E');
+    char p1[100];
+    char p2[100];
+    strncpy(p1, yytext, (eEntry - yytext));
+    p1[(eEntry - yytext)] = '\0';
+    char *p2ptr = eEntry + 1;
+    if (*p2ptr == '-')
+    {
+        sign = -1;
+        p2ptr += 1;
+    }
+    strcpy(p2, p2ptr);
+    double f1 = atof(p1);
+    int f2 = atoi(p2);
+
+    fNumber = f1 * pow(10, f2 * sign);
+    printf("Floating-point number: %f\n", fNumber);
+};
+[0-9\.Ee]+ {printf("Impossible number literal: %s\n", yytext);};
+[0-9]+(\.[0-9]+)?[eE]-?[0-9\.eE]+ {printf("Impossible number literal: %s\n", yytext);};
 [\s\n ] {}
 [a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext);};
 [0-9]([a-zA-Z_0-9]*) {printf("Impossible token: %s\n", yytext);};
