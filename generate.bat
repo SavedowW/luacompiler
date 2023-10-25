@@ -1,1 +1,1 @@
-flex -o"%~dp0/lex.yy.c" "%~dp0/code.l"
+flex -o"%~dp0/lex.cpp" "%~dp0/code.l"

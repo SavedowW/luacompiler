@@ -1,5 +1,30 @@
 cmake_minimum_required (VERSION 3.20)
 
-project (LexAnalys C)
+project (LuaAnalysis)
 
-add_executable(LexAnalys lex.yy.c)
+find_package(BISON)
+find_package(FLEX)
+
+BISON_TARGET(MyParser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
+             DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/parser.hpp)
+FLEX_TARGET(MyScanner code.l  ${CMAKE_CURRENT_BINARY_DIR}/lex.cpp)
+ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
+
+message("Flex found: " ${FLEX_FOUND})
+message("Bison found: " ${BISON_FOUND})
+message(${BISON_MyParser_OUTPUTS})
+
+set(SRC_FILES
+${BISON_MyParser_OUTPUT_SOURCE}
+${FLEX_MyScanner_OUTPUTS}
+)
+
+set(INCLUDE_DIRS
+${CMAKE_CURRENT_LIST_DIR}
+${BISON_INCLUDE_DIRS}
+)
+
+add_executable (${PROJECT_NAME} ${SRC_FILES})
+
+include_directories(${INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME})

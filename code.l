@@ -6,6 +6,10 @@
     #include <string.h>
     #include <math.h>
     #include <stdlib.h>
+    #include <conio.h>
+    #include "tree_structs.h"
+    #include "tree_print.h"
+    #include "parser.hpp"
     char str[1000];
     char *lineEnd = str;
     int stringOpenerLevel = 0;
@@ -13,6 +17,7 @@
     void addToStr(const char *extention, int len);
     void addCharToStr(const char ch);
     void resetStr();
+    extern int yyparse(void);
 %}
 POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
  
@@ -94,7 +99,7 @@ POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
 <SINGLE_QUOTE_STRING>' {printSavedStr(); BEGIN(INITIAL);};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\. {printf("ERROR: unknown escape sequence: %s\n", yytext);};
 
-; {printf("Empty statement: %s\n", yytext);};
+; {printf("Empty statement: %s\n", yytext); return ';';};
 and {printf("Keyword: %s\n", yytext);};
 false {printf("Keyword: %s\n", yytext);};
 local {printf("Keyword: %s\n", yytext);};
@@ -117,11 +122,11 @@ repeat {printf("Keyword: %s\n", yytext);};
 end {printf("Keyword: %s\n", yytext);};
 in {printf("Keyword: %s\n", yytext);};
 return {printf("Keyword: %s\n", yytext);};
-print {printf("Print call: %s\n", yytext);};
-\+ {printf("Operator: %s\n", yytext);};
-- {printf("Operator: %s\n", yytext);};
-\* {printf("Operator: %s\n", yytext);};
-\/ {printf("Operator: %s\n", yytext);};
+print {printf("Print call: %s\n", yytext); return PRINT;};
+\+ {printf("Operator: %s\n", yytext); return '+';};
+- {printf("Operator: %s\n", yytext); return '-';};
+\* {printf("Operator: %s\n", yytext); return '*';};
+\/ {printf("Operator: %s\n", yytext); return '/';};
 % {printf("Operator: %s\n", yytext);};
 \^ {printf("Operator: %s\n", yytext);};
 # {printf("Operator: %s\n", yytext);};
@@ -138,8 +143,8 @@ print {printf("Print call: %s\n", yytext);};
 \< {printf("Operator: %s\n", yytext);};
 \> {printf("Operator: %s\n", yytext);};
 = {printf("Operator: %s\n", yytext);};
-\( {printf("Operator: %s\n", yytext);};
-\) {printf("Operator: %s\n", yytext);};
+\( {printf("Operator: %s\n", yytext); return '(';};
+\) {printf("Operator: %s\n", yytext); return ')';};
 \{ {printf("Operator: %s\n", yytext);};
 \} {printf("Operator: %s\n", yytext);};
 \[ {printf("Operator: %s\n", yytext);};
@@ -150,8 +155,8 @@ print {printf("Print call: %s\n", yytext);};
 \. {printf("Operator: %s\n", yytext);};
 \.\. {printf("Operator: %s\n", yytext);};
 \.\.\. {printf("Operator: %s\n", yytext);};
-0x[0-9a-fA-F]+ {long long iNumber = strtol(yytext, NULL, 16); printf("Integral number: %d\n", iNumber);};
-[0-9]+ {long long iNumber = atoi(yytext); printf("Integral number: %d\n", iNumber);};
+0x[0-9a-fA-F]+ {long long iNumber = strtol(yytext, NULL, 16); printf("Integral number: %d\n", iNumber); yylval.int_const=iNumber; return INT;};
+[0-9]+ {long long iNumber = atoi(yytext); printf("Integral number: %d\n", iNumber); yylval.int_const=iNumber; return INT;};
 {POINT_NUM} {
     double fNumber = atof(yytext);
     printf("Floating-point number: %f\n", fNumber);
@@ -202,17 +207,21 @@ void resetStr()
     lineEnd = str;
 }
 
-int main(int argc, char **argv) {
- 
-if (argc <= 1)
+int main(int argc, char **argv)
 {
-    printf("Need at least 1 argument");
+    
+    if (argc <= 1)
+    {
+        printf("Need at least 1 argument");
+        return 0;
+    }
+
+    FILE *fp = fopen(argv[1],"r");
+    yyin = fp;
+    
+    yyparse();
+    tree_print();
+    getch();
+    
     return 0;
-}
-FILE *fp = fopen(argv[1],"r");
-yyin = fp;
- 
-yylex();
- 
-return 0;
 }
