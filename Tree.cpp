@@ -1,4 +1,5 @@
 #include "Tree.h"
+#include <iostream>
 
 Program *TreeFactory::CreateProgram(StatementsList *lst)
 {
@@ -8,6 +9,7 @@ Program *TreeFactory::CreateProgram(StatementsList *lst)
 }
 StatementsList *TreeFactory::AppendStatementToList(StatementsList *lst, Statement *stm)
 {
+	std::cout << "Append to statement list\n";
 	StatementsList *crt = new StatementsList;
 	crt->next=0;
 	lst->next=crt;
@@ -16,6 +18,7 @@ StatementsList *TreeFactory::AppendStatementToList(StatementsList *lst, Statemen
 }
 StatementsList *TreeFactory::CreateStList(Statement *stm)
 {
+    std::cout << "Created statement list\n";
 	StatementsList *crt = new StatementsList;
 	crt->next=0;
 	crt->stm=stm;
@@ -23,6 +26,7 @@ StatementsList *TreeFactory::CreateStList(Statement *stm)
 }
 Statement *TreeFactory::CreateStatement(Expression *exp)
 {
+	std::cout << "Created statement\n";
 	Statement *crt = new Statement;
 	crt->to_print=exp;
 	return crt;

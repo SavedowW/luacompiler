@@ -2,7 +2,7 @@
 
 extern Program *prg;
 
-int TreePrint::printTree(Program *ptr)
+int TreePrint::printTree(void)
 {
 	printf("\nProgram:");
 	lst_print(prg->stmts, 0);
