@@ -1,16 +1,10 @@
 %{
-#include "tree_structs.h"
+#include "Tree.h"
 #include <stdio.h>
 #include <malloc.h>
 void yyerror(char const *s);
 extern int yylex(void);
-Program *CreateProgram(Statements_List *lst);
-Statements_List *AppendStatementToList(Statements_List *lst,Statement *stm);
-Statements_List *CreateStList(Statement *stm);
-Statement *CreateStatement(Expression *exp);
-Expression *CreateBinExp(int op,Expression *left,Expression *right);
-Expression *CreateIntExp(int value);
-Statements_List *lst_start;
+StatementsList *lst_start;
 Program *prg;
 %}
 %union {
@@ -18,7 +12,7 @@ Program *prg;
 	Expression *exp;
 	Statement *stm;
 	Program *prg;
-	Statements_List *lst;
+	StatementsList *lst;
 }
 %type <prg>seq
 %type <lst>seq1
@@ -30,66 +24,23 @@ Program *prg;
 %left '*' '/'
 %nonassoc ')'
 %%
-seq: seq1 {$$=prg=CreateProgram(lst_start);}
+seq: seq1 {$$=prg=TreeFactory::CreateProgram(lst_start);}
     ;
-seq1: seq1 stmt {$$=AppendStatementToList($1,$2);}
-    | stmt {$$=lst_start=CreateStList($1);}
+seq1: seq1 stmt {$$=TreeFactory::AppendStatementToList($1,$2);}
+    | stmt {$$=lst_start=TreeFactory::CreateStList($1);}
     ;
-stmt: PRINT expr ';' {$$=CreateStatement($2);}
+stmt: PRINT expr {$$=TreeFactory::CreateStatement($2);}
     ;
-expr: expr '+' expr {$$=CreateBinExp(1,$1,$3);}
-    | expr '-' expr {$$=CreateBinExp(2,$1,$3);}
-    | expr '*' expr {$$=CreateBinExp(3,$1,$3);}
-    | expr '/' expr {$$=CreateBinExp(4,$1,$3);}
+expr: expr '+' expr {$$=TreeFactory::CreateBinExp(EXPRESSION_TYPE::BIN_PLUS,$1,$3);}
+    | expr '-' expr {$$=TreeFactory::CreateBinExp(EXPRESSION_TYPE::BIN_MINUS,$1,$3);}
+    | expr '*' expr {$$=TreeFactory::CreateBinExp(EXPRESSION_TYPE::BIN_MUL,$1,$3);}
+    | expr '/' expr {$$=TreeFactory::CreateBinExp(EXPRESSION_TYPE::BIN_DIV,$1,$3);}
     | '(' expr ')' {$$=$2;}
-    | INT {$$=CreateIntExp($1);}
+    | INT {$$=TreeFactory::CreateIntExp($1);}
     ;
 %%
 
 void yyerror(char const *s)
 {
- printf("%s",s);
-}
-
-Program *CreateProgram(Statements_List *lst)
-{
-	Program *crt=(Program *)malloc(sizeof(Program));
-	crt->stmts=lst;
-	return crt;
-}
-Statements_List *AppendStatementToList(Statements_List *lst,Statement *stm)
-{
-	Statements_List *crt=(Statements_List *)malloc(sizeof(Statements_List));
-	crt->next=0;
-	lst->next=crt;
-	crt->stm=stm;
-	return crt;
-}
-Statements_List *CreateStList(Statement *stm)
-{
-	Statements_List *crt=(Statements_List *)malloc(sizeof(Statements_List));
-	crt->next=0;
-	crt->stm=stm;
-	return crt;
-}
-Statement *CreateStatement(Expression *exp)
-{
-	Statement *crt=(Statement *)malloc(sizeof(Statement));
-	crt->to_print=exp;
-	return crt;
-}
-Expression *CreateBinExp(int op,Expression *left,Expression *right)
-{
-	Expression *crt=(Expression *)malloc(sizeof(Expression));
-	crt->type=op;
-	crt->left=left;
-	crt->right=right;
-	return crt;
-}
-Expression *CreateIntExp(int value)
-{
-	Expression *crt=(Expression *)malloc(sizeof(Expression));
-	crt->type=0;
-	crt->value=value;
-	return crt;
+	printf("%s",s);
 }

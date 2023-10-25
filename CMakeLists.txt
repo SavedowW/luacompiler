@@ -15,6 +15,8 @@ message("Bison found: " ${BISON_FOUND})
 message(${BISON_MyParser_OUTPUTS})
 
 set(SRC_FILES
+Tree.cpp
+TreePrint.cpp
 ${BISON_MyParser_OUTPUT_SOURCE}
 ${FLEX_MyScanner_OUTPUTS}
 )

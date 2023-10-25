@@ -7,8 +7,8 @@
     #include <math.h>
     #include <stdlib.h>
     #include <conio.h>
-    #include "tree_structs.h"
-    #include "tree_print.h"
+    #include "Tree.h"
+    #include "TreePrint.h"
     #include "parser.hpp"
     char str[1000];
     char *lineEnd = str;
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
     yyin = fp;
     
     yyparse();
-    tree_print();
+    TreePrint::printTree();
     getch();
     
     return 0;
