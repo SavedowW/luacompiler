@@ -1,3 +1,4 @@
+#define YYERROR_VERBOSE
 #ifndef TREE_H_
 #define TREE_H_
 #include <string>
@@ -17,7 +18,8 @@ enum class EXPRESSION_TYPE {
 enum class STATEMENT_TYPE {
 	PRINT,
 	EXPR,
-	STMT_LIST
+	STMT_LIST,
+	IF_ELSE
 };
 
 class Expression
@@ -57,6 +59,16 @@ public:
 	std::vector<Statement*> lst;
 };
 
+class IfElseStmt : public Statement
+{
+public:
+	virtual std::string toString() const override;
+
+	Expression *condition;
+	StatementList *statement;
+	Statement *elseStatement;
+};
+
 class Program
 {
 public:
@@ -70,6 +82,7 @@ namespace TreeFactory
 	StatementList *CreateStList(Statement *stm);
 	Statement *CreatePrintStatement(Expression *exp);
 	Statement *CreateAssignStatement(Expression *exp1, Expression *exp2);
+	Statement *CreateIfElseStatement(Expression *condition_, StatementList *stmtList_, Statement *elseStmt_);
 	Expression *CreateBinExp(EXPRESSION_TYPE exprType_, Expression *left,Expression *right);
 	Expression *CreateConstExp(int value);
 	Expression *CreateConstExp(double value);

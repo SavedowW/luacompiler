@@ -58,8 +58,22 @@ std::string StatementList::toString() const
 	}
 }
 
+std::string IfElseStmt::toString() const
+{
+	switch(type)
+	{
+	case STATEMENT_TYPE::IF_ELSE:
+		return "if";
+		break;
+	default:
+		std::cout << "StatementList is used for improper type: " << (int)type << std::endl;
+		return "";
+	}
+}
+
 Program *TreeFactory::CreateProgram(StatementList *lst)
 {
+	std::cout << "Create program\n";
 	Program *crt = new Program;
 	crt->stmts = lst;
 	return crt;
@@ -67,13 +81,18 @@ Program *TreeFactory::CreateProgram(StatementList *lst)
 StatementList *TreeFactory::AppendStatementToList(StatementList *lst, Statement *stm)
 {
 	std::cout << "Append to statement list\n";
+	if (stm->type == STATEMENT_TYPE::IF_ELSE)
+		std::cout << "From ifelse\n";
 	lst->lst.push_back(stm);
 	return lst;
 }
 StatementList *TreeFactory::CreateStList(Statement *stm)
 {
     std::cout << "Created statement list\n";
+	if (stm->type == STATEMENT_TYPE::IF_ELSE)
+		std::cout << "From ifelse\n";
 	StatementList *lst = new StatementList;
+	lst->type = STATEMENT_TYPE::STMT_LIST;
 	lst->lst.push_back(stm);
 	return lst;
 }
@@ -124,5 +143,16 @@ Expression *TreeFactory::CreateIdfExp(const char *str_)
 	Expression *crt = new Expression;
 	crt->type=EXPRESSION_TYPE::IDENTIFIER;
 	crt->identifier = std::string(str_);
+	return crt;
+}
+
+Statement *TreeFactory::CreateIfElseStatement(Expression *condition_, StatementList *stmtList_, Statement *elseStmt_)
+{
+	std::cout << "Created if-else statement\n";
+	auto *crt = new IfElseStmt;
+	crt->type = STATEMENT_TYPE::IF_ELSE;
+	crt->condition = condition_;
+	crt->statement = stmtList_;
+	crt->elseStatement = elseStmt_;
 	return crt;
 }

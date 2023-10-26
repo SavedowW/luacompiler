@@ -38,6 +38,20 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		auto *realstmt = dynamic_cast<StatementList*>(stmt);
 		lst_print(realstmt, level);
 	}
+	case STATEMENT_TYPE::IF_ELSE:
+	{
+		auto *realstmt = dynamic_cast<IfElseStmt*>(stmt);
+		print_indent(level);
+		std::cout << "if ";
+		expr_print(realstmt->condition, 0);
+		std::cout << " then";
+		lst_print(realstmt->statement, level);
+		if (realstmt->elseStatement != nullptr)
+		{
+			std::cout << "\nelse";
+			stmt_print(realstmt->elseStatement, level + 1);
+		}
+	}
 		break;
 	}
 }
@@ -86,7 +100,8 @@ void TreePrint::expr_print(Expression *expr, int level)
 void TreePrint::print_indent(int level)
 {
 	int i;
-	printf("\n");
+	if (level > 0)
+		printf("\n");
 	for(i=0;i<level;i++)
 	{
 		printf("  ");

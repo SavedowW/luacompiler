@@ -7,8 +7,8 @@
 #include <malloc.h>
 void yyerror(char const *s);
 extern int yylex(void);
-StatementList *lst_start;
-Program *prg;
+StatementList *lst_start = nullptr;
+Program *prg = nullptr;
 %}
 %union {
 	int int_const;
@@ -28,15 +28,20 @@ Program *prg;
 %token <int_const>INT
 %token <double_const>DOUBLE
 %token <identifier>IDENTIFIER;
+%token IF;
+%token ELSE;
+%token ELSEIF;
+%token THEN;
+%token END;
 %left '-' '+'
 %left '*' '/'
 %nonassoc ')'
 %%
-seq: seq1 {$$=prg=TreeFactory::CreateProgram(lst_start);}
+seq: seq1 {$$=TreeFactory::CreateProgram(lst_start); if (!prg) prg = $$; }
     ;
 
 seq1: seq1 stmt {$$=TreeFactory::AppendStatementToList($1,$2);}
-    | stmt {$$=lst_start=TreeFactory::CreateStList($1);}
+    | stmt {$$=TreeFactory::CreateStList($1); if (!lst_start) lst_start = $$; }
     ;
 
 stmt: PRINT expr {$$=TreeFactory::CreatePrintStatement($2);}
@@ -45,6 +50,7 @@ stmt: PRINT expr {$$=TreeFactory::CreatePrintStatement($2);}
     | expr '=' expr {yyerror("Unexpected symbol near '='");}
     | expr stmt {yyerror((std::string("Unexpected symbol near ") + $2->toString()).c_str());}
     | expr {yyerror("Unexpected symbol near <EOF>");}
+    | IF expr THEN seq1 END {$$=TreeFactory::CreateIfElseStatement($2, $4, nullptr);}
     ;
 
 expr: expr '+' expr {$$=TreeFactory::CreateBinExp(EXPRESSION_TYPE::BIN_PLUS,$1,$3);}
