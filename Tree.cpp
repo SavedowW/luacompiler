@@ -29,7 +29,7 @@ std::string Expression::toString() const
 	}
 }
 
-std::string Statement::toString() const
+std::string SingleExprStatement::toString() const
 {
 	switch(type)
 	{
@@ -39,36 +39,48 @@ std::string Statement::toString() const
 	case STATEMENT_TYPE::EXPR:
 		return to_print->toString();
 		break;
+	default:
+		std::cout << "SingleExprStatement is used for improper type: " << (int)type << std::endl;
+		return "";
 	}
 }
 
-Program *TreeFactory::CreateProgram(StatementsList *lst)
+std::string StatementList::toString() const
+{
+	switch(type)
+	{
+	case STATEMENT_TYPE::STMT_LIST:
+		return "StmtList";
+		break;
+	default:
+		std::cout << "StatementList is used for improper type: " << (int)type << std::endl;
+		return "";
+	}
+}
+
+Program *TreeFactory::CreateProgram(StatementList *lst)
 {
 	Program *crt = new Program;
 	crt->stmts = lst;
 	return crt;
 }
-StatementsList *TreeFactory::AppendStatementToList(StatementsList *lst, Statement *stm)
+StatementList *TreeFactory::AppendStatementToList(StatementList *lst, Statement *stm)
 {
 	std::cout << "Append to statement list\n";
-	StatementsList *crt = new StatementsList;
-	crt->next=0;
-	lst->next=crt;
-	crt->stm = stm;
-	return crt;
+	lst->lst.push_back(stm);
+	return lst;
 }
-StatementsList *TreeFactory::CreateStList(Statement *stm)
+StatementList *TreeFactory::CreateStList(Statement *stm)
 {
     std::cout << "Created statement list\n";
-	StatementsList *crt = new StatementsList;
-	crt->next=0;
-	crt->stm=stm;
-	return crt;
+	StatementList *lst = new StatementList;
+	lst->lst.push_back(stm);
+	return lst;
 }
 Statement *TreeFactory::CreatePrintStatement(Expression *exp)
 {
 	std::cout << "Created print statement\n";
-	Statement *crt = new Statement;
+	SingleExprStatement *crt = new SingleExprStatement;
 	crt->type = STATEMENT_TYPE::PRINT;
 	crt->to_print=exp;
 	return crt;
@@ -77,7 +89,7 @@ Statement *TreeFactory::CreatePrintStatement(Expression *exp)
 Statement *TreeFactory::CreateAssignStatement(Expression *exp1, Expression *exp2)
 {
 	std::cout << "Created assign statement\n";
-	Statement *crt = new Statement;
+	SingleExprStatement *crt = new SingleExprStatement;
 	crt->type = STATEMENT_TYPE::EXPR;
 	crt->to_print=CreateBinExp(EXPRESSION_TYPE::BIN_ASSIGN, exp1, exp2);
 	return crt;

@@ -9,12 +9,11 @@ int TreePrint::printTree(void)
 	return 0;
 }
 
-void TreePrint::lst_print(StatementsList*stmts, int level)
+void TreePrint::lst_print(StatementList *stmts, int level)
 {
-	while(stmts!=0)
+	for (auto &el : stmts->lst)
 	{
-		stmt_print(stmts->stm, level + 1);
-		stmts=stmts->next;
+		stmt_print(el, level + 1);
 	} 
 }
 void TreePrint::stmt_print(Statement *stmt, int level)
@@ -22,12 +21,23 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 	switch(stmt->type)
 	{
 	case STATEMENT_TYPE::PRINT:
+	{
+		auto *realstmt = dynamic_cast<SingleExprStatement*>(stmt);
 		print_indent(level);
 		printf("print");
-		expr_print(stmt->to_print, level + 1);
+		expr_print(realstmt->to_print, level + 1);
+	}
 		break;
 	case STATEMENT_TYPE::EXPR:
-		expr_print(stmt->to_print, level);
+	{
+		auto *realstmt = dynamic_cast<SingleExprStatement*>(stmt);
+		expr_print(realstmt->to_print, level);
+	}
+	case STATEMENT_TYPE::STMT_LIST:
+	{
+		auto *realstmt = dynamic_cast<StatementList*>(stmt);
+		lst_print(realstmt, level);
+	}
 		break;
 	}
 }

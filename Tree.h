@@ -1,6 +1,7 @@
 #ifndef TREE_H_
 #define TREE_H_
 #include <string>
+#include <vector>
 
 enum class EXPRESSION_TYPE {
 	INT,
@@ -15,7 +16,8 @@ enum class EXPRESSION_TYPE {
 
 enum class STATEMENT_TYPE {
 	PRINT,
-	EXPR
+	EXPR,
+	STMT_LIST
 };
 
 class Expression
@@ -34,30 +36,38 @@ public:
 class Statement
 {
 public:
-	std::string toString() const;
+	virtual std::string toString() const = 0;
 
 	STATEMENT_TYPE type;
+};
+
+class SingleExprStatement : public Statement
+{
+public:
+	virtual std::string toString() const override;
+
 	Expression *to_print;
 };
 
-class StatementsList
+class StatementList : public Statement
 {
 public:
-	Statement *stm;
-	StatementsList *next;
+	virtual std::string toString() const override;
+
+	std::vector<Statement*> lst;
 };
 
 class Program
 {
 public:
-	StatementsList *stmts;
+	StatementList *stmts;
 };
 
 namespace TreeFactory
 {
-	Program *CreateProgram(StatementsList *lst);
-	StatementsList *AppendStatementToList(StatementsList *lst,Statement *stm);
-	StatementsList *CreateStList(Statement *stm);
+	Program *CreateProgram(StatementList *lst);
+	StatementList *AppendStatementToList(StatementList *lst, Statement *stm);
+	StatementList *CreateStList(Statement *stm);
 	Statement *CreatePrintStatement(Expression *exp);
 	Statement *CreateAssignStatement(Expression *exp1, Expression *exp2);
 	Expression *CreateBinExp(EXPRESSION_TYPE exprType_, Expression *left,Expression *right);

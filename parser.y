@@ -1,12 +1,13 @@
 %{
 #include "Tree.h"
 #include "TreePrint.h"
+#include <vector>
 #include <iostream>
 #include <stdio.h>
 #include <malloc.h>
 void yyerror(char const *s);
 extern int yylex(void);
-StatementsList *lst_start;
+StatementList *lst_start;
 Program *prg;
 %}
 %union {
@@ -15,7 +16,7 @@ Program *prg;
 	Expression *exp;
 	Statement *stm;
 	Program *prg;
-	StatementsList *lst;
+	StatementList *lst;
     const char *identifier;
 }
 %type <prg>seq
