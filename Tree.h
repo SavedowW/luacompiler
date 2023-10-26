@@ -4,6 +4,17 @@
 #include <string>
 #include <vector>
 
+class DoublePtrString
+{
+public:
+	DoublePtrString clone() const;
+
+	char *begin;
+	char *end;
+};
+
+std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_);
+
 enum class EXPRESSION_TYPE {
 	INT,
 	DOUBLE,
@@ -33,6 +44,14 @@ public:
 	std::string identifier;
 	Expression *left;
 	Expression *right;
+};
+
+class ExpressionList
+{
+public:
+	std::string toString() const;
+
+	std::vector<Expression*> lst;
 };
 
 class Statement
@@ -80,6 +99,7 @@ namespace TreeFactory
 	Program *CreateProgram(StatementList *lst);
 	StatementList *AppendStatementToList(StatementList *lst, Statement *stm);
 	StatementList *CreateStList(Statement *stm);
+	ExpressionList *CreateExprList(Expression *expr);
 	Statement *CreatePrintStatement(Expression *exp);
 	Statement *CreateAssignStatement(Expression *exp1, Expression *exp2);
 	Statement *CreateIfElseStatement(Expression *condition_, StatementList *stmtList_, Statement *elseStmt_);

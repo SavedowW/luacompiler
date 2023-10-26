@@ -1,5 +1,31 @@
 #include "Tree.h"
 #include <iostream>
+#include <stdio.h>
+#include <string.h>
+
+DoublePtrString DoublePtrString::clone() const
+{
+	DoublePtrString s;
+	int len = end-begin+1;
+	s.begin = new char[end-begin+1];
+	s.end = s.begin + len;
+	strncpy(s.begin, begin, len);
+}
+
+std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_)
+{
+    char *ptr = s_.begin;
+	out_ << '"';
+    while (ptr != s_.end)
+    {
+        if (*ptr == '\0')
+            out_ << '?';
+        else
+            out_ << *ptr;
+        ptr++;
+    }
+    out_ << '"';
+}
 
 std::string Expression::toString() const
 {
@@ -45,6 +71,11 @@ std::string SingleExprStatement::toString() const
 	}
 }
 
+std::string ExpressionList::toString() const
+{
+	return "exprlist";
+}
+
 std::string StatementList::toString() const
 {
 	switch(type)
@@ -81,21 +112,26 @@ Program *TreeFactory::CreateProgram(StatementList *lst)
 StatementList *TreeFactory::AppendStatementToList(StatementList *lst, Statement *stm)
 {
 	std::cout << "Append to statement list\n";
-	if (stm->type == STATEMENT_TYPE::IF_ELSE)
-		std::cout << "From ifelse\n";
 	lst->lst.push_back(stm);
 	return lst;
 }
 StatementList *TreeFactory::CreateStList(Statement *stm)
 {
     std::cout << "Created statement list\n";
-	if (stm->type == STATEMENT_TYPE::IF_ELSE)
-		std::cout << "From ifelse\n";
 	StatementList *lst = new StatementList;
 	lst->type = STATEMENT_TYPE::STMT_LIST;
 	lst->lst.push_back(stm);
 	return lst;
 }
+
+ExpressionList *TreeFactory::CreateExprList(Expression *expr)
+{
+	std::cout << "Created expression list\n";
+	ExpressionList *lst = new ExpressionList;
+	lst->lst.push_back(expr);
+	return lst;
+}
+
 Statement *TreeFactory::CreatePrintStatement(Expression *exp)
 {
 	std::cout << "Created print statement\n";

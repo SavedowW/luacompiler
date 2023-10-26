@@ -45,6 +45,8 @@ POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
     {
         printSavedStr();
         BEGIN(INITIAL);
+        yylval.str_const={str, lineEnd};
+        return STRING;
     }
     else
     {
@@ -95,19 +97,29 @@ POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\\\ {addCharToStr('\\');};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\n {printf("ERROR: unfinished string near '%s'\n", str);};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING><<EOF>> {printf("ERROR: unfinished string near <EOF>\n"); return 0;};
-<DOUBLE_QUOTE_STRING>\" {printSavedStr(); BEGIN(INITIAL);};
-<SINGLE_QUOTE_STRING>' {printSavedStr(); BEGIN(INITIAL);};
+<DOUBLE_QUOTE_STRING>\" {
+    printSavedStr();
+    BEGIN(INITIAL);
+    yylval.str_const={str, lineEnd};
+    return STRING;
+};
+<SINGLE_QUOTE_STRING>' {
+    printSavedStr();
+    BEGIN(INITIAL);
+    yylval.str_const={str, lineEnd};
+    return STRING;
+};
 <DOUBLE_QUOTE_STRING,SINGLE_QUOTE_STRING>\\. {printf("ERROR: unknown escape sequence: %s\n", yytext);};
 
-; {printf("Empty statement: %s\n", yytext); return ';';};
+; {printf("Empty statement: %s\n", yytext);};
 and {printf("Keyword: %s\n", yytext);};
-false {printf("Keyword: %s\n", yytext);};
+false {printf("Keyword: %s\n", yytext); yylval.bool_const=false; return BOOL;};
 local {printf("Keyword: %s\n", yytext);};
 then {printf("Keyword: %s\n", yytext); return THEN;};
 break {printf("Keyword: %s\n", yytext);};
 for {printf("Keyword: %s\n", yytext);};
-nil {printf("Keyword: %s\n", yytext);};
-true {printf("Keyword: %s\n", yytext);};
+nil {printf("Keyword: %s\n", yytext); return NIL;};
+true {printf("Keyword: %s\n", yytext); yylval.bool_const=true; return BOOL;};
 do {printf("Keyword: %s\n", yytext);};
 function {printf("Keyword: %s\n", yytext);};
 not {printf("Keyword: %s\n", yytext);};
@@ -121,7 +133,7 @@ if {printf("Keyword: %s\n", yytext); return IF;};
 repeat {printf("Keyword: %s\n", yytext);};
 end {printf("Keyword: %s\n", yytext); return END;};
 in {printf("Keyword: %s\n", yytext);};
-return {printf("Keyword: %s\n", yytext);};
+return {printf("Keyword: %s\n", yytext); return RETURN;};
 print {printf("Print call: %s\n", yytext); return PRINT;};
 \+ {printf("Operator: %s\n", yytext); return '+';};
 - {printf("Operator: %s\n", yytext); return '-';};
@@ -150,8 +162,9 @@ print {printf("Print call: %s\n", yytext); return PRINT;};
 \[ {printf("Operator: %s\n", yytext);};
 \] {printf("Operator: %s\n", yytext);};
 :: {printf("Operator: %s\n", yytext);};
+\.\. {printf("Operator: %s\n", yytext); return VAR_CONCAT;};
 : {printf("Operator: %s\n", yytext);};
-, {printf("Operator: %s\n", yytext);};
+, {printf("Operator: %s\n", yytext); return ',';};
 \. {printf("Operator: %s\n", yytext);};
 \.\. {printf("Operator: %s\n", yytext);};
 \.\.\. {printf("Operator: %s\n", yytext);};
