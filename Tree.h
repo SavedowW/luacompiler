@@ -1,20 +1,32 @@
 #ifndef TREE_H_
 #define TREE_H_
-
+#include <string>
 
 enum class EXPRESSION_TYPE {
 	INT,
+	DOUBLE,
+	IDENTIFIER,
 	BIN_PLUS,
 	BIN_MINUS,
 	BIN_MUL,
-	BIN_DIV
+	BIN_DIV,
+	BIN_ASSIGN
+};
+
+enum class STATEMENT_TYPE {
+	PRINT,
+	EXPR
 };
 
 class Expression
 {
 public:
+	std::string toString() const;
+
 	EXPRESSION_TYPE type;
-	int value;
+	int iValue;
+	double fValue;
+	std::string identifier;
 	Expression *left;
 	Expression *right;
 };
@@ -22,6 +34,9 @@ public:
 class Statement
 {
 public:
+	std::string toString() const;
+
+	STATEMENT_TYPE type;
 	Expression *to_print;
 };
 
@@ -43,9 +58,12 @@ namespace TreeFactory
 	Program *CreateProgram(StatementsList *lst);
 	StatementsList *AppendStatementToList(StatementsList *lst,Statement *stm);
 	StatementsList *CreateStList(Statement *stm);
-	Statement *CreateStatement(Expression *exp);
+	Statement *CreatePrintStatement(Expression *exp);
+	Statement *CreateAssignStatement(Expression *exp1, Expression *exp2);
 	Expression *CreateBinExp(EXPRESSION_TYPE exprType_, Expression *left,Expression *right);
-	Expression *CreateIntExp(int value);
+	Expression *CreateConstExp(int value);
+	Expression *CreateConstExp(double value);
+	Expression *CreateIdfExp(const char *str_);
 };
 
 #endif

@@ -28,5 +28,7 @@ ${BISON_INCLUDE_DIRS}
 
 add_executable (${PROJECT_NAME} ${SRC_FILES})
 
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
+
 include_directories(${INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME})

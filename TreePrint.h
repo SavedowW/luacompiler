@@ -2,6 +2,7 @@
 #define TREE_PRINT_H_
 
 #include <stdio.h>
+#include <iostream>
 #include "Tree.h"
 
 namespace TreePrint

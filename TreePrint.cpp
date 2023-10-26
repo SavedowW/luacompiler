@@ -19,9 +19,17 @@ void TreePrint::lst_print(StatementsList*stmts, int level)
 }
 void TreePrint::stmt_print(Statement *stmt, int level)
 {
-	print_indent(level);
-	printf("print");
-	expr_print(stmt->to_print, level + 1);
+	switch(stmt->type)
+	{
+	case STATEMENT_TYPE::PRINT:
+		print_indent(level);
+		printf("print");
+		expr_print(stmt->to_print, level + 1);
+		break;
+	case STATEMENT_TYPE::EXPR:
+		expr_print(stmt->to_print, level);
+		break;
+	}
 }
 void TreePrint::expr_print(Expression *expr, int level)
 {
@@ -29,7 +37,10 @@ void TreePrint::expr_print(Expression *expr, int level)
 	switch(expr->type)
 	{
 	case EXPRESSION_TYPE::INT:
-		printf("%d",expr->value);
+		printf("%d",expr->iValue);
+		break;
+	case EXPRESSION_TYPE::DOUBLE:
+		std::cout << expr->fValue;
 		break;
 	case EXPRESSION_TYPE::BIN_PLUS:
 		printf("+");
@@ -50,6 +61,14 @@ void TreePrint::expr_print(Expression *expr, int level)
 		printf("/");
 		expr_print(expr->left, level + 1);
 		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BIN_ASSIGN:
+		printf("=");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::IDENTIFIER:
+		std::cout << expr->identifier;
 		break;
 	}
 }

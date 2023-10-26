@@ -142,7 +142,7 @@ print {printf("Print call: %s\n", yytext); return PRINT;};
 \>= {printf("Operator: %s\n", yytext);};
 \< {printf("Operator: %s\n", yytext);};
 \> {printf("Operator: %s\n", yytext);};
-= {printf("Operator: %s\n", yytext);};
+= {printf("Operator: %s\n", yytext); return '='; };
 \( {printf("Operator: %s\n", yytext); return '(';};
 \) {printf("Operator: %s\n", yytext); return ')';};
 \{ {printf("Operator: %s\n", yytext);};
@@ -160,14 +160,18 @@ print {printf("Print call: %s\n", yytext); return PRINT;};
 {POINT_NUM} {
     double fNumber = atof(yytext);
     printf("Floating-point number: %f\n", fNumber);
+    yylval.double_const=fNumber;
+    return DOUBLE;
     };
 {POINT_NUM}[eE][+-]?[0-9]+ {
     double fNumber = atof(yytext);
     printf("Floating-point number: %f\n", fNumber);
+    yylval.double_const=fNumber;
+    return DOUBLE;
 };
 {POINT_NUM}[0-9\.Ee_]+ {printf("ERROR: impossible number literal r1: %s\n", yytext);};
 [\s\n ]+ {}
-[a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext);};
+[a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext); yylval.identifier = yytext; return IDENTIFIER; };
 [0-9]([a-zA-Z_0-9]*) {printf("ERROR: impossible token: %s\n", yytext);};
 %%
  
