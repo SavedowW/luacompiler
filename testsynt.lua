@@ -48,3 +48,18 @@ end
 f = function (a)
     return a*a
 end
+
+for i,k in gettable() do
+    print(i,k)
+    show"output"
+    show{foo = "bar", [123] = 456}
+end
+
+a[123] = 5
+a = {}
+t = {["foo"] = "bar", [123] = 456}
+
+a.b()
+a:b()
+a = a ^ b
+a = a % b

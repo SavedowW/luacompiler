@@ -29,6 +29,9 @@ Program *prg = nullptr;
 %type <stm>if_else_end_sequence
 %type <stm>named_function_definition
 %type <expr>unnamed_function_definition
+%type <expr>key_value_association
+%type <expr>key_value_association_list
+%type <expr>table_construct
 %type <exp>expr
 %type <explst>expr_list
 %type <explst>param_list_no_vararg
@@ -48,6 +51,7 @@ Program *prg = nullptr;
 %token BREAK;
 %token WHILE;
 %token DO;
+%token IN;
 %token REPEAT;
 %token UNTIL;
 %token FOR;
@@ -62,11 +66,20 @@ Program *prg = nullptr;
 %token TRUE;
 %token FALSE;
 %token NOT;
+%token EQUALS;
+%token GREATER;
+%token GREATER_EQUALS;
+%token LESS;
+%token LESS_EQUALS;
+%token FLOOR_DIVISION;
+%token BITWISE_LEFT_SHIFT;
+%token BITWISE_RIGHT_SHIFT;
 %left AND OR
 %left '-' '+'
 %left '*' '/'
 %nonassoc ')' '='
 %left ','
+%left '[' ']'
 %%
 start: seq
 
@@ -86,6 +99,7 @@ stmt: PRINT STRING {std::cout << "Created print stmt, string: " << $2 << std::en
     | REPEAT seq1 UNTIL expr {printf("Merged into single REPEAT\n");}
     | FOR IDENTIFIER '=' expr ',' expr DO seq1 END {printf("Merged into single FOR\n");}
     | FOR IDENTIFIER '=' expr ',' expr ',' expr DO seq1 END {printf("Merged into single FOR with step\n");}
+    | FOR param_list_no_vararg IN expr DO seq1 END {printf("Merged into single generic FOR\n");}
     | function_call {std::cout << "Statement from func call\n";}
     | return_stmt {std::cout << "Return statement found\n";}
     | BREAK {std::cout << "BREAK statement found\n";}
@@ -100,8 +114,24 @@ if_else_end_sequence:
 
 expr: expr '+' expr
     | expr '-' expr
+    | '-' expr
     | expr '*' expr
     | expr '/' expr
+    | expr '%' expr
+    | expr '^' expr
+    | expr '&' expr
+    | expr '|' expr
+    | expr '~' expr
+    | expr EQUALS expr
+    | expr GREATER expr
+    | expr GREATER_EQUALS expr
+    | expr LESS expr
+    | expr LESS_EQUALS expr
+    | expr FLOOR_DIVISION expr
+    | expr BITWISE_LEFT_SHIFT expr
+    | expr BITWISE_RIGHT_SHIFT expr
+    | '~' expr
+    | '#' expr
     | expr AND expr
     | expr OR expr
     | NOT expr
@@ -115,6 +145,7 @@ expr: expr '+' expr
     | assignable_expr
     | function_call  {std::cout << "Expression from function call\n";}
     | unnamed_function_definition {std::cout << "Unnamed function definition\n";}
+    | table_construct
     ;
 
 expr_list: expr
@@ -125,6 +156,8 @@ expr_list: expr
 assignable_expr: IDENTIFIER
     | LOCAL IDENTIFIER {std::cout << "Local identifier found\n";};
     | assignable_expr '.' assignable_expr {std::cout << "Found . call\n";};
+    | assignable_expr ':' assignable_expr {std::cout << "Found : call\n";};
+    | assignable_expr '[' expr ']'
     | PRINT
     ;
 
@@ -133,6 +166,9 @@ assignable_expr_list: assignable_expr
     ;
 
 function_call: assignable_expr '(' expr_list ')' {std::cout << "Merged function call\n";}
+    | assignable_expr '('')' {std::cout << "Merged function call\n";}
+    | assignable_expr STRING {std::cout << "Merged function call\n";}
+    | assignable_expr table_construct {std::cout << "Merged function call\n";}
     ;
 
 named_function_definition: FUNCTION IDENTIFIER '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
@@ -147,12 +183,25 @@ return_stmt: RETURN
 
 param_list: param_list_no_vararg {std::cout << "Created final param list\n";}
     | param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n";}
+    |
     ;
 
 param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
     | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n";}
+    |
     ;
 
+key_value_association: '[' expr ']' '=' expr
+    | IDENTIFIER '=' expr
+    ;
+
+key_value_association_list: key_value_association
+    | key_value_association_list ',' key_value_association
+    | /* empty */
+    ;
+
+table_construct: '{' key_value_association_list '}'
+;
 
 %%
 
