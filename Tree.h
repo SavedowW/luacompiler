@@ -46,6 +46,12 @@ public:
 	Expression *right;
 };
 
+class ArgList
+{
+public:
+	std::vector<Expression*> lst;
+};
+
 class ExpressionList
 {
 public:

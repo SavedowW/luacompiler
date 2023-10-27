@@ -27,8 +27,12 @@ Program *prg = nullptr;
 %type <stm>stmt
 %type <stm>return_stmt
 %type <stm>if_else_end_sequence
+%type <stm>named_function_definition
+%type <expr>unnamed_function_definition
 %type <exp>expr
 %type <explst>expr_list
+%type <explst>param_list_no_vararg
+%type <explst>param_list
 %type <explst>assignable_expr_list
 %type <exp>assignable_expr
 %type <exp>function_call
@@ -38,6 +42,15 @@ Program *prg = nullptr;
 %token <str_const>STRING
 %token <bool_const>BOOL
 %token <identifier>IDENTIFIER;
+%token VARARG_PARAM;
+%token FUNCTION;
+%token LOCAL;
+%token BREAK;
+%token WHILE;
+%token DO;
+%token REPEAT;
+%token UNTIL;
+%token FOR;
 %token IF;
 %token ELSE;
 %token ELSEIF;
@@ -48,11 +61,15 @@ Program *prg = nullptr;
 %token RETURN;
 %token TRUE;
 %token FALSE;
+%token NOT;
+%left AND OR
 %left '-' '+'
 %left '*' '/'
 %nonassoc ')' '='
 %left ','
 %%
+start: seq
+
 seq: seq1
     ;
 
@@ -64,19 +81,30 @@ stmt: PRINT STRING {std::cout << "Created print stmt, string: " << $2 << std::en
     | assignable_expr '=' expr {printf("Created assign const expr\n");}
     | assignable_expr_list '=' expr_list {printf("Created chunk assignment\n");}
     | IF expr THEN seq1 if_else_end_sequence {printf("Merged into single IF\n");}
+    | IF expr THEN seq1 END {printf("Merged into single IF\n");}
+    | WHILE expr DO seq1 END {printf("Merged into single WHILE\n");}
+    | REPEAT seq1 UNTIL expr {printf("Merged into single REPEAT\n");}
+    | FOR IDENTIFIER '=' expr ',' expr DO seq1 END {printf("Merged into single FOR\n");}
+    | FOR IDENTIFIER '=' expr ',' expr ',' expr DO seq1 END {printf("Merged into single FOR with step\n");}
     | function_call {std::cout << "Statement from func call\n";}
     | return_stmt {std::cout << "Return statement found\n";}
+    | BREAK {std::cout << "BREAK statement found\n";}
+    | named_function_definition
     ;
 
-if_else_end_sequence: END {printf("Found END\n");}
-    | ELSE seq1 if_else_end_sequence {printf("Merged else into if_else_end_sequence\n");}
+if_else_end_sequence:
+    | ELSE seq1 END {printf("Merged else into if_else_end_sequence\n");}
     | ELSEIF expr THEN seq1 if_else_end_sequence {printf("Merged elseif into if_else_end_sequence\n");}
+    | ELSEIF expr THEN seq1 END {printf("Merged elseif into if_else_end_sequence\n");}
     ;
 
 expr: expr '+' expr
     | expr '-' expr
     | expr '*' expr
     | expr '/' expr
+    | expr AND expr
+    | expr OR expr
+    | NOT expr
     | expr VAR_CONCAT expr {std::cout << "Concat vars\n";}
     | '(' expr ')'
     | INT
@@ -86,6 +114,7 @@ expr: expr '+' expr
     | BOOL
     | assignable_expr
     | function_call  {std::cout << "Expression from function call\n";}
+    | unnamed_function_definition {std::cout << "Unnamed function definition\n";}
     ;
 
 expr_list: expr
@@ -94,6 +123,8 @@ expr_list: expr
     ;
 
 assignable_expr: IDENTIFIER
+    | LOCAL IDENTIFIER {std::cout << "Local identifier found\n";};
+    | assignable_expr '.' assignable_expr {std::cout << "Found . call\n";};
     | PRINT
     ;
 
@@ -104,8 +135,22 @@ assignable_expr_list: assignable_expr
 function_call: assignable_expr '(' expr_list ')' {std::cout << "Merged function call\n";}
     ;
 
+named_function_definition: FUNCTION IDENTIFIER '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
+    ;
+
+unnamed_function_definition: FUNCTION '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
+    ;
+
 return_stmt: RETURN
     | RETURN expr
+    ;
+
+param_list: param_list_no_vararg {std::cout << "Created final param list\n";}
+    | param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n";}
+    ;
+
+param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
+    | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n";}
     ;
 
 
