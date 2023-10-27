@@ -66,17 +66,16 @@ Program *prg = nullptr;
 %token TRUE;
 %token FALSE;
 %token NOT;
-%token EQUALS;
-%token GREATER;
-%token GREATER_EQUALS;
-%token LESS;
-%token LESS_EQUALS;
-%token FLOOR_DIVISION;
+%left EQUALS;
+%left GREATER;
+%left GREATER_EQUALS;
+%left LESS;
+%left LESS_EQUALS;
 %token BITWISE_LEFT_SHIFT;
 %token BITWISE_RIGHT_SHIFT;
 %left AND OR
 %left '-' '+'
-%left '*' '/'
+%left '*' '/' FLOOR_DIVISION
 %nonassoc ')' '='
 %left ','
 %left '[' ']'
@@ -122,11 +121,11 @@ expr: expr '+' expr
     | expr '&' expr
     | expr '|' expr
     | expr '~' expr
-    | expr EQUALS expr
-    | expr GREATER expr
-    | expr GREATER_EQUALS expr
-    | expr LESS expr
-    | expr LESS_EQUALS expr
+    | expr EQUALS expr {printf("Merged into single ==\n");}
+    | expr GREATER expr {printf("Merged into single >\n");}
+    | expr GREATER_EQUALS expr {printf("Merged into single >=\n");}
+    | expr LESS expr {printf("Merged into single <\n");}
+    | expr LESS_EQUALS expr {printf("Merged into single <=\n");}
     | expr FLOOR_DIVISION expr
     | expr BITWISE_LEFT_SHIFT expr
     | expr BITWISE_RIGHT_SHIFT expr

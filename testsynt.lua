@@ -1,3 +1,4 @@
+--[[
 print "coo\0lstr";
 print "part1\"part2";
 print 'part1\npart2';
@@ -63,3 +64,21 @@ a.b()
 a:b()
 a = a ^ b
 a = a % b
+--]]
+Account = {balance = 0}
+    
+function Account:new (o)
+  o = o or {}
+  setmetatable(o, self)
+  self.__index = self
+  return o
+end
+
+function Account:deposit (v)
+  self.balance = self.balance + v
+end
+
+function Account:withdraw (v)
+  if v > self.balance then error"insufficient funds" end
+  self.balance = self.balance - v
+end

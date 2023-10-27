@@ -25,6 +25,7 @@ std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_)
         ptr++;
     }
     out_ << '"';
+	return out_;
 }
 
 std::string Expression::toString() const
