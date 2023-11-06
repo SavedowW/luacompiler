@@ -22,7 +22,6 @@ Program *prg = nullptr;
     DoublePtrString str_const;
     bool bool_const;
 }
-%type <prg>seq
 %type <lst>seq1
 %type <stm>stmt
 %type <stm>return_stmt
@@ -80,10 +79,7 @@ Program *prg = nullptr;
 %left ','
 %left '[' ']'
 %%
-start: seq
-
-seq: seq1
-    ;
+start: seq1
 
 seq1: seq1 stmt {printf("Extended sequence\n");}
     | stmt {printf("Merged sequence\n");}
