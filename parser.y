@@ -34,11 +34,11 @@ Program *prg = nullptr;
 %type <expr>key_value_association
 %type <expr>key_value_association_list
 %type <expr>table_construct
-%type <exp>expr
 %type <explst>expr_list
 %type <explst>param_list_no_vararg
 %type <explst>param_list
 %type <explst>assignable_expr_list
+%type <exp>expr
 %type <exp>assignable_expr
 %type <exp>function_call
 %token <int_const>INT
@@ -61,22 +61,27 @@ Program *prg = nullptr;
 %token ELSEIF;
 %token THEN;
 %token END;
-%token VAR_CONCAT;
 %token NIL;
 %token RETURN;
 %token TRUE;
 %token FALSE;
-%token NOT;
+%left OR
+%left AND
 %left EQUALS;
 %left GREATER;
 %left GREATER_EQUALS;
 %left LESS;
 %left LESS_EQUALS;
-%token BITWISE_LEFT_SHIFT;
-%token BITWISE_RIGHT_SHIFT;
-%left AND OR
+%left '|';
+%left '&';
+%left '~';
+%left BITWISE_LEFT_SHIFT;
+%left BITWISE_RIGHT_SHIFT;
+%left VAR_CONCAT;
 %left '-' '+'
-%left '*' '/' FLOOR_DIVISION
+%left '*' '/' FLOOR_DIVISION '%'
+%nonassoc NOT '#';
+%left '^';
 %nonassoc ')' '='
 %left ','
 %left '[' ']'
@@ -130,7 +135,7 @@ expr: expr '+' expr
     | '#' expr
     | expr AND expr
     | expr OR expr
-    | NOT expr
+    | NOT expr {std::cout << "Merged into single NOT\n";}
     | expr VAR_CONCAT expr {std::cout << "Concat vars\n";}
     | '(' expr ')'
     | INT
@@ -184,7 +189,6 @@ return_stmt: RETURN
 
 param_list: param_list_no_vararg {std::cout << "Created final param list\n";}
     | param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n";}
-    |
     ;
 
 param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
