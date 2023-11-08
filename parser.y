@@ -21,7 +21,7 @@ Program *prg = nullptr;
     const char *identifier;
     DoublePtrString str_const;
     bool bool_const;
-}
+}g
 %type <lst>seq1
 %type <stm>stmt
 %type <stm>return_stmt
