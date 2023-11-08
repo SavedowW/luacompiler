@@ -3,3 +3,6 @@
 /.vs/*
 /CMakeUserPresets.json
 /*.exe
+/parser.cpp
+/parser.hpp
+/parser.output
