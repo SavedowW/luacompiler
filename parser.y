@@ -28,6 +28,9 @@ Program *prg = nullptr;
 %type <stm>if_else_end_sequence
 %type <stm>named_function_definition
 %type <expr>unnamed_function_definition
+%type <expr>function_name
+%type <expr>callable_name
+%type <expr>table_field
 %type <expr>key_value_association
 %type <expr>key_value_association_list
 %type <expr>table_construct
@@ -38,7 +41,6 @@ Program *prg = nullptr;
 %type <explst>assignable_expr_list
 %type <exp>assignable_expr
 %type <exp>function_call
-%token PRINT
 %token <int_const>INT
 %token <double_const>DOUBLE
 %token <str_const>STRING
@@ -85,8 +87,7 @@ seq1: seq1 stmt {printf("Extended sequence\n");}
     | stmt {printf("Merged sequence\n");}
     ;
 
-stmt: PRINT STRING {std::cout << "Created print stmt, string: " << $2 << std::endl;}
-    | assignable_expr '=' expr {printf("Created assign const expr\n");}
+stmt: assignable_expr '=' expr {printf("Created assign const expr\n");}
     | assignable_expr_list '=' expr_list {printf("Created chunk assignment\n");}
     | IF expr THEN seq1 if_else_end_sequence {printf("Merged into single IF\n");}
     | IF expr THEN seq1 END {printf("Merged into single IF\n");}
@@ -143,30 +144,35 @@ expr: expr '+' expr
     | table_construct
     ;
 
-expr_list: expr
-    | expr_list ',' expr
-    | assignable_expr_list
+expr_list: /* empty */
+    | expr {std::cout << "Merged expr_list\n";}
+    | expr_list ',' expr {std::cout << "Merged expr_list\n";}
+    | assignable_expr_list {std::cout << "Merged expr_list\n";}
     ;
 
 assignable_expr: IDENTIFIER
     | LOCAL IDENTIFIER {std::cout << "Local identifier found\n";};
-    | assignable_expr '.' assignable_expr {std::cout << "Found . call\n";};
-    | assignable_expr ':' assignable_expr {std::cout << "Found : call\n";};
-    | assignable_expr '[' expr ']'
-    | PRINT
+    | table_field
     ;
 
-assignable_expr_list: assignable_expr
-    | assignable_expr_list ',' assignable_expr
+assignable_expr_list: assignable_expr {std::cout << "Merged assignable_expr_list\n";}
+    | assignable_expr_list ',' assignable_expr {std::cout << "Merged assignable_expr_list\n";}
     ;
 
-function_call: assignable_expr '(' expr_list ')' {std::cout << "Merged function call\n";}
-    | assignable_expr '('')' {std::cout << "Merged function call\n";}
-    | assignable_expr STRING {std::cout << "Merged function call\n";}
-    | assignable_expr table_construct {std::cout << "Merged function call\n";}
+function_name: assignable_expr {std::cout << "Merged function name\n";}
+    | assignable_expr ':' IDENTIFIER {std::cout << "Merged function name\n";}
     ;
 
-named_function_definition: FUNCTION IDENTIFIER '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
+callable_name: function_name {std::cout << "Merged callable from function name\n";}
+    | function_call {std::cout << "Merged callable from function call\n";}
+    ;
+
+function_call: callable_name '(' expr_list ')' {std::cout << "Merged function call\n";}
+    | callable_name STRING {std::cout << "Merged function call\n";}
+    | callable_name table_construct {std::cout << "Merged function call\n";}
+    ;
+
+named_function_definition: FUNCTION function_name '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
     ;
 
 unnamed_function_definition: FUNCTION '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
@@ -184,6 +190,12 @@ param_list: param_list_no_vararg {std::cout << "Created final param list\n";}
 param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
     | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n";}
     |
+    ;
+
+table_field: assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n";}
+    | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n";}
+    | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}
+    | function_call '[' expr ']' {std::cout << "Merged table member from [] (func call)\n";}
     ;
 
 key_value_association: '[' expr ']' '=' expr

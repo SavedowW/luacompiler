@@ -134,7 +134,6 @@ repeat {printf("Keyword: %s\n", yytext); return REPEAT;};
 end {printf("Keyword: %s\n", yytext); return END;};
 in {printf("Keyword: %s\n", yytext); return IN;};
 return {printf("Keyword: %s\n", yytext); return RETURN;};
-print {printf("Print call: %s\n", yytext); return PRINT;};
 \+ {printf("Operator: %s\n", yytext); return '+';};
 - {printf("Operator: %s\n", yytext); return '-';};
 \* {printf("Operator: %s\n", yytext); return '*';};

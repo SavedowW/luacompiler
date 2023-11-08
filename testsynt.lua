@@ -1,7 +1,12 @@
-if (true) then
-    print("here1")
-elseif (5) then
-    print("here2")
-else
-    print("here3")
-end
+call()
+call(b, a)
+call(b, a)(c)
+
+a.b = 5
+a.b(c)
+call "str"
+call()("s")
+call() "s"
+call{a="str"}
+call{a="str"}{b="s2"}
+call{a="str"}.func{b="s2"}
