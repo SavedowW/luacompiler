@@ -33,10 +33,13 @@ Program *prg = nullptr;
 %type <expr>table_field
 %type <expr>key_value_association
 %type <expr>key_value_association_list
+%type <expr>key_value_association_listE
 %type <expr>table_construct
 %type <explst>expr_list
+%type <explst>expr_listE
 %type <explst>param_list_no_vararg
 %type <explst>param_list
+%type <explst>param_listE
 %type <explst>assignable_expr_list
 %type <exp>expr
 %type <exp>assignable_expr
@@ -107,7 +110,7 @@ stmt: assignable_expr '=' expr {printf("Created assign const expr\n");}
     | named_function_definition
     ;
 
-if_else_end_sequence:
+if_else_end_sequence: /* empty */
     | ELSE seq1 END {printf("Merged else into if_else_end_sequence\n");}
     | ELSEIF expr THEN seq1 if_else_end_sequence {printf("Merged elseif into if_else_end_sequence\n");}
     | ELSEIF expr THEN seq1 END {printf("Merged elseif into if_else_end_sequence\n");}
@@ -150,8 +153,11 @@ expr: expr '+' expr
     ;
 
 expr_list: /* empty */
-    | expr {std::cout << "Merged expr_list\n";}
-    | expr_list ',' expr {std::cout << "Merged expr_list\n";}
+    | expr_listE {std::cout << "Merged expr_list from E\n";}
+    ;
+
+expr_listE: expr {std::cout << "Merged expr_listE\n";}
+    | expr_listE ',' expr {std::cout << "Merged expr_listE\n";}
     | assignable_expr_list {std::cout << "Merged expr_list\n";}
     ;
 
@@ -187,13 +193,16 @@ return_stmt: RETURN
     | RETURN expr
     ;
 
-param_list: param_list_no_vararg {std::cout << "Created final param list\n";}
-    | param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n";}
+param_list:  /* empty */ 
+    | param_listE
+    | param_list_no_vararg {std::cout << "Created final param list without vararg\n";}
+    ;
+
+param_listE: param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n";}
     ;
 
 param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
     | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n";}
-    |
     ;
 
 table_field: assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n";}
@@ -206,9 +215,12 @@ key_value_association: '[' expr ']' '=' expr
     | IDENTIFIER '=' expr
     ;
 
-key_value_association_list: key_value_association
-    | key_value_association_list ',' key_value_association
-    | /* empty */
+key_value_association_list: /* empty */
+    | key_value_association_listE
+    ;
+
+key_value_association_listE: key_value_association
+    | key_value_association_listE ',' key_value_association
     ;
 
 table_construct: '{' key_value_association_list '}'
