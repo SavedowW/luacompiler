@@ -73,14 +73,13 @@ Program *prg = nullptr;
 %left AND
 %left EQUALS NOT_EQUALS GREATER GREATER_EQUALS LESS LESS_EQUALS;
 %left '|';
-%left '&';
 %left '~';
+%left '&';
 %left BITWISE_LEFT_SHIFT BITWISE_RIGHT_SHIFT;
 %left VAR_CONCAT;
 %left '-' '+';
 %left '*' '/' FLOOR_DIVISION '%';
-%left UMINUS
-%nonassoc NOT '#';
+%left UMINUS NOT '#' BITWISE_UNOT;
 %left '^';
 %nonassoc ')' '='
 %left ','
@@ -116,7 +115,6 @@ if_unfinished: IF expr THEN seq1 {printf("Merged initial if_unfinished\n");}
 
 expr: expr '+' expr     {printf("Merged into single +\n");}
     | expr '-' expr     {printf("Merged into single -\n");}
-    | '-' expr
     | expr '*' expr     {printf("Merged into single *\n");}
     | expr '/' expr     {printf("Merged into single /\n");}
     | expr '%' expr     {printf("Merged into single %\n");}
@@ -125,6 +123,7 @@ expr: expr '+' expr     {printf("Merged into single +\n");}
     | expr '|' expr     {printf("Merged into single |\n");}
     | expr '~' expr     {printf("Merged into single ~\n");}
     | '-' expr %prec UMINUS     {printf("Merged into single UMINUS\n");}
+    | '~' expr %prec BITWISE_UNOT     {printf("Merged into single BITWISE_UNOT\n");}
     | expr EQUALS expr          {printf("Merged into single ==\n");}
     | expr NOT_EQUALS expr    {printf("Merged into single ~=\n");}
     | expr GREATER expr         {printf("Merged into single >\n");}
@@ -134,7 +133,6 @@ expr: expr '+' expr     {printf("Merged into single +\n");}
     | expr FLOOR_DIVISION expr
     | expr BITWISE_LEFT_SHIFT expr      {printf("Merged into single <<\n");}
     | expr BITWISE_RIGHT_SHIFT expr     {printf("Merged into single >>\n");}
-    | '~' expr      {printf("Merged into single ~\n");}
     | '#' expr      {printf("Merged into single #\n");}
     | expr AND expr     {printf("Merged into single AND\n");}
     | expr OR expr      {printf("Merged into single OR\n");}
