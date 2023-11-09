@@ -22,7 +22,8 @@ Program *prg = nullptr;
     DoublePtrString str_const;
     bool bool_const;
 }
-%type <lst>seq1
+%type <lst>block
+%type <lst>chunk
 %type <stm>stmt
 %type <stm>return_stmt
 %type <stm>if_stmt
@@ -89,20 +90,24 @@ Program *prg = nullptr;
 %left ','
 %left '[' ']'
 %%
-start: seq1
+start: block
 
-seq1: seq1 stmt {printf("Extended sequence\n");}
+chunk: /* empty */
+    | block
+    ;
+
+block: block stmt {printf("Extended sequence\n");}
     | stmt {printf("Merged sequence\n");}
     ;
 
 stmt: assignable_expr '=' expr {printf("Created assign const expr\n");}
     | assignable_expr_list '=' expr_list {printf("Created chunk assignment\n");}
     | if_stmt {printf("Merged single IF into stmt\n");}
-    | WHILE expr DO seq1 END {printf("Merged into single WHILE\n");}
-    | REPEAT seq1 UNTIL expr {printf("Merged into single REPEAT\n");}
-    | FOR IDENTIFIER '=' expr ',' expr DO seq1 END {printf("Merged into single FOR\n");}
-    | FOR IDENTIFIER '=' expr ',' expr ',' expr DO seq1 END {printf("Merged into single FOR with step\n");}
-    | FOR param_list_no_vararg IN expr DO seq1 END {printf("Merged into single generic FOR\n");}
+    | WHILE expr DO block END {printf("Merged into single WHILE\n");}
+    | REPEAT block UNTIL expr {printf("Merged into single REPEAT\n");}
+    | FOR IDENTIFIER '=' expr ',' expr DO block END {printf("Merged into single FOR\n");}
+    | FOR IDENTIFIER '=' expr ',' expr ',' expr DO block END {printf("Merged into single FOR with step\n");}
+    | FOR param_list_no_vararg IN expr DO block END {printf("Merged into single generic FOR\n");}
     | function_call {std::cout << "Statement from func call\n";}
     | return_stmt {std::cout << "Return statement found\n";}
     | BREAK {std::cout << "BREAK statement found\n";}
@@ -118,11 +123,11 @@ goto_call: GOTO IDENTIFIER
     ;
 
 if_stmt: if_unfinished END {printf("Merged into if_stmt\n");}
-    | if_unfinished ELSE seq1 END {printf("Merged into if_stmt\n");}
+    | if_unfinished ELSE block END {printf("Merged into if_stmt\n");}
     ;
 
-if_unfinished: IF expr THEN seq1 {printf("Merged initial if_unfinished\n");}
-    | if_unfinished ELSEIF expr THEN seq1 {printf("Extended if_unfinished\n");}
+if_unfinished: IF expr THEN block {printf("Merged initial if_unfinished\n");}
+    | if_unfinished ELSEIF expr THEN block {printf("Extended if_unfinished\n");}
     ;
 
 expr: expr '+' expr     {printf("Merged into single +\n");}
@@ -193,10 +198,10 @@ function_call: callable_name '(' expr_list ')' {std::cout << "Merged function ca
     | callable_name table_construct {std::cout << "Merged function call\n";}
     ;
 
-named_function_definition: FUNCTION function_name '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
+named_function_definition: FUNCTION function_name '(' param_list ')' block END {std::cout << "Merged function definition\n";}
     ;
 
-unnamed_function_definition: FUNCTION '(' param_list ')' seq1 END {std::cout << "Merged function definition\n";}
+unnamed_function_definition: FUNCTION '(' param_list ')' block END {std::cout << "Merged function definition\n";}
     ;
 
 return_stmt: RETURN
