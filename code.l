@@ -148,7 +148,7 @@ return {printf("Keyword: %s\n", yytext); return RETURN;};
 \>\> {printf("Operator: %s\n", yytext); return BITWISE_RIGHT_SHIFT;};
 \/\/ {printf("Operator: %s\n", yytext); return FLOOR_DIVISION;};
 == {printf("Operator: %s\n", yytext); return EQUALS;};
-~= {printf("Operator: %s\n", yytext);};
+~= {printf("Operator: %s\n", yytext); return NOT_EQUALS;};
 \<= {printf("Operator: %s\n", yytext); return LESS_EQUALS;};
 \>= {printf("Operator: %s\n", yytext); return GREATER_EQUALS;};
 \< {printf("Operator: %s\n", yytext);return LESS;};

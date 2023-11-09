@@ -1,35 +1,24 @@
-if a == 5 then
-    print("Average answer")
-    print(a)
-elseif a < 4 then
-    print("Smaller answer")
-    print(a)
-elseif a > 6 then
-    print("Greater answer")
-    print(a)
-else
-    print("Unknown answer")
-    print(a)
-end
+a = 1 or 2 and 3
+a = 1 or 2 and -3
 
-Account = {balance = 0}
-    
-    function Account:new (o)
-      o = o or {}
-      setmetatable(o, self)
-      self.__index = self
-      return o
-    end
-    
-    function Account:deposit (v)
-      self.balance = self.balance + v
-    end
-    
-    function Account:withdraw (v)
-      if v > self.balance then error"insufficient funds" end
-      self.balance = self.balance - v
-    end
+b = 1 < 2*2
+b = 5 > 1 or 2 
+b = 4 >= 2*2
+b = 2+5 <= 7
+b = 2+2 == 2*2
+b = 2 + 1 ~= 2
 
-    SpecialAccount = Account:new()
-    obj = SpecialAccount:new{limit=1000.00}
-    obj:deposit(100.00)
+c = 2 | 3 > ~2
+c = 2 | 3 & 2
+
+d = i ^ (1 << j)
+
+a = 2*3-5
+a = 2-8/2
+a = 2+3%5-5
+a = 2*5%2
+
+b = -5 * 6
+b = not 5 ~= 5
+b = 5 + #6
+c = 4*5^2
