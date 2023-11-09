@@ -67,19 +67,15 @@ Program *prg = nullptr;
 %token FALSE;
 %left OR
 %left AND
-%left EQUALS;
-%left GREATER;
-%left GREATER_EQUALS;
-%left LESS;
-%left LESS_EQUALS;
+%left EQUALS NOT_EQUALS GREATER GREATER_EQUALS LESS LESS_EQUALS;
 %left '|';
 %left '&';
 %left '~';
-%left BITWISE_LEFT_SHIFT;
-%left BITWISE_RIGHT_SHIFT;
+%left BITWISE_LEFT_SHIFT BITWISE_RIGHT_SHIFT;
 %left VAR_CONCAT;
-%left '-' '+'
-%left '*' '/' FLOOR_DIVISION '%'
+%left '-' '+';
+%left '*' '/' FLOOR_DIVISION '%';
+%left UMINUS
 %nonassoc NOT '#';
 %left '^';
 %nonassoc ')' '='
@@ -113,31 +109,33 @@ if_else_end_sequence:
     | ELSEIF expr THEN seq1 END {printf("Merged elseif into if_else_end_sequence\n");}
     ;
 
-expr: expr '+' expr
-    | expr '-' expr
+expr: expr '+' expr     {printf("Merged into single +\n");}
+    | expr '-' expr     {printf("Merged into single -\n");}
     | '-' expr
-    | expr '*' expr
-    | expr '/' expr
-    | expr '%' expr
-    | expr '^' expr
-    | expr '&' expr
-    | expr '|' expr
-    | expr '~' expr
-    | expr EQUALS expr {printf("Merged into single ==\n");}
-    | expr GREATER expr {printf("Merged into single >\n");}
-    | expr GREATER_EQUALS expr {printf("Merged into single >=\n");}
-    | expr LESS expr {printf("Merged into single <\n");}
-    | expr LESS_EQUALS expr {printf("Merged into single <=\n");}
+    | expr '*' expr     {printf("Merged into single *\n");}
+    | expr '/' expr     {printf("Merged into single /\n");}
+    | expr '%' expr     {printf("Merged into single %\n");}
+    | expr '^' expr     {printf("Merged into single ^\n");}
+    | expr '&' expr     {printf("Merged into single &\n");}
+    | expr '|' expr     {printf("Merged into single |\n");}
+    | expr '~' expr     {printf("Merged into single ~\n");}
+    | '-' expr %prec UMINUS     {printf("Merged into single UMINUS\n");}
+    | expr EQUALS expr          {printf("Merged into single ==\n");}
+    | expr NOT_EQUALS expr    {printf("Merged into single ~=\n");}
+    | expr GREATER expr         {printf("Merged into single >\n");}
+    | expr GREATER_EQUALS expr  {printf("Merged into single >=\n");}
+    | expr LESS expr            {printf("Merged into single <\n");}
+    | expr LESS_EQUALS expr     {printf("Merged into single <=\n");}
     | expr FLOOR_DIVISION expr
-    | expr BITWISE_LEFT_SHIFT expr
-    | expr BITWISE_RIGHT_SHIFT expr
-    | '~' expr
-    | '#' expr
-    | expr AND expr
-    | expr OR expr
-    | NOT expr {std::cout << "Merged into single NOT\n";}
+    | expr BITWISE_LEFT_SHIFT expr      {printf("Merged into single <<\n");}
+    | expr BITWISE_RIGHT_SHIFT expr     {printf("Merged into single >>\n");}
+    | '~' expr      {printf("Merged into single ~\n");}
+    | '#' expr      {printf("Merged into single #\n");}
+    | expr AND expr     {printf("Merged into single AND\n");}
+    | expr OR expr      {printf("Merged into single OR\n");}
+    | NOT expr          {std::cout << "Merged into single NOT\n";}
     | expr VAR_CONCAT expr {std::cout << "Concat vars\n";}
-    | '(' expr ')'
+    | '(' expr ')'      {printf("Merged into single ()\n");}
     | INT
     | DOUBLE
     | STRING
