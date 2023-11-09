@@ -27,6 +27,8 @@ Program *prg = nullptr;
 %type <stm>return_stmt
 %type <stm>if_stmt
 %type <stm>if_unfinished
+%type <stm>goto_label;
+%type <stm>goto_call;
 %type <stm>named_function_definition
 %type <expr>unnamed_function_definition
 %type <expr>function_name
@@ -69,6 +71,8 @@ Program *prg = nullptr;
 %token RETURN;
 %token TRUE;
 %token FALSE;
+%token QDOTS;
+%token GOTO;
 %left OR
 %left AND
 %left EQUALS NOT_EQUALS GREATER GREATER_EQUALS LESS LESS_EQUALS;
@@ -103,6 +107,14 @@ stmt: assignable_expr '=' expr {printf("Created assign const expr\n");}
     | return_stmt {std::cout << "Return statement found\n";}
     | BREAK {std::cout << "BREAK statement found\n";}
     | named_function_definition
+    | goto_call {std::cout << "Merged goto_call\n";}
+    | goto_label {std::cout << "Merged goto_label\n";}
+    ;
+
+goto_label: QDOTS IDENTIFIER QDOTS
+    ;
+
+goto_call: GOTO IDENTIFIER
     ;
 
 if_stmt: if_unfinished END {printf("Merged into if_stmt\n");}
