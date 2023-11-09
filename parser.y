@@ -25,7 +25,8 @@ Program *prg = nullptr;
 %type <lst>seq1
 %type <stm>stmt
 %type <stm>return_stmt
-%type <stm>if_else_end_sequence
+%type <stm>if_stmt
+%type <stm>if_unfinished
 %type <stm>named_function_definition
 %type <expr>unnamed_function_definition
 %type <expr>function_name
@@ -97,8 +98,7 @@ seq1: seq1 stmt {printf("Extended sequence\n");}
 
 stmt: assignable_expr '=' expr {printf("Created assign const expr\n");}
     | assignable_expr_list '=' expr_list {printf("Created chunk assignment\n");}
-    | IF expr THEN seq1 if_else_end_sequence {printf("Merged into single IF\n");}
-    | IF expr THEN seq1 END {printf("Merged into single IF\n");}
+    | if_stmt {printf("Merged single IF into stmt\n");}
     | WHILE expr DO seq1 END {printf("Merged into single WHILE\n");}
     | REPEAT seq1 UNTIL expr {printf("Merged into single REPEAT\n");}
     | FOR IDENTIFIER '=' expr ',' expr DO seq1 END {printf("Merged into single FOR\n");}
@@ -110,10 +110,12 @@ stmt: assignable_expr '=' expr {printf("Created assign const expr\n");}
     | named_function_definition
     ;
 
-if_else_end_sequence: /* empty */
-    | ELSE seq1 END {printf("Merged else into if_else_end_sequence\n");}
-    | ELSEIF expr THEN seq1 if_else_end_sequence {printf("Merged elseif into if_else_end_sequence\n");}
-    | ELSEIF expr THEN seq1 END {printf("Merged elseif into if_else_end_sequence\n");}
+if_stmt: if_unfinished END {printf("Merged into if_stmt\n");}
+    | if_unfinished ELSE seq1 END {printf("Merged into if_stmt\n");}
+    ;
+
+if_unfinished: IF expr THEN seq1 {printf("Merged initial if_unfinished\n");}
+    | if_unfinished ELSEIF expr THEN seq1 {printf("Extended if_unfinished\n");}
     ;
 
 expr: expr '+' expr
