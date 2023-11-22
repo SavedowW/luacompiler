@@ -22,6 +22,7 @@ Program *prg = nullptr;
     DoublePtrString str_const;
     bool bool_const;
 }
+%type <lst>block_noret
 %type <lst>block
 %type <lst>chunk
 %type <stm>stmt
@@ -84,10 +85,8 @@ Program *prg = nullptr;
 %right VAR_CONCAT;
 %left '-' '+';
 %left '*' '/' FLOOR_DIVISION '%';
-%left UMINUS NOT '#' BITWISE_UNOT;
+%nonassoc UMINUS NOT '#' BITWISE_UNOT;
 %right '^';
-%nonassoc ')'
-%left '[' ']'
 %%
 start: chunk
 
@@ -95,7 +94,12 @@ chunk: /* empty */
     | block
     ;
 
-block: block stmt {printf("Extended sequence\n");}
+block: block_noret {printf("Finished block without return\n");}
+    | block_noret return_stmt {printf("Finished block with return\n");}
+    | return_stmt {printf("Finished block with only return\n");}
+    ;
+
+block_noret: block stmt {printf("Extended sequence\n");}
     | stmt {printf("Merged sequence\n");}
     ;
 
@@ -110,7 +114,6 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n");}
     | FOR IDENTIFIER '=' expr ',' expr ',' expr DO block END {printf("Merged into single FOR with step\n");}
     | FOR param_list_no_vararg IN expr DO block END {printf("Merged into single generic FOR\n");}
     | function_call {std::cout << "Statement from func call\n";}
-    | return_stmt {std::cout << "Return statement found\n";}
     | BREAK {std::cout << "BREAK statement found\n";}
     | named_function_definition
     | goto_call {std::cout << "Merged goto_call\n";}
@@ -168,7 +171,7 @@ expr: expr '+' expr     {printf("Merged into single +\n");}
     | table_construct
     ;
 
-expr_list: /* empty */
+expr_list: /* empty */ {std::cout << "Merged empty expr_list\n";}
     | expr_listE {std::cout << "Merged expr_list from E\n";}
     ;
 
