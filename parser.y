@@ -99,8 +99,10 @@ block: block stmt {printf("Extended sequence\n");}
     | stmt {printf("Merged sequence\n");}
     ;
 
-stmt: assignable_expr '=' expr {printf("Created assign const expr\n");}
-    | assignable_expr_list '=' expr_list {printf("Created chunk assignment\n");}
+stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n");}
+    | LOCAL assignable_expr '=' expr_listE {printf("Created assign const expr to local\n");}
+    | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n");}
+    | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n");}
     | if_stmt {printf("Merged single IF into stmt\n");}
     | WHILE expr DO block END {printf("Merged into single WHILE\n");}
     | REPEAT block UNTIL expr {printf("Merged into single REPEAT\n");}
@@ -174,8 +176,11 @@ expr_listE: expr {std::cout << "Merged expr_listE\n";}
     | expr_listE ',' expr {std::cout << "Merged expr_listE\n";}
     ;
 
+// Присвоение возможно:
+// Переменной
+// Элементу таблицы (обращение через . или [])
+// Таблица может быть возвращена из функции, может быть элементом таблицы и может быть значением переменной
 assignable_expr: IDENTIFIER
-    | LOCAL IDENTIFIER {std::cout << "Local identifier found\n";};
     | assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n";}
     | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n";}
     | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}
@@ -183,15 +188,24 @@ assignable_expr: IDENTIFIER
     ; // TODO: разобраться с function_name, callable_name, function_call, table_field
     // Уменьшить количество нетерминалов
 
-assignable_expr_list: assignable_expr {std::cout << "Merged assignable_expr_list\n";}
-    | assignable_expr_list ',' assignable_expr {std::cout << "Merged assignable_expr_list\n";}
+assignable_expr_list: assignable_expr ',' assignable_expr {std::cout << "Merged assignable_expr_list\n";}
+    | assignable_expr_list ',' assignable_expr {std::cout << "Extended assignable_expr_list\n";}
     ;
 
-function_name: assignable_expr {std::cout << "Merged function name\n";}
-    | assignable_expr ':' IDENTIFIER {std::cout << "Merged function name\n";}
+
+// В имени функции в определении может быть:
+// IDENTIFIER '.' IDENTIFIER '.' ... '.' IDENTIFIER ':' IDENTIFIER (т.е. не может быть обращения к элементу таблицы через вызов функции или [])
+function_name: IDENTIFIER {std::cout << "Merged function name\n";}
+    | IDENTIFIER '.' IDENTIFIER {std::cout << "Merged function name\n";}
     ;
 
-callable_name: function_name {std::cout << "Merged callable from function name\n";}
+// В имени функции в определении может быть:
+// Все, что есть в function_name
+// Вызовы функций
+// Обращения к элементам таблиц через []
+// ':'
+callable_name: assignable_expr {std::cout << "Merged callable from assignable expr\n";}
+    | assignable_expr ':' IDENTIFIER {std::cout << "Merged callable from function name\n";}
     | function_call {std::cout << "Merged callable from function call\n";}
     ;
 
@@ -201,13 +215,13 @@ function_call: callable_name '(' expr_list ')' {std::cout << "Merged function ca
     ;
 
 named_function_definition: FUNCTION function_name '(' param_list ')' block END {std::cout << "Merged function definition\n";}
+    | FUNCTION function_name ':' IDENTIFIER '(' param_list ')' block END {std::cout << "Merged function definition with :\n";}
     ;
 
 unnamed_function_definition: FUNCTION '(' param_list ')' block END {std::cout << "Merged function definition\n";}
     ;
 
-return_stmt: RETURN
-    | RETURN expr
+return_stmt: RETURN expr_list {std::cout << "Merged return\n";}
     ;
 
 param_list:  /* empty */ 
