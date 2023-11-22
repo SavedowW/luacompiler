@@ -32,7 +32,7 @@ POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
 <SINGLE_LINE_COMMENT>\n {BEGIN(INITIAL);};
 <SINGLE_LINE_COMMENT>[^\n]+ {};
 
-([^-]|\A)--[[\[\[ {printf("Found multiline comment\n"); BEGIN(MULTILINE_COMMENT);};
+--\[\[ {printf("Found multiline comment\n"); BEGIN(MULTILINE_COMMENT);};
 <MULTILINE_COMMENT>[^\]]+ {};
 <MULTILINE_COMMENT>\]\] {printf("Ended multiline comment\n"); BEGIN(INITIAL);};
 <MULTILINE_COMMENT>\] {};
