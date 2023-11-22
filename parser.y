@@ -34,7 +34,6 @@ Program *prg = nullptr;
 %type <expr>unnamed_function_definition
 %type <expr>function_name
 %type <expr>callable_name
-%type <expr>table_field
 %type <expr>key_value_association
 %type <expr>key_value_association_list
 %type <expr>key_value_association_listE
@@ -74,6 +73,7 @@ Program *prg = nullptr;
 %token FALSE;
 %token QDOTS;
 %token GOTO;
+%left ','
 %left OR
 %left AND
 %left EQUALS NOT_EQUALS GREATER GREATER_EQUALS LESS LESS_EQUALS;
@@ -81,16 +81,15 @@ Program *prg = nullptr;
 %left '~';
 %left '&';
 %left BITWISE_LEFT_SHIFT BITWISE_RIGHT_SHIFT;
-%left VAR_CONCAT;
+%right VAR_CONCAT;
 %left '-' '+';
 %left '*' '/' FLOOR_DIVISION '%';
 %left UMINUS NOT '#' BITWISE_UNOT;
-%left '^';
-%nonassoc ')' '='
-%left ','
+%right '^';
+%nonassoc ')'
 %left '[' ']'
 %%
-start: block
+start: chunk
 
 chunk: /* empty */
     | block
@@ -173,13 +172,16 @@ expr_list: /* empty */
 
 expr_listE: expr {std::cout << "Merged expr_listE\n";}
     | expr_listE ',' expr {std::cout << "Merged expr_listE\n";}
-    | assignable_expr_list {std::cout << "Merged expr_list\n";}
     ;
 
 assignable_expr: IDENTIFIER
     | LOCAL IDENTIFIER {std::cout << "Local identifier found\n";};
-    | table_field
-    ;
+    | assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n";}
+    | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n";}
+    | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}
+    | function_call '[' expr ']' {std::cout << "Merged table member from [] (func call)\n";}
+    ; // TODO: разобраться с function_name, callable_name, function_call, table_field
+    // Уменьшить количество нетерминалов
 
 assignable_expr_list: assignable_expr {std::cout << "Merged assignable_expr_list\n";}
     | assignable_expr_list ',' assignable_expr {std::cout << "Merged assignable_expr_list\n";}
@@ -218,12 +220,6 @@ param_listE: param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final 
 
 param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
     | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n";}
-    ;
-
-table_field: assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n";}
-    | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n";}
-    | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}
-    | function_call '[' expr ']' {std::cout << "Merged table member from [] (func call)\n";}
     ;
 
 key_value_association: '[' expr ']' '=' expr
