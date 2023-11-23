@@ -65,7 +65,8 @@ enum class STATEMENT_TYPE {
 	ASSIGN,
 	MULTIPLE_ASSIGN,
 	STMT_LIST,
-	RETURN
+	RETURN,
+	FUNCTION_CALL
 };
 
 class ExpressionList;
@@ -149,6 +150,15 @@ public:
 	virtual ~StatementReturn() = default;
 };
 
+class StatementFunctionCall : public Statement
+{
+public:
+	Expression *functionName;
+	ExpressionList *lst;
+	
+	virtual ~StatementFunctionCall() = default;
+};
+
 class ParamList
 {
 public:
@@ -194,12 +204,16 @@ namespace TreeFactory
 	Expression *CreateFunctionCall(Expression *callableName_, ExpressionList *args_);
 	Expression *CreateFunctionCall(Expression *callableName_, DoublePtrString arg_);
 	Expression *CreateFunctionCall(Expression *callableName_, Expression *tblArg_);
+	Statement *CreateFunctionCallStatement(Expression *call_);
 
 	ParamList *CreateParamList(const char *identifier_);
 	ParamList *CreateParamList();
 	ParamList *AppendParamList(ParamList *plst_, const char *identifier_);
 	ParamList *AddVarargToParamList(ParamList *plst_);
 	Expression *CreateUnnamedFunctionDefinition(ParamList *params_, StatementList *code_);
+	Statement *CreateNamedFunctionDefinition(Expression *functionName_, ParamList *params_, StatementList *code_);
+	Statement *CreateNamedFunctionDefinition(Expression *functionName_, const char *identifier_, ParamList *params_, StatementList *code_);
+	Statement *makeAssignmentLocal(Statement *assign_);
 
 };
 

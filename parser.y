@@ -92,10 +92,10 @@ Program *prg = nullptr;
 start: chunk {prg = TreeFactory::CreateProgram($1);}
 
 chunk: /* empty */ {printf("Merged empty chunk\n"); $$ = TreeFactory::CreateStList();}
-    | block
+    | block {$$ = $1;}
     ;
 
-block: block_noret {printf("Finished block without return\n");}
+block: block_noret {printf("Finished block without return\n"); $$ = $1;}
     | block_noret return_stmt {printf("Finished block with return\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
     | return_stmt {printf("Finished block with only return\n"); $$ = TreeFactory::CreateStList($1);}
     ;
@@ -114,9 +114,10 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | FOR IDENTIFIER '=' expr ',' expr DO chunk END {printf("Merged into single FOR\n");}
     | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n");}
     | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n");}
-    | function_call {std::cout << "Statement from func call\n";}
+    | function_call {std::cout << "Statement from func call\n"; $$ = $$ = TreeFactory::CreateFunctionCallStatement($1);}
     | BREAK {std::cout << "BREAK statement found\n";}
-    | named_function_definition
+    | named_function_definition {$$ = $1;}
+    | LOCAL named_function_definition {$$ = TreeFactory::makeAssignmentLocal($2);}
     | goto_call {std::cout << "Merged goto_call\n";}
     | goto_label {std::cout << "Merged goto_label\n";}
     ;
@@ -198,8 +199,8 @@ assignable_expr_list: assignable_expr ',' assignable_expr {std::cout << "Merged 
 
 // В имени функции в определении может быть:
 // IDENTIFIER '.' IDENTIFIER '.' ... '.' IDENTIFIER ':' IDENTIFIER (т.е. не может быть обращения к элементу таблицы через вызов функции или [])
-function_name: IDENTIFIER {std::cout << "Merged function name\n";}
-    | IDENTIFIER '.' IDENTIFIER {std::cout << "Merged function name\n";}
+function_name: IDENTIFIER {std::cout << "Merged function name\n"; $$ = TreeFactory::CreateIdfExp($1);} // TODO:
+    | function_name '.' IDENTIFIER {std::cout << "Merged function name\n"; $$ = TreeFactory::GetCell($1, $3);} // TODO:
     ;
 
 // В имени функции в определении может быть:
@@ -218,8 +219,8 @@ function_call: callable_name '(' expr_list ')' {std::cout << "Merged function ca
     | callable_name table_construct {std::cout << "Merged function call\n"; $$ = TreeFactory::CreateFunctionCall($1, $2);}
     ;
 
-named_function_definition: FUNCTION function_name '(' param_list ')' chunk END {std::cout << "Merged function definition\n";}
-    | FUNCTION function_name ':' IDENTIFIER '(' param_list ')' chunk END {std::cout << "Merged function definition with :\n";}
+named_function_definition: FUNCTION function_name '(' param_list ')' chunk END {std::cout << "Merged function definition\n"; $$  = TreeFactory::CreateNamedFunctionDefinition($2, $4, $6);}
+    | FUNCTION function_name ':' IDENTIFIER '(' param_list ')' chunk END {std::cout << "Merged function definition with :\n"; $$  = TreeFactory::CreateNamedFunctionDefinition($2, $4, $6, $8);}
     ;
 
 unnamed_function_definition: FUNCTION '(' param_list ')' chunk END {std::cout << "Merged function definition\n"; $$ = TreeFactory::CreateUnnamedFunctionDefinition($3, $5);}

@@ -353,6 +353,15 @@ Expression *TreeFactory::CreateFunctionCall(Expression *callableName_, Expressio
 	return expr;
 }
 
+Statement *TreeFactory::CreateFunctionCallStatement(Expression *call_)
+{
+	auto *stmt = new StatementFunctionCall();
+	stmt->type = STATEMENT_TYPE::FUNCTION_CALL;
+	stmt->functionName = call_->left;
+	stmt->lst = call_->lst;
+	return stmt;
+}
+
 ParamList *TreeFactory::CreateParamList(const char *identifier_)
 {
 	std::cout << "Create function call\n";
@@ -387,4 +396,25 @@ Expression *TreeFactory::CreateUnnamedFunctionDefinition(ParamList *params_, Sta
 	expr->type = EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION;
 	expr->params = params_;
 	expr->code = code_;
+}
+
+Statement *TreeFactory::CreateNamedFunctionDefinition(Expression *functionName_, ParamList *params_, StatementList *code_)
+{
+	auto *func = TreeFactory::CreateUnnamedFunctionDefinition(params_, code_);
+	auto *res = TreeFactory::CreateAssignStatement(functionName_, TreeFactory::CreateExprList(func), false);
+	return res;
+}
+
+Statement *TreeFactory::CreateNamedFunctionDefinition(Expression *functionName_, const char *identifier_, ParamList *params_, StatementList *code_)
+{
+	auto *func = TreeFactory::CreateUnnamedFunctionDefinition(params_, code_);
+	auto *name = TreeFactory::CreateMethodName(functionName_, identifier_);
+	auto *res = TreeFactory::CreateAssignStatement(name, TreeFactory::CreateExprList(func), false);
+	return res;
+}
+
+Statement *TreeFactory::makeAssignmentLocal(Statement *assign_)
+{
+	auto *realstmt = dynamic_cast<StatementAssign*>(assign_);
+	realstmt->isLocal = true;
 }

@@ -84,6 +84,15 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 			lst_print(realstmt->lst, level);
 	}
 		break;
+	case STATEMENT_TYPE::FUNCTION_CALL:
+	{
+		auto *realstmt = dynamic_cast<StatementFunctionCall*>(stmt);
+		print_indent(level);
+		std::cout << "()";
+		expr_print(realstmt->functionName, level + 1);
+		lst_print(realstmt->lst, level + 1);
+	}
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
