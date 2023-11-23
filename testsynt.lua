@@ -1,4 +1,1 @@
-f = function(a, b, ...)
-    a = b
-    b = 5
-end
+a = 5, 4, a

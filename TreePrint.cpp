@@ -48,7 +48,24 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		auto *realstmt = dynamic_cast<StatementAssign*>(stmt);
 		print_indent(level);
 		printf("=");
+		if (realstmt->isLocal)
+			std::cout << " (LOCAL)";
 		expr_print(realstmt->left, level + 1);
+		lst_print(realstmt->right, level);
+	}
+		break;
+	case STATEMENT_TYPE::MULTIPLE_ASSIGN:
+	{
+		auto *realstmt = dynamic_cast<StatementMultipleAssign*>(stmt);
+		print_indent(level);
+		printf("=");
+		if (realstmt->isLocal)
+			std::cout << " (LOCAL)";
+		print_indent(level);
+		std::cout << "Left:";
+		lst_print(realstmt->left, level);
+		print_indent(level);
+		std::cout << "Right:";
 		lst_print(realstmt->right, level);
 	}
 		break;

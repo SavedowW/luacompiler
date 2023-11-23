@@ -104,10 +104,10 @@ block_noret: block stmt {printf("Extended sequence\n"); $$ = TreeFactory::Append
     | stmt {printf("Merged sequence\n"); $$ = TreeFactory::CreateStList($1);}
     ;
 
-stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ = TreeFactory::CreateAssignStatement($1, $3);}
-    | LOCAL assignable_expr '=' expr_listE {printf("Created assign const expr to local\n");}
-    | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n");}
-    | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n");}
+stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ = TreeFactory::CreateAssignStatement($1, $3, false);}
+    | LOCAL assignable_expr '=' expr_listE {printf("Created assign const expr to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
+    | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n"); $$ = TreeFactory::CreateAssignStatement($1, $3, false);}
+    | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
     | if_stmt {printf("Merged single IF into stmt\n");}
     | WHILE expr DO chunk END {printf("Merged into single WHILE\n");}
     | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n");}
@@ -168,7 +168,7 @@ expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::Cre
     | BOOL {$$ = TreeFactory::CreateConstExp($1);}
     | assignable_expr {$$ = TreeFactory::MakeConstant($1);}
     | function_call  {std::cout << "Expression from function call\n"; $$ = $1;}
-    | unnamed_function_definition {std::cout << "Unnamed function definition\n"; $$ = $1;} // TODO:
+    | unnamed_function_definition {std::cout << "Unnamed function definition\n"; $$ = $1;}
     | table_construct {$$ = $1;}
     ;
 
@@ -187,12 +187,12 @@ expr_listE: expr {std::cout << "Merged expr_listE\n";  $$ = TreeFactory::CreateE
 assignable_expr: IDENTIFIER {$$ = TreeFactory::CreateIdfExp($1);}
     | assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n"; $$ = TreeFactory::GetCell($1, $3);}
     | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n"; $$ = TreeFactory::GetCell($1, $3);}
-    | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}
-    | function_call '[' expr ']' {std::cout << "Merged table member from [] (func call)\n";}
+    | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n"; $$ = TreeFactory::GetCell($1, $3);}
+    | function_call '[' expr ']' {std::cout << "Merged table member from [] (func call)\n"; $$ = TreeFactory::GetCell($1, $3);}
     ;
 
-assignable_expr_list: assignable_expr ',' assignable_expr {std::cout << "Merged assignable_expr_list\n";}
-    | assignable_expr_list ',' assignable_expr {std::cout << "Extended assignable_expr_list\n";}
+assignable_expr_list: assignable_expr ',' assignable_expr {std::cout << "Merged assignable_expr_list\n"; $$ = TreeFactory::CreateExprList($1, $3);}
+    | assignable_expr_list ',' assignable_expr {std::cout << "Extended assignable_expr_list\n"; $$ = TreeFactory::AppendExprToList($1, $3);}
     ;
 
 

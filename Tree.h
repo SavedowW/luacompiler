@@ -63,6 +63,7 @@ enum class EXPRESSION_TYPE {
 // Список всех типов statement'ов
 enum class STATEMENT_TYPE {
 	ASSIGN,
+	MULTIPLE_ASSIGN,
 	STMT_LIST,
 	RETURN
 };
@@ -125,9 +126,19 @@ public:
 class StatementAssign : public Statement
 {
 public:
+	bool isLocal = false;
 	Expression* left = nullptr;
 	ExpressionList* right = nullptr;
 	virtual ~StatementAssign() = default;
+};
+
+class StatementMultipleAssign : public Statement
+{
+public:
+	bool isLocal = false;
+	ExpressionList* left = nullptr;
+	ExpressionList* right = nullptr;
+	virtual ~StatementMultipleAssign() = default;
 };
 
 // Возврат
@@ -159,9 +170,11 @@ namespace TreeFactory
 	StatementList *CreateStList(Statement *stm);
 	StatementList *CreateStList();
 	ExpressionList *AppendExprToList(ExpressionList *lst, Expression *expr);
+	ExpressionList *CreateExprList(Expression *expr1_, Expression *expr2_);
 	ExpressionList *CreateExprList(Expression *expr);
 	ExpressionList *CreateExprList();
-	Statement *CreateAssignStatement(Expression *left_, ExpressionList *right_);
+	Statement *CreateAssignStatement(Expression *left_, ExpressionList *right_, bool isLocal_);
+	Statement *CreateAssignStatement(ExpressionList *left_, ExpressionList *right_, bool isLocal_);
 	Statement *CreateReturnStatement(ExpressionList *lst_);
 	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_, Expression *right_);
 	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_);

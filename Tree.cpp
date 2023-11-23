@@ -94,6 +94,16 @@ ExpressionList *TreeFactory::AppendExprToList(ExpressionList *lst, Expression *e
 }
 
 // Создание списка выражений
+ExpressionList *TreeFactory::CreateExprList(Expression *expr1_, Expression *expr2_)
+{
+	std::cout << "Created expression list\n";
+	ExpressionList *lst = new ExpressionList;
+	lst->lst.push_back(expr1_);
+	lst->lst.push_back(expr2_);
+	return lst;
+}
+
+// Создание списка выражений
 // expr - выражение, с которого начинается список
 ExpressionList *TreeFactory::CreateExprList(Expression *expr)
 {
@@ -114,13 +124,25 @@ ExpressionList *TreeFactory::CreateExprList()
 // Создание элемента присваивания
 // left_ - выражение, которому присваивается значение
 // right_ - список присваиваемых значений
-Statement *TreeFactory::CreateAssignStatement(Expression *left_, ExpressionList *right_)
+Statement *TreeFactory::CreateAssignStatement(Expression *left_, ExpressionList *right_, bool isLocal_)
 {
 	std::cout << "Created assign statement\n";
 	StatementAssign *sa = new StatementAssign;
 	sa->type = STATEMENT_TYPE::ASSIGN;
 	sa->left = left_;
 	sa->right = right_;
+	sa->isLocal = isLocal_;
+	return sa;
+}
+
+Statement *TreeFactory::CreateAssignStatement(ExpressionList *left_, ExpressionList *right_, bool isLocal_)
+{
+	std::cout << "Created multiple assign statement\n";
+	StatementMultipleAssign *sa = new StatementMultipleAssign;
+	sa->type = STATEMENT_TYPE::MULTIPLE_ASSIGN;
+	sa->left = left_;
+	sa->right = right_;
+	sa->isLocal = isLocal_;
 	return sa;
 }
 
