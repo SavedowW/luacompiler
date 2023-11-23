@@ -16,41 +16,32 @@ void TreePrint::lst_print(StatementList *stmts, int level)
 		stmt_print(el, level + 1);
 	} 
 }
+
+void TreePrint::lst_print(ExpressionList *exprs, int level)
+{
+	for (auto &el : exprs->lst)
+	{
+		expr_print(el, level + 1);
+	} 
+}
+
 void TreePrint::stmt_print(Statement *stmt, int level)
 {
 	switch(stmt->type)
 	{
-	case STATEMENT_TYPE::PRINT:
+	case STATEMENT_TYPE::ASSIGN:
 	{
-		auto *realstmt = dynamic_cast<SingleExprStatement*>(stmt);
+		auto *realstmt = dynamic_cast<StatementAssign*>(stmt);
 		print_indent(level);
-		printf("print");
-		expr_print(realstmt->to_print, level + 1);
+		printf("=");
+		expr_print(realstmt->left, level + 1);
+		lst_print(realstmt->right, level);
 	}
 		break;
-	case STATEMENT_TYPE::EXPR:
-	{
-		auto *realstmt = dynamic_cast<SingleExprStatement*>(stmt);
-		expr_print(realstmt->to_print, level);
-	}
 	case STATEMENT_TYPE::STMT_LIST:
 	{
 		auto *realstmt = dynamic_cast<StatementList*>(stmt);
 		lst_print(realstmt, level);
-	}
-	case STATEMENT_TYPE::IF_ELSE:
-	{
-		auto *realstmt = dynamic_cast<IfElseStmt*>(stmt);
-		print_indent(level);
-		std::cout << "if ";
-		expr_print(realstmt->condition, 0);
-		std::cout << " then";
-		lst_print(realstmt->statement, level);
-		if (realstmt->elseStatement != nullptr)
-		{
-			std::cout << "\nelse";
-			stmt_print(realstmt->elseStatement, level + 1);
-		}
 	}
 		break;
 	}
@@ -86,10 +77,9 @@ void TreePrint::expr_print(Expression *expr, int level)
 		expr_print(expr->left, level + 1);
 		expr_print(expr->right, level + 1);
 		break;
-	case EXPRESSION_TYPE::BIN_ASSIGN:
-		printf("=");
+	case EXPRESSION_TYPE::UNAR_LEN:
+		printf("#");
 		expr_print(expr->left, level + 1);
-		expr_print(expr->right, level + 1);
 		break;
 	case EXPRESSION_TYPE::IDENTIFIER:
 		std::cout << expr->identifier;

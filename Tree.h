@@ -15,6 +15,7 @@ public:
 
 std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_);
 
+// Список всех видов выражений
 enum class EXPRESSION_TYPE {
 	INT,
 	DOUBLE,
@@ -23,21 +24,29 @@ enum class EXPRESSION_TYPE {
 	BIN_MINUS,
 	BIN_MUL,
 	BIN_DIV,
-	BIN_ASSIGN
+	UNAR_LEN
 };
 
+// Список всех типов statement'ов
 enum class STATEMENT_TYPE {
-	PRINT,
-	EXPR,
-	STMT_LIST,
-	IF_ELSE
+	ASSIGN,
+	STMT_LIST
 };
 
+
+/*
+	Класс выражения
+
+	У каждого выражения должен быть type
+	isAssignable опеределяет, является ли выражение Expr или AssignableExpr
+	iValue, fValue, identifier используются только для литерал (значений в коде)
+	left используется для бинарных операторов для левого элемента и для унарных
+	right используется для бинарных операторов для правого элемента
+*/
 class Expression
 {
 public:
-	std::string toString() const;
-
+	bool isAssignable = false;
 	EXPRESSION_TYPE type;
 	int iValue;
 	double fValue;
@@ -46,54 +55,39 @@ public:
 	Expression *right;
 };
 
-class ArgList
-{
-public:
-	std::vector<Expression*> lst;
-};
-
+// Класс списка выражений
 class ExpressionList
 {
 public:
-	std::string toString() const;
-
 	std::vector<Expression*> lst;
 };
 
+// Абстрактный класс Statement
 class Statement
 {
 public:
-	virtual std::string toString() const = 0;
-
 	STATEMENT_TYPE type;
+	virtual ~Statement() = default;
 };
 
-class SingleExprStatement : public Statement
-{
-public:
-	virtual std::string toString() const override;
-
-	Expression *to_print;
-};
-
+// Список statement'ов
 class StatementList : public Statement
 {
 public:
-	virtual std::string toString() const override;
-
 	std::vector<Statement*> lst;
+	virtual ~StatementList() = default;
 };
 
-class IfElseStmt : public Statement
+// Присваивание
+class StatementAssign : public Statement
 {
 public:
-	virtual std::string toString() const override;
-
-	Expression *condition;
-	StatementList *statement;
-	Statement *elseStatement;
+	Expression* left = nullptr;
+	ExpressionList* right = nullptr;
+	virtual ~StatementAssign() = default;
 };
 
+// Класс программы, с которого начинается дерево
 class Program
 {
 public:
@@ -105,11 +99,12 @@ namespace TreeFactory
 	Program *CreateProgram(StatementList *lst);
 	StatementList *AppendStatementToList(StatementList *lst, Statement *stm);
 	StatementList *CreateStList(Statement *stm);
+	ExpressionList *AppendExprToList(ExpressionList *lst, Expression *expr);
 	ExpressionList *CreateExprList(Expression *expr);
-	Statement *CreatePrintStatement(Expression *exp);
-	Statement *CreateAssignStatement(Expression *exp1, Expression *exp2);
-	Statement *CreateIfElseStatement(Expression *condition_, StatementList *stmtList_, Statement *elseStmt_);
-	Expression *CreateBinExp(EXPRESSION_TYPE exprType_, Expression *left,Expression *right);
+	ExpressionList *CreateExprList();
+	Statement *CreateAssignStatement(Expression *left_, ExpressionList *right_);
+	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_,Expression *right_);
+	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_);
 	Expression *CreateConstExp(int value);
 	Expression *CreateConstExp(double value);
 	Expression *CreateIdfExp(const char *str_);

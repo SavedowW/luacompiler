@@ -16,8 +16,8 @@ Program *prg = nullptr;
 	Expression *exp;
 	ExpressionList *explst;
 	Statement *stm;
-	Program *prg;
 	StatementList *lst;
+	Program *prg;
     const char *identifier;
     DoublePtrString str_const;
     bool bool_const;
@@ -88,7 +88,7 @@ Program *prg = nullptr;
 %nonassoc UMINUS NOT '#' BITWISE_UNOT;
 %right '^';
 %%
-start: chunk
+start: chunk {prg = TreeFactory::CreateProgram($1);}
 
 chunk: /* empty */
     | block
@@ -99,11 +99,11 @@ block: block_noret {printf("Finished block without return\n");}
     | return_stmt {printf("Finished block with only return\n");}
     ;
 
-block_noret: block stmt {printf("Extended sequence\n");}
-    | stmt {printf("Merged sequence\n");}
+block_noret: block stmt {printf("Extended sequence\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
+    | stmt {printf("Merged sequence\n"); $$ = TreeFactory::CreateStList($1);}
     ;
 
-stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n");}
+stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ = TreeFactory::CreateAssignStatement($1, $3);}
     | LOCAL assignable_expr '=' expr_listE {printf("Created assign const expr to local\n");}
     | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n");}
     | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n");}
@@ -134,9 +134,9 @@ if_unfinished: IF expr THEN block {printf("Merged initial if_unfinished\n");}
     | if_unfinished ELSEIF expr THEN block {printf("Extended if_unfinished\n");}
     ;
 
-expr: expr '+' expr     {printf("Merged into single +\n");}
+expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_PLUS, $1, $3);}
     | expr '-' expr     {printf("Merged into single -\n");}
-    | expr '*' expr     {printf("Merged into single *\n");}
+    | expr '*' expr     {printf("Merged into single *\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_MUL, $1, $3);}
     | expr '/' expr     {printf("Merged into single /\n");}
     | expr '%' expr     {printf("Merged into single %\n");}
     | expr '^' expr     {printf("Merged into single ^\n");}
@@ -154,36 +154,36 @@ expr: expr '+' expr     {printf("Merged into single +\n");}
     | expr FLOOR_DIVISION expr
     | expr BITWISE_LEFT_SHIFT expr      {printf("Merged into single <<\n");}
     | expr BITWISE_RIGHT_SHIFT expr     {printf("Merged into single >>\n");}
-    | '#' expr      {printf("Merged into single #\n");}
+    | '#' expr      {printf("Merged into single #\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::UNAR_LEN, $2);}
     | expr AND expr     {printf("Merged into single AND\n");}
     | expr OR expr      {printf("Merged into single OR\n");}
     | NOT expr          {std::cout << "Merged into single NOT\n";}
     | expr VAR_CONCAT expr {std::cout << "Concat vars\n";}
-    | '(' expr ')'      {printf("Merged into single ()\n");}
-    | INT
-    | DOUBLE
+    | '(' expr ')'      {printf("Merged into single ()\n"); $$ = $2;}
+    | INT {$$ = TreeFactory::CreateConstExp($1);}
+    | DOUBLE {$$ = TreeFactory::CreateConstExp($1);}
     | STRING
     | NIL {std::cout << "nil value found\n";}
     | BOOL
-    | assignable_expr
+    | assignable_expr {$$ = $1;}
     | function_call  {std::cout << "Expression from function call\n";}
     | unnamed_function_definition {std::cout << "Unnamed function definition\n";}
     | table_construct
     ;
 
-expr_list: /* empty */ {std::cout << "Merged empty expr_list\n";}
+expr_list: /* empty */ {std::cout << "Merged empty expr_list\n"; $$ = TreeFactory::CreateExprList();}
     | expr_listE {std::cout << "Merged expr_list from E\n";}
     ;
 
-expr_listE: expr {std::cout << "Merged expr_listE\n";}
-    | expr_listE ',' expr {std::cout << "Merged expr_listE\n";}
+expr_listE: expr {std::cout << "Merged expr_listE\n";  $$ = TreeFactory::CreateExprList($1);}
+    | expr_listE ',' expr {std::cout << "Merged expr_listE\n";  $$ = TreeFactory::AppendExprToList($1, $3);}
     ;
 
 // Присвоение возможно:
 // Переменной
 // Элементу таблицы (обращение через . или [])
 // Таблица может быть возвращена из функции, может быть элементом таблицы и может быть значением переменной
-assignable_expr: IDENTIFIER
+assignable_expr: IDENTIFIER {$$ = TreeFactory::CreateIdfExp($1);}
     | assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n";}
     | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n";}
     | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}

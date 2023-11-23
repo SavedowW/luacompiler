@@ -28,81 +28,8 @@ std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_)
 	return out_;
 }
 
-std::string Expression::toString() const
-{
-	switch(type)
-	{
-	case EXPRESSION_TYPE::INT:
-		return std::to_string(iValue);
-		break;
-	case EXPRESSION_TYPE::DOUBLE:
-		return std::to_string(fValue);
-		break;
-	case EXPRESSION_TYPE::BIN_PLUS:
-		return "+";
-		break;
-	case EXPRESSION_TYPE::BIN_MINUS:
-		return "-";
-		break;
-	case EXPRESSION_TYPE::BIN_MUL:
-		return "*";
-		break;
-	case EXPRESSION_TYPE::BIN_DIV:
-		return "/";
-		break;
-	case EXPRESSION_TYPE::IDENTIFIER:
-		return identifier;
-		break;
-	}
-}
-
-std::string SingleExprStatement::toString() const
-{
-	switch(type)
-	{
-	case STATEMENT_TYPE::PRINT :
-		return "print";
-		break;
-	case STATEMENT_TYPE::EXPR:
-		return to_print->toString();
-		break;
-	default:
-		std::cout << "SingleExprStatement is used for improper type: " << (int)type << std::endl;
-		return "";
-	}
-}
-
-std::string ExpressionList::toString() const
-{
-	return "exprlist";
-}
-
-std::string StatementList::toString() const
-{
-	switch(type)
-	{
-	case STATEMENT_TYPE::STMT_LIST:
-		return "StmtList";
-		break;
-	default:
-		std::cout << "StatementList is used for improper type: " << (int)type << std::endl;
-		return "";
-	}
-}
-
-std::string IfElseStmt::toString() const
-{
-	switch(type)
-	{
-	case STATEMENT_TYPE::IF_ELSE:
-		return "if";
-		break;
-	default:
-		std::cout << "StatementList is used for improper type: " << (int)type << std::endl;
-		return "";
-	}
-}
-
+// Создание программы
+// lst - основной блок кода программы
 Program *TreeFactory::CreateProgram(StatementList *lst)
 {
 	std::cout << "Create program\n";
@@ -110,12 +37,19 @@ Program *TreeFactory::CreateProgram(StatementList *lst)
 	crt->stmts = lst;
 	return crt;
 }
+
+// Добавление statement'a ко списку
+// lst - список
+// stm - statement, который нужно добавить
 StatementList *TreeFactory::AppendStatementToList(StatementList *lst, Statement *stm)
 {
 	std::cout << "Append to statement list\n";
 	lst->lst.push_back(stm);
 	return lst;
 }
+
+// Создание списка statement'ов
+// stm - statement, с которого начинается список
 StatementList *TreeFactory::CreateStList(Statement *stm)
 {
     std::cout << "Created statement list\n";
@@ -125,6 +59,18 @@ StatementList *TreeFactory::CreateStList(Statement *stm)
 	return lst;
 }
 
+// Добавление выражения ко списку
+// lst - список
+// expr - выражение, которое нужно добавить
+ExpressionList *TreeFactory::AppendExprToList(ExpressionList *lst, Expression *expr)
+{
+	std::cout << "Append to statement list\n";
+	lst->lst.push_back(expr);
+	return lst;
+}
+
+// Создание списка выражений
+// expr - выражение, с которого начинается список
 ExpressionList *TreeFactory::CreateExprList(Expression *expr)
 {
 	std::cout << "Created expression list\n";
@@ -133,32 +79,53 @@ ExpressionList *TreeFactory::CreateExprList(Expression *expr)
 	return lst;
 }
 
-Statement *TreeFactory::CreatePrintStatement(Expression *exp)
+// Создание пустого списка выражений
+ExpressionList *TreeFactory::CreateExprList()
 {
-	std::cout << "Created print statement\n";
-	SingleExprStatement *crt = new SingleExprStatement;
-	crt->type = STATEMENT_TYPE::PRINT;
-	crt->to_print=exp;
-	return crt;
+	std::cout << "Created expression list\n";
+	ExpressionList *lst = new ExpressionList;
+	return lst;
 }
 
-Statement *TreeFactory::CreateAssignStatement(Expression *exp1, Expression *exp2)
+// Создание элемента присваивания
+// left_ - выражение, которому присваивается значение
+// right_ - список присваиваемых значений
+Statement *TreeFactory::CreateAssignStatement(Expression *left_, ExpressionList *right_)
 {
 	std::cout << "Created assign statement\n";
-	SingleExprStatement *crt = new SingleExprStatement;
-	crt->type = STATEMENT_TYPE::EXPR;
-	crt->to_print=CreateBinExp(EXPRESSION_TYPE::BIN_ASSIGN, exp1, exp2);
+	StatementAssign *sa = new StatementAssign;
+	sa->type = STATEMENT_TYPE::ASSIGN;
+	sa->left = left_;
+	sa->right = right_;
+	return sa;
+}
+
+// Создание бинарного выражения
+// exprType_ - тип выражения
+// left_ - левая часть выражения
+// right_ - правая часть выражения
+Expression *TreeFactory::CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_, Expression *right_)
+{
+	Expression *crt = new Expression;
+	crt->type = exprType_;
+	crt->left = left_;
+	crt->right = right_;
 	return crt;
 }
 
-Expression *TreeFactory::CreateBinExp(EXPRESSION_TYPE exprType_, Expression *left,Expression *right)
+// Создание унарного выражения
+// exprType_ - тип выражения
+// left_ - операнд выражения
+Expression *TreeFactory::CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_)
 {
 	Expression *crt = new Expression;
 	crt->type=exprType_;
-	crt->left=left;
-	crt->right=right;
+	crt->left=left_;
 	return crt;
 }
+
+// Создание int константы
+// value - значение
 Expression *TreeFactory::CreateConstExp(int value)
 {
 	Expression *crt = new Expression;
@@ -166,6 +133,9 @@ Expression *TreeFactory::CreateConstExp(int value)
 	crt->iValue=value;
 	return crt;
 }
+
+// Создание double константы
+// value - значение
 Expression *TreeFactory::CreateConstExp(double value)
 {
 	Expression *crt = new Expression;
@@ -174,22 +144,14 @@ Expression *TreeFactory::CreateConstExp(double value)
 	return crt;
 }
 
+// Создание identifier константы
+// value - значение
 Expression *TreeFactory::CreateIdfExp(const char *str_)
 {
 	std::cout << "Create identifier expression\n";
 	Expression *crt = new Expression;
 	crt->type=EXPRESSION_TYPE::IDENTIFIER;
 	crt->identifier = std::string(str_);
-	return crt;
-}
-
-Statement *TreeFactory::CreateIfElseStatement(Expression *condition_, StatementList *stmtList_, Statement *elseStmt_)
-{
-	std::cout << "Created if-else statement\n";
-	auto *crt = new IfElseStmt;
-	crt->type = STATEMENT_TYPE::IF_ELSE;
-	crt->condition = condition_;
-	crt->statement = stmtList_;
-	crt->elseStatement = elseStmt_;
+	crt->isAssignable = true;
 	return crt;
 }
