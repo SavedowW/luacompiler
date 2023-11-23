@@ -21,6 +21,7 @@ Program *prg = nullptr;
     const char *identifier;
     DoublePtrString str_const;
     bool bool_const;
+    
 }
 %type <lst>block_noret
 %type <lst>block
@@ -32,13 +33,13 @@ Program *prg = nullptr;
 %type <stm>goto_label;
 %type <stm>goto_call;
 %type <stm>named_function_definition
-%type <expr>unnamed_function_definition
-%type <expr>function_name
-%type <expr>callable_name
-%type <expr>key_value_association
-%type <expr>key_value_association_list
-%type <expr>key_value_association_listE
-%type <expr>table_construct
+%type <exp>unnamed_function_definition
+%type <exp>function_name
+%type <exp>callable_name
+%type <exp>key_value_association
+%type <explst>key_value_association_list
+%type <explst>key_value_association_listE
+%type <exp>table_construct
 %type <explst>expr_list
 %type <explst>expr_listE
 %type <explst>param_list_no_vararg
@@ -158,17 +159,17 @@ expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::Cre
     | expr AND expr     {printf("Merged into single AND\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::LOG_AND, $1, $3);}
     | expr OR expr      {printf("Merged into single OR\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::LOG_OR, $1, $3);}
     | NOT expr          {std::cout << "Merged into single NOT\n"; $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::LOG_NOT, $2);}
-    | expr VAR_CONCAT expr {std::cout << "Concat vars\n";}
+    | expr VAR_CONCAT expr {std::cout << "Concat vars\n"; $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_CONCAT, $1, $3);}
     | '(' expr ')'      {printf("Merged into single ()\n"); $$ = $2;}
     | INT       {$$ = TreeFactory::CreateConstExp($1);}
     | DOUBLE    {$$ = TreeFactory::CreateConstExp($1);}
     | STRING    {$$ = TreeFactory::CreateConstExp($1);}
-    | NIL {std::cout << "nil value found\n";}
-    | BOOL
+    | NIL {std::cout << "nil value found\n"; $$ = TreeFactory::CreateNil();}
+    | BOOL {$$ = TreeFactory::CreateConstExp($1);}
     | assignable_expr {$$ = TreeFactory::MakeConstant($1);}
-    | function_call  {std::cout << "Expression from function call\n";}
-    | unnamed_function_definition {std::cout << "Unnamed function definition\n";}
-    | table_construct
+    | function_call  {std::cout << "Expression from function call\n"; $$ = $1;}
+    | unnamed_function_definition {std::cout << "Unnamed function definition\n"; $$ = $1;} // TODO:
+    | table_construct {$$ = $1;}
     ;
 
 expr_list: /* empty */ {std::cout << "Merged empty expr_list\n"; $$ = TreeFactory::CreateExprList();}
@@ -206,14 +207,15 @@ function_name: IDENTIFIER {std::cout << "Merged function name\n";}
 // Вызовы функций
 // Обращения к элементам таблиц через []
 // ':'
-callable_name: assignable_expr {std::cout << "Merged callable from assignable expr\n";}
-    | assignable_expr ':' IDENTIFIER {std::cout << "Merged callable from function name\n";}
-    | function_call {std::cout << "Merged callable from function call\n";}
+callable_name: assignable_expr {std::cout << "Merged callable from assignable expr\n"; $$ = $1;}
+    | assignable_expr ':' IDENTIFIER {std::cout << "Merged callable from function name\n"; $$ = TreeFactory::CreateMethodName($1, $3);}
+    | function_call {std::cout << "Merged callable from function call\n"; $$ = $1;}
+    | function_call ':' IDENTIFIER {std::cout << "Merged callable from function_call:function_name\n"; $$ = TreeFactory::CreateMethodName($1, $3);}
     ;
 
-function_call: callable_name '(' expr_list ')' {std::cout << "Merged function call\n";}
-    | callable_name STRING {std::cout << "Merged function call\n";}
-    | callable_name table_construct {std::cout << "Merged function call\n";}
+function_call: callable_name '(' expr_list ')' {std::cout << "Merged function call\n"; $$ = TreeFactory::CreateFunctionCall($1, $3);}
+    | callable_name STRING {std::cout << "Merged function call\n"; $$ = TreeFactory::CreateFunctionCall($1, $2);}
+    | callable_name table_construct {std::cout << "Merged function call\n"; $$ = TreeFactory::CreateFunctionCall($1, $2);}
     ;
 
 named_function_definition: FUNCTION function_name '(' param_list ')' chunk END {std::cout << "Merged function definition\n";}
@@ -238,19 +240,19 @@ param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
     | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n";}
     ;
 
-key_value_association: '[' expr ']' '=' expr
-    | IDENTIFIER '=' expr
+key_value_association: '[' expr ']' '=' expr {$$ = TreeFactory::CreateKeyValueAssoc($2, $5);}
+    | IDENTIFIER '=' expr {std::cout << "HERE: " << $1 << std::endl; $$ = TreeFactory::CreateKeyValueAssoc($1, $3);}
     ;
 
-key_value_association_list: /* empty */
-    | key_value_association_listE
+key_value_association_list: /* empty */ {$$ = TreeFactory::CreateExprList();}
+    | key_value_association_listE {$$ = $1;}
     ;
 
-key_value_association_listE: key_value_association
-    | key_value_association_listE ',' key_value_association
+key_value_association_listE: key_value_association {$$ = TreeFactory::CreateExprList($1);}
+    | key_value_association_listE ',' key_value_association {$$ = TreeFactory::AppendExprToList($1, $3);}
     ;
 
-table_construct: '{' key_value_association_list '}'
+table_construct: '{' key_value_association_list '}' {$$ = TreeFactory::CreateTableContruct($2);}
 ;
 
 %%
