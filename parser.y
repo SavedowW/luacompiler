@@ -90,13 +90,13 @@ Program *prg = nullptr;
 %%
 start: chunk {prg = TreeFactory::CreateProgram($1);}
 
-chunk: /* empty */
+chunk: /* empty */ {printf("Merged empty chunk\n"); $$ = TreeFactory::CreateStList();}
     | block
     ;
 
 block: block_noret {printf("Finished block without return\n");}
-    | block_noret return_stmt {printf("Finished block with return\n");}
-    | return_stmt {printf("Finished block with only return\n");}
+    | block_noret return_stmt {printf("Finished block with return\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
+    | return_stmt {printf("Finished block with only return\n"); $$ = TreeFactory::CreateStList($1);}
     ;
 
 block_noret: block stmt {printf("Extended sequence\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
@@ -108,11 +108,11 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n");}
     | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n");}
     | if_stmt {printf("Merged single IF into stmt\n");}
-    | WHILE expr DO block END {printf("Merged into single WHILE\n");}
-    | REPEAT block UNTIL expr {printf("Merged into single REPEAT\n");}
-    | FOR IDENTIFIER '=' expr ',' expr DO block END {printf("Merged into single FOR\n");}
-    | FOR IDENTIFIER '=' expr ',' expr ',' expr DO block END {printf("Merged into single FOR with step\n");}
-    | FOR param_list_no_vararg IN expr DO block END {printf("Merged into single generic FOR\n");}
+    | WHILE expr DO chunk END {printf("Merged into single WHILE\n");}
+    | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n");}
+    | FOR IDENTIFIER '=' expr ',' expr DO chunk END {printf("Merged into single FOR\n");}
+    | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n");}
+    | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n");}
     | function_call {std::cout << "Statement from func call\n";}
     | BREAK {std::cout << "BREAK statement found\n";}
     | named_function_definition
@@ -127,11 +127,11 @@ goto_call: GOTO IDENTIFIER
     ;
 
 if_stmt: if_unfinished END {printf("Merged into if_stmt\n");}
-    | if_unfinished ELSE block END {printf("Merged into if_stmt\n");}
+    | if_unfinished ELSE chunk END {printf("Merged into if_stmt\n");}
     ;
 
-if_unfinished: IF expr THEN block {printf("Merged initial if_unfinished\n");}
-    | if_unfinished ELSEIF expr THEN block {printf("Extended if_unfinished\n");}
+if_unfinished: IF expr THEN chunk {printf("Merged initial if_unfinished\n");}
+    | if_unfinished ELSEIF expr THEN chunk {printf("Extended if_unfinished\n");}
     ;
 
 expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_PLUS, $1, $3);}
@@ -165,14 +165,14 @@ expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::Cre
     | STRING
     | NIL {std::cout << "nil value found\n";}
     | BOOL
-    | assignable_expr {$$ = $1;}
+    | assignable_expr {$$ = TreeFactory::MakeConstant($1);}
     | function_call  {std::cout << "Expression from function call\n";}
     | unnamed_function_definition {std::cout << "Unnamed function definition\n";}
     | table_construct
     ;
 
 expr_list: /* empty */ {std::cout << "Merged empty expr_list\n"; $$ = TreeFactory::CreateExprList();}
-    | expr_listE {std::cout << "Merged expr_list from E\n";}
+    | expr_listE {std::cout << "Merged expr_list from E\n"; $$ = $1;}
     ;
 
 expr_listE: expr {std::cout << "Merged expr_listE\n";  $$ = TreeFactory::CreateExprList($1);}
@@ -188,8 +188,7 @@ assignable_expr: IDENTIFIER {$$ = TreeFactory::CreateIdfExp($1);}
     | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n";}
     | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}
     | function_call '[' expr ']' {std::cout << "Merged table member from [] (func call)\n";}
-    ; // TODO: разобраться с function_name, callable_name, function_call, table_field
-    // Уменьшить количество нетерминалов
+    ;
 
 assignable_expr_list: assignable_expr ',' assignable_expr {std::cout << "Merged assignable_expr_list\n";}
     | assignable_expr_list ',' assignable_expr {std::cout << "Extended assignable_expr_list\n";}
@@ -217,14 +216,14 @@ function_call: callable_name '(' expr_list ')' {std::cout << "Merged function ca
     | callable_name table_construct {std::cout << "Merged function call\n";}
     ;
 
-named_function_definition: FUNCTION function_name '(' param_list ')' block END {std::cout << "Merged function definition\n";}
-    | FUNCTION function_name ':' IDENTIFIER '(' param_list ')' block END {std::cout << "Merged function definition with :\n";}
+named_function_definition: FUNCTION function_name '(' param_list ')' chunk END {std::cout << "Merged function definition\n";}
+    | FUNCTION function_name ':' IDENTIFIER '(' param_list ')' chunk END {std::cout << "Merged function definition with :\n";}
     ;
 
-unnamed_function_definition: FUNCTION '(' param_list ')' block END {std::cout << "Merged function definition\n";}
+unnamed_function_definition: FUNCTION '(' param_list ')' chunk END {std::cout << "Merged function definition\n";}
     ;
 
-return_stmt: RETURN expr_list {std::cout << "Merged return\n";}
+return_stmt: RETURN expr_list {std::cout << "Merged return\n"; $$ = TreeFactory::CreateReturnStatement($2);}
     ;
 
 param_list:  /* empty */ 

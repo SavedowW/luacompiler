@@ -30,7 +30,8 @@ enum class EXPRESSION_TYPE {
 // Список всех типов statement'ов
 enum class STATEMENT_TYPE {
 	ASSIGN,
-	STMT_LIST
+	STMT_LIST,
+	RETURN
 };
 
 
@@ -87,6 +88,14 @@ public:
 	virtual ~StatementAssign() = default;
 };
 
+// Возврат
+class StatementReturn : public Statement
+{
+public:
+	ExpressionList* lst = nullptr;
+	virtual ~StatementReturn() = default;
+};
+
 // Класс программы, с которого начинается дерево
 class Program
 {
@@ -99,15 +108,18 @@ namespace TreeFactory
 	Program *CreateProgram(StatementList *lst);
 	StatementList *AppendStatementToList(StatementList *lst, Statement *stm);
 	StatementList *CreateStList(Statement *stm);
+	StatementList *CreateStList();
 	ExpressionList *AppendExprToList(ExpressionList *lst, Expression *expr);
 	ExpressionList *CreateExprList(Expression *expr);
 	ExpressionList *CreateExprList();
 	Statement *CreateAssignStatement(Expression *left_, ExpressionList *right_);
+	Statement *CreateReturnStatement(ExpressionList *lst_);
 	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_,Expression *right_);
 	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_);
 	Expression *CreateConstExp(int value);
 	Expression *CreateConstExp(double value);
 	Expression *CreateIdfExp(const char *str_);
+	Expression *MakeConstant(Expression *expr);
 };
 
 #endif

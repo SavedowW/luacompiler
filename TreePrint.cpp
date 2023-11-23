@@ -44,6 +44,15 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		lst_print(realstmt, level);
 	}
 		break;
+	case STATEMENT_TYPE::RETURN:
+	{
+		auto *realstmt = dynamic_cast<StatementReturn*>(stmt);
+		print_indent(level);
+		printf("return");
+		if (realstmt->lst)
+			lst_print(realstmt->lst, level);
+	}
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level)

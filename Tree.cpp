@@ -59,6 +59,15 @@ StatementList *TreeFactory::CreateStList(Statement *stm)
 	return lst;
 }
 
+// Создание пустого списка statement'ов
+StatementList *TreeFactory::CreateStList()
+{
+    std::cout << "Created statement list\n";
+	StatementList *lst = new StatementList;
+	lst->type = STATEMENT_TYPE::STMT_LIST;
+	return lst;
+}
+
 // Добавление выражения ко списку
 // lst - список
 // expr - выражение, которое нужно добавить
@@ -98,6 +107,17 @@ Statement *TreeFactory::CreateAssignStatement(Expression *left_, ExpressionList 
 	sa->left = left_;
 	sa->right = right_;
 	return sa;
+}
+
+// Создание элемента return
+// lst_ - список возвращаемых значений
+Statement *TreeFactory::CreateReturnStatement(ExpressionList *lst_)
+{
+	std::cout << "Created return statement\n";
+	StatementReturn *ret = new StatementReturn;
+	ret->type = STATEMENT_TYPE::RETURN;
+	ret->lst = (lst_->lst.size() > 0 ? lst_ : nullptr);
+	return ret;
 }
 
 // Создание бинарного выражения
@@ -154,4 +174,12 @@ Expression *TreeFactory::CreateIdfExp(const char *str_)
 	crt->identifier = std::string(str_);
 	crt->isAssignable = true;
 	return crt;
+}
+
+// Сделать Expr из AssignableExpr
+// expr - выражение для изменения
+Expression *MakeConstant(Expression *expr)
+{
+	expr->isAssignable = false;
+	return expr;
 }
