@@ -93,6 +93,10 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		lst_print(realstmt->lst, level + 1);
 	}
 		break;
+	case STATEMENT_TYPE::BREAK:
+		print_indent(level);
+		std::cout << "break";
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level, bool noIndent)

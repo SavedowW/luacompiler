@@ -108,32 +108,32 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | LOCAL assignable_expr '=' expr_listE {printf("Created assign const expr to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
     | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n"); $$ = TreeFactory::CreateAssignStatement($1, $3, false);}
     | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
-    | if_stmt {printf("Merged single IF into stmt\n");}
-    | WHILE expr DO chunk END {printf("Merged into single WHILE\n");}
-    | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n");}
-    | FOR IDENTIFIER '=' expr ',' expr DO chunk END {printf("Merged into single FOR\n");}
-    | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n");}
-    | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n");}
-    | function_call {std::cout << "Statement from func call\n"; $$ = $$ = TreeFactory::CreateFunctionCallStatement($1);}
-    | BREAK {std::cout << "BREAK statement found\n";}
+    | if_stmt {printf("Merged single IF into stmt\n");} // TODO:
+    | WHILE expr DO chunk END {printf("Merged into single WHILE\n");} // TODO:
+    | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n");} // TODO:
+    | FOR IDENTIFIER '=' expr ',' expr DO chunk END {printf("Merged into single FOR\n");} // TODO:
+    | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n");} // TODO:
+    | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n");} // TODO:
+    | function_call {std::cout << "Statement from func call\n"; $$ = TreeFactory::CreateFunctionCallStatement($1);}
+    | BREAK {std::cout << "BREAK statement found\n"; $$ = TreeFactory::makeBreakStatement();}
     | named_function_definition {$$ = $1;}
     | LOCAL named_function_definition {$$ = TreeFactory::makeAssignmentLocal($2);}
-    | goto_call {std::cout << "Merged goto_call\n";}
-    | goto_label {std::cout << "Merged goto_label\n";}
+    | goto_call {std::cout << "Merged goto_call\n";} // TODO:
+    | goto_label {std::cout << "Merged goto_label\n";} // TODO:
     ;
 
-goto_label: QDOTS IDENTIFIER QDOTS
+goto_label: QDOTS IDENTIFIER QDOTS // TODO:
     ;
 
-goto_call: GOTO IDENTIFIER
+goto_call: GOTO IDENTIFIER // TODO:
     ;
 
-if_stmt: if_unfinished END {printf("Merged into if_stmt\n");}
-    | if_unfinished ELSE chunk END {printf("Merged into if_stmt\n");}
+if_stmt: if_unfinished END {printf("Merged into if_stmt\n");} // TODO:
+    | if_unfinished ELSE chunk END {printf("Merged into if_stmt\n");} // TODO:
     ;
 
-if_unfinished: IF expr THEN chunk {printf("Merged initial if_unfinished\n");}
-    | if_unfinished ELSEIF expr THEN chunk {printf("Extended if_unfinished\n");}
+if_unfinished: IF expr THEN chunk {printf("Merged initial if_unfinished\n");} // TODO:
+    | if_unfinished ELSEIF expr THEN chunk {printf("Extended if_unfinished\n");} // TODO:
     ;
 
 expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_PLUS, $1, $3);}
@@ -199,8 +199,8 @@ assignable_expr_list: assignable_expr ',' assignable_expr {std::cout << "Merged 
 
 // В имени функции в определении может быть:
 // IDENTIFIER '.' IDENTIFIER '.' ... '.' IDENTIFIER ':' IDENTIFIER (т.е. не может быть обращения к элементу таблицы через вызов функции или [])
-function_name: IDENTIFIER {std::cout << "Merged function name\n"; $$ = TreeFactory::CreateIdfExp($1);} // TODO:
-    | function_name '.' IDENTIFIER {std::cout << "Merged function name\n"; $$ = TreeFactory::GetCell($1, $3);} // TODO:
+function_name: IDENTIFIER {std::cout << "Merged function name\n"; $$ = TreeFactory::CreateIdfExp($1);}
+    | function_name '.' IDENTIFIER {std::cout << "Merged function name\n"; $$ = TreeFactory::GetCell($1, $3);}
     ;
 
 // В имени функции в определении может быть:

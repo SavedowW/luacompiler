@@ -66,7 +66,8 @@ enum class STATEMENT_TYPE {
 	MULTIPLE_ASSIGN,
 	STMT_LIST,
 	RETURN,
-	FUNCTION_CALL
+	FUNCTION_CALL,
+	BREAK
 };
 
 class ExpressionList;
@@ -214,6 +215,8 @@ namespace TreeFactory
 	Statement *CreateNamedFunctionDefinition(Expression *functionName_, ParamList *params_, StatementList *code_);
 	Statement *CreateNamedFunctionDefinition(Expression *functionName_, const char *identifier_, ParamList *params_, StatementList *code_);
 	Statement *makeAssignmentLocal(Statement *assign_);
+
+	Statement *makeBreakStatement();
 
 };
 

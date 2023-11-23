@@ -418,3 +418,10 @@ Statement *TreeFactory::makeAssignmentLocal(Statement *assign_)
 	auto *realstmt = dynamic_cast<StatementAssign*>(assign_);
 	realstmt->isLocal = true;
 }
+
+Statement *TreeFactory::makeBreakStatement()
+{
+	auto *stmt = new Statement();
+	stmt->type = STATEMENT_TYPE::BREAK;
+	return stmt;
+}
