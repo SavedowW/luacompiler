@@ -135,11 +135,11 @@ if_unfinished: IF expr THEN block {printf("Merged initial if_unfinished\n");}
     ;
 
 expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_PLUS, $1, $3);}
-    | expr '-' expr     {printf("Merged into single -\n");}
+    | expr '-' expr     {printf("Merged into single -\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_MINUS, $1, $3);}
     | expr '*' expr     {printf("Merged into single *\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_MUL, $1, $3);}
-    | expr '/' expr     {printf("Merged into single /\n");}
+    | expr '/' expr     {printf("Merged into single /\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_DIV, $1, $3);}
     | expr '%' expr     {printf("Merged into single %\n");}
-    | expr '^' expr     {printf("Merged into single ^\n");}
+    | expr '^' expr     {printf("Merged into single ^\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_EXPON, $1, $3);}
     | expr '&' expr     {printf("Merged into single &\n");}
     | expr '|' expr     {printf("Merged into single |\n");}
     | expr '~' expr     {printf("Merged into single ~\n");}
@@ -148,15 +148,15 @@ expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::Cre
     | expr EQUALS expr          {printf("Merged into single ==\n");}
     | expr NOT_EQUALS expr    {printf("Merged into single ~=\n");}
     | expr GREATER expr         {printf("Merged into single >\n");}
-    | expr GREATER_EQUALS expr  {printf("Merged into single >=\n");}
+    | expr GREATER_EQUALS expr  {printf("Merged into single >=\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::REL_GREATER_EQUALS, $1, $3);}
     | expr LESS expr            {printf("Merged into single <\n");}
     | expr LESS_EQUALS expr     {printf("Merged into single <=\n");}
     | expr FLOOR_DIVISION expr
     | expr BITWISE_LEFT_SHIFT expr      {printf("Merged into single <<\n");}
     | expr BITWISE_RIGHT_SHIFT expr     {printf("Merged into single >>\n");}
-    | '#' expr      {printf("Merged into single #\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::UNAR_LEN, $2);}
+    | '#' expr          {printf("Merged into single #\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::UNAR_LEN, $2);}
     | expr AND expr     {printf("Merged into single AND\n");}
-    | expr OR expr      {printf("Merged into single OR\n");}
+    | expr OR expr      {printf("Merged into single OR\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::LOG_OR, $1, $3);}
     | NOT expr          {std::cout << "Merged into single NOT\n";}
     | expr VAR_CONCAT expr {std::cout << "Concat vars\n";}
     | '(' expr ')'      {printf("Merged into single ()\n"); $$ = $2;}

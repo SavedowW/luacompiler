@@ -77,9 +77,101 @@ void TreePrint::expr_print(Expression *expr, int level)
 		expr_print(expr->left, level + 1);
 		expr_print(expr->right, level + 1);
 		break;
+	case EXPRESSION_TYPE::BIN_REM_DIV:
+		printf("%");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BIN_EXPON:
+		printf("^");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BIN_AND:
+		printf("&");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BIN_OR:
+		printf("|");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BIN_NOT:
+		printf("~");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::LOG_AND:
+		printf("AND");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::LOG_OR:
+		printf("OR");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::LOG_NOT:
+		printf("NOT");
+		expr_print(expr->left, level + 1);
+		break;
+	case EXPRESSION_TYPE::UNAR_UMINUS:
+		printf("-");
+		expr_print(expr->left, level + 1);
+		break;
+	case EXPRESSION_TYPE::UNAR_BITWISE_NOT:
+		printf("~");
+		expr_print(expr->left, level + 1);
+		break;
 	case EXPRESSION_TYPE::UNAR_LEN:
 		printf("#");
 		expr_print(expr->left, level + 1);
+		break;
+	case EXPRESSION_TYPE::REL_EQUALS:
+		printf("==");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::REL_NOT_EQUALS:
+		printf("~=");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::REL_GREATER:
+		printf(">");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::REL_GREATER_EQUALS:
+		printf(">=");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::REL_LESS:
+		printf("<");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::REL_LESS_EQUALS:
+		printf("<=");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BIN_FLOOR_DIVISION:
+		printf("//");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BITWISE_LEFT_SHIFT:
+		printf("<<");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BITWISE_RIGHT_SHIFT:
+		printf(">>");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
 		break;
 	case EXPRESSION_TYPE::IDENTIFIER:
 		std::cout << expr->identifier;
