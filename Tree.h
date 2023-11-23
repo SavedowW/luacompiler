@@ -24,7 +24,9 @@ enum class EXPRESSION_TYPE {
 	BIN_MINUS,
 	BIN_MUL,
 	BIN_DIV,
-	UNAR_LEN
+	UNAR_LEN,
+	CELL_BY_IDENTIFIER,
+	CELL_BY_EXPR
 };
 
 // Список всех типов statement'ов
@@ -120,6 +122,8 @@ namespace TreeFactory
 	Expression *CreateConstExp(double value);
 	Expression *CreateIdfExp(const char *str_);
 	Expression *MakeConstant(Expression *expr);
+	Expression *GetCell(Expression *expr_, Expression *rhs_);
+	Expression *GetCell(Expression *expr_, const char *identifier_);
 };
 
 #endif

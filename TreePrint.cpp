@@ -57,7 +57,8 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 }
 void TreePrint::expr_print(Expression *expr, int level)
 {
-	print_indent(level);
+	if (level > 0)
+		print_indent(level);
 	switch(expr->type)
 	{
 	case EXPRESSION_TYPE::INT:
@@ -92,6 +93,16 @@ void TreePrint::expr_print(Expression *expr, int level)
 		break;
 	case EXPRESSION_TYPE::IDENTIFIER:
 		std::cout << expr->identifier;
+		break;
+	case EXPRESSION_TYPE::CELL_BY_EXPR:
+		expr_print(expr->left, level);
+		std::cout << "[]";
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::CELL_BY_IDENTIFIER:
+		expr_print(expr->left, level);
+		print_indent(level + 1);
+		std::cout << "." << expr->identifier;
 		break;
 	}
 }

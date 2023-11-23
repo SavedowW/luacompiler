@@ -184,8 +184,8 @@ expr_listE: expr {std::cout << "Merged expr_listE\n";  $$ = TreeFactory::CreateE
 // Элементу таблицы (обращение через . или [])
 // Таблица может быть возвращена из функции, может быть элементом таблицы и может быть значением переменной
 assignable_expr: IDENTIFIER {$$ = TreeFactory::CreateIdfExp($1);}
-    | assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n";}
-    | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n";}
+    | assignable_expr '.' IDENTIFIER  {std::cout << "Merged table member from dot\n"; $$ = TreeFactory::GetCell($1, $3);}
+    | assignable_expr '[' expr ']' {std::cout << "Merged table member from []\n"; $$ = TreeFactory::GetCell($1, $3);}
     | function_call '.' IDENTIFIER  {std::cout << "Merged table member from dot (func call)\n";}
     | function_call '[' expr ']' {std::cout << "Merged table member from [] (func call)\n";}
     ;

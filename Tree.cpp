@@ -178,8 +178,30 @@ Expression *TreeFactory::CreateIdfExp(const char *str_)
 
 // Сделать Expr из AssignableExpr
 // expr - выражение для изменения
-Expression *MakeConstant(Expression *expr)
+Expression *TreeFactory::MakeConstant(Expression *expr)
 {
 	expr->isAssignable = false;
+	return expr;
+}
+
+Expression *TreeFactory::GetCell(Expression *expr_, Expression *rhs_)
+{
+	std::cout << "Create index by expression\n";
+	Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::CELL_BY_EXPR;
+	expr->left = expr_;
+	expr->right = rhs_;
+	expr->isAssignable = true;
+	return expr;
+}
+
+Expression *TreeFactory::GetCell(Expression *expr_, const char *identifier_)
+{
+	std::cout << "Create index by identifier\n";
+	Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::CELL_BY_IDENTIFIER;
+	expr->left = expr_;
+	expr->identifier = identifier_;
+	expr->isAssignable = true;
 	return expr;
 }
