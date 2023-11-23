@@ -55,9 +55,9 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		break;
 	}
 }
-void TreePrint::expr_print(Expression *expr, int level)
+void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
 {
-	if (level > 0)
+	if (level > 0 && !noIndent)
 		print_indent(level);
 	switch(expr->type)
 	{
@@ -66,6 +66,9 @@ void TreePrint::expr_print(Expression *expr, int level)
 		break;
 	case EXPRESSION_TYPE::DOUBLE:
 		std::cout << expr->fValue;
+		break;
+	case EXPRESSION_TYPE::STRING:
+		std::cout << expr->sValue;
 		break;
 	case EXPRESSION_TYPE::BIN_PLUS:
 		printf("+");
@@ -187,12 +190,12 @@ void TreePrint::expr_print(Expression *expr, int level)
 		std::cout << expr->identifier;
 		break;
 	case EXPRESSION_TYPE::CELL_BY_EXPR:
-		expr_print(expr->left, level);
 		std::cout << "[]";
+		expr_print(expr->left, level + 1);
 		expr_print(expr->right, level + 1);
 		break;
 	case EXPRESSION_TYPE::CELL_BY_IDENTIFIER:
-		expr_print(expr->left, level);
+		expr_print(expr->left, level, true);
 		print_indent(level + 1);
 		std::cout << "." << expr->identifier;
 		break;

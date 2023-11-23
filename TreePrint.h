@@ -11,7 +11,7 @@ namespace TreePrint
 	void lst_print(StatementList *stmts, int level);
 	void lst_print(ExpressionList *exprs, int level);
 	void stmt_print(Statement *stmt, int level);
-	void expr_print(Expression *expr, int level);
+	void expr_print(Expression *expr, int level, bool noIndent = false);
 	void print_indent(int level);
 };
 

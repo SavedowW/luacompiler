@@ -164,6 +164,16 @@ Expression *TreeFactory::CreateConstExp(double value)
 	return crt;
 }
 
+// Создание string константы
+// value - значение
+Expression *TreeFactory::CreateConstExp(DoublePtrString value)
+{
+	Expression *crt = new Expression;
+	crt->type=EXPRESSION_TYPE::STRING;
+	crt->sValue = value;
+	return crt;
+}
+
 // Создание identifier константы
 // value - значение
 Expression *TreeFactory::CreateIdfExp(const char *str_)

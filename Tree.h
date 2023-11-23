@@ -19,6 +19,7 @@ std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_);
 enum class EXPRESSION_TYPE {
 	INT,
 	DOUBLE,
+	STRING,
 	IDENTIFIER,
 	BIN_PLUS,
 	BIN_MINUS,
@@ -72,6 +73,7 @@ public:
 	EXPRESSION_TYPE type;
 	int iValue;
 	double fValue;
+	DoublePtrString sValue;
 	std::string identifier;
 	Expression *left;
 	Expression *right;
@@ -139,6 +141,7 @@ namespace TreeFactory
 	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_);
 	Expression *CreateConstExp(int value);
 	Expression *CreateConstExp(double value);
+	Expression *CreateConstExp(DoublePtrString value);
 	Expression *CreateIdfExp(const char *str_);
 	Expression *MakeConstant(Expression *expr);
 	Expression *GetCell(Expression *expr_, Expression *rhs_);

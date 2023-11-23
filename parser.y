@@ -162,7 +162,7 @@ expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::Cre
     | '(' expr ')'      {printf("Merged into single ()\n"); $$ = $2;}
     | INT       {$$ = TreeFactory::CreateConstExp($1);}
     | DOUBLE    {$$ = TreeFactory::CreateConstExp($1);}
-    | STRING
+    | STRING    {$$ = TreeFactory::CreateConstExp($1);}
     | NIL {std::cout << "nil value found\n";}
     | BOOL
     | assignable_expr {$$ = TreeFactory::MakeConstant($1);}
