@@ -1,1 +1,1 @@
-a = #"zdf hnxfd"
+res = a():b():c()

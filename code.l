@@ -17,6 +17,7 @@
     void addToStr(const char *extention, int len);
     void addCharToStr(const char ch);
     void resetStr();
+    const char *allocCopy(const char *src_);
     extern int yyparse(void);
 %}
 POINT_NUM ([0-9]+|([0-9]+\.[0-9]*)|([0-9]*\.[0-9]+))
@@ -182,7 +183,7 @@ return {printf("Keyword: %s\n", yytext); return RETURN;};
 };
 {POINT_NUM}[0-9\.Ee_]+ {printf("ERROR: impossible number literal r1: %s\n", yytext);};
 [\s\n ]+ {}
-[a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext); yylval.identifier = yytext; return IDENTIFIER; };
+[a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext); yylval.identifier = allocCopy(yytext); return IDENTIFIER; };
 [0-9]([a-zA-Z_0-9\.]*) {printf("ERROR: malformed number near: %s\n", yytext);};
 %%
  
@@ -220,6 +221,14 @@ void resetStr()
 {
     strcpy(str, "");
     lineEnd = str;
+}
+
+const char *allocCopy(const char *src_)
+{
+    auto len = strlen(src_) + 1;
+    char *dst = new char[len];
+    strncpy(dst, src_, len);
+    return dst;
 }
 
 int main(int argc, char **argv)

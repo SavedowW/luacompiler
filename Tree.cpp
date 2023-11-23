@@ -7,16 +7,31 @@ DoublePtrString DoublePtrString::clone() const
 {
 	DoublePtrString s;
 	int len = end-begin+1;
-	s.begin = new char[end-begin+1];
+	s.begin = new char[len];
 	s.end = s.begin + len;
 	strncpy(s.begin, begin, len);
+	return s;
+}
+
+DoublePtrString::DoublePtrString(const char *str_)
+{
+	int len = strlen(str_) + 1;
+	begin = new char[strlen(str_)];
+	end = begin + len;
+	strncpy(begin, str_, len);
+}
+
+DoublePtrString::DoublePtrString(char *begin_, char *end_)
+{
+	begin = begin_;
+	end = end_;
 }
 
 std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_)
 {
     char *ptr = s_.begin;
 	out_ << '"';
-    while (ptr != s_.end)
+    while (ptr != s_.end - 1)
     {
         if (*ptr == '\0')
             out_ << '?';
@@ -144,6 +159,45 @@ Expression *TreeFactory::CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_
 	return crt;
 }
 
+// Создание ассоциации между двумя выражениями в конструкторе таблицы
+// left_ - операнд выражения
+// right_ - операнд выражения
+Expression *TreeFactory::CreateKeyValueAssoc(Expression *left_, Expression *right_)
+{
+	Expression *expr = new Expression;
+	expr->type=EXPRESSION_TYPE::KEY_VALUE_ASSOC;
+	expr->left = left_;
+	expr->right = right_;
+	return expr;
+}
+
+Expression *TreeFactory::CreateKeyValueAssoc(const char *identifier_, Expression *right_)
+{
+	std::cout << "Created key value assoc for " << identifier_ << std::endl;
+	Expression *expr = new Expression;
+	const char *idf2 = identifier_ + 1;
+	expr->type=EXPRESSION_TYPE::KEY_VALUE_ASSOC;
+	expr->left = new Expression;
+	expr->left->type=EXPRESSION_TYPE::STRING;
+	expr->left->sValue = DoublePtrString(identifier_);
+	expr->right = right_;
+	return expr;
+}
+
+Expression *TreeFactory::CreateTableContruct(ExpressionList *lst_)
+{
+	Expression *expr = new Expression;
+	expr->type=EXPRESSION_TYPE::TABLE_CONSTRUCT;
+	if (lst_ != nullptr && lst_->lst.size() == 0)
+	{
+		delete lst_;
+		expr->lst = nullptr;
+	}
+	else
+		expr->lst = lst_;
+	return expr;
+}
+
 // Создание int константы
 // value - значение
 Expression *TreeFactory::CreateConstExp(int value)
@@ -170,7 +224,25 @@ Expression *TreeFactory::CreateConstExp(DoublePtrString value)
 {
 	Expression *crt = new Expression;
 	crt->type=EXPRESSION_TYPE::STRING;
-	crt->sValue = value;
+	crt->sValue = value.clone();
+	return crt;
+}
+
+// Создание bool константы
+// value - значение
+Expression *TreeFactory::CreateConstExp(bool value)
+{
+	Expression *crt = new Expression;
+	crt->type=EXPRESSION_TYPE::BOOL;
+	crt->bValue = value;
+	return crt;
+}
+
+// Создание nil
+Expression *TreeFactory::CreateNil()
+{
+	Expression *crt = new Expression;
+	crt->type=EXPRESSION_TYPE::NIL;
 	return crt;
 }
 
@@ -209,9 +281,51 @@ Expression *TreeFactory::GetCell(Expression *expr_, const char *identifier_)
 {
 	std::cout << "Create index by identifier\n";
 	Expression *expr = new Expression;
-	expr->type = EXPRESSION_TYPE::CELL_BY_IDENTIFIER;
+	expr->type = EXPRESSION_TYPE::CELL_BY_EXPR;
 	expr->left = expr_;
-	expr->identifier = identifier_;
+	expr->right = new Expression;
+	expr->right->type=EXPRESSION_TYPE::STRING;
+	expr->right->sValue = DoublePtrString(identifier_);
 	expr->isAssignable = true;
+	return expr;
+}
+
+Expression *TreeFactory::CreateMethodName(Expression *expr_, const char *name_)
+{
+	std::cout << "Create method name\n";
+	Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::METHOD_NAME;
+	expr->left = expr_;
+	expr->identifier = name_;
+	return expr;
+}
+
+Expression *TreeFactory::CreateFunctionCall(Expression *callableName_, ExpressionList *args_)
+{
+	std::cout << "Create function call\n";
+	Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::FUNCTION_CALL;
+	expr->left = callableName_;
+	expr->lst = args_;
+	return expr;
+}
+
+Expression *TreeFactory::CreateFunctionCall(Expression *callableName_, DoublePtrString arg_)
+{
+	std::cout << "Create function call\n";
+	Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::FUNCTION_CALL;
+	expr->left = callableName_;
+	expr->lst = TreeFactory::CreateExprList(CreateConstExp(arg_));
+	return expr;
+}
+
+Expression *TreeFactory::CreateFunctionCall(Expression *callableName_, Expression *tblArg_)
+{
+	std::cout << "Create function call\n";
+	Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::FUNCTION_CALL;
+	expr->left = callableName_;
+	expr->lst = TreeFactory::CreateExprList(tblArg_);
 	return expr;
 }

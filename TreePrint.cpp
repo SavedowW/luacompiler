@@ -70,6 +70,12 @@ void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
 	case EXPRESSION_TYPE::STRING:
 		std::cout << expr->sValue;
 		break;
+	case EXPRESSION_TYPE::BOOL:
+		std::cout << std::boolalpha << expr->bValue;
+		break;
+	case EXPRESSION_TYPE::NIL:
+		std::cout << "nil";
+		break;
 	case EXPRESSION_TYPE::BIN_PLUS:
 		printf("+");
 		expr_print(expr->left, level + 1);
@@ -87,6 +93,11 @@ void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
 		break;
 	case EXPRESSION_TYPE::BIN_DIV:
 		printf("/");
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::BIN_CONCAT:
+		printf("..");
 		expr_print(expr->left, level + 1);
 		expr_print(expr->right, level + 1);
 		break;
@@ -194,10 +205,28 @@ void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
 		expr_print(expr->left, level + 1);
 		expr_print(expr->right, level + 1);
 		break;
-	case EXPRESSION_TYPE::CELL_BY_IDENTIFIER:
-		expr_print(expr->left, level, true);
-		print_indent(level + 1);
-		std::cout << "." << expr->identifier;
+	case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
+		std::cout << "[]=";
+		expr_print(expr->left, level + 1);
+		expr_print(expr->right, level + 1);
+		break;
+	case EXPRESSION_TYPE::TABLE_CONSTRUCT:
+		std::cout << "{}";
+		if (!expr->lst)
+			std::cout << " *empty*";
+		else
+			lst_print(expr->lst, level + 1);
+		break;
+	case EXPRESSION_TYPE::METHOD_NAME:
+		std::cout << ":";
+		expr_print(expr->left, level + 1);
+		print_indent(level);
+		std::cout << expr->identifier << std::endl;
+		break;
+	case EXPRESSION_TYPE::FUNCTION_CALL:
+		std::cout << "()";
+		expr_print(expr->left, level + 1);
+		lst_print(expr->lst, level + 1);
 		break;
 	}
 }

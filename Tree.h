@@ -7,10 +7,14 @@
 class DoublePtrString
 {
 public:
-	DoublePtrString clone() const;
+	DoublePtrString() = default;
+	DoublePtrString(const char *str_);
+	DoublePtrString(char *begin_, char *end_);
 
 	char *begin;
 	char *end;
+
+	DoublePtrString clone() const;
 };
 
 std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_);
@@ -20,12 +24,14 @@ enum class EXPRESSION_TYPE {
 	INT,
 	DOUBLE,
 	STRING,
+	BOOL,
+	NIL,
 	IDENTIFIER,
 	BIN_PLUS,
 	BIN_MINUS,
 	BIN_MUL,
 	BIN_DIV,
-	CELL_BY_IDENTIFIER,
+	BIN_CONCAT,
 	CELL_BY_EXPR,
 	BIN_REM_DIV,
 	BIN_EXPON,
@@ -46,7 +52,12 @@ enum class EXPRESSION_TYPE {
 	REL_LESS_EQUALS,
 	BIN_FLOOR_DIVISION,
 	BITWISE_LEFT_SHIFT,
-	BITWISE_RIGHT_SHIFT
+	BITWISE_RIGHT_SHIFT,
+	KEY_VALUE_ASSOC,
+	TABLE_CONSTRUCT,
+	METHOD_NAME,
+	FUNCTION_CALL,
+	UNNAMED_FUNCTION_DEFINITION
 };
 
 // Список всех типов statement'ов
@@ -56,6 +67,7 @@ enum class STATEMENT_TYPE {
 	RETURN
 };
 
+class ExpressionList;
 
 /*
 	Класс выражения
@@ -74,15 +86,18 @@ public:
 	int iValue;
 	double fValue;
 	DoublePtrString sValue;
+	bool bValue;
 	std::string identifier;
 	Expression *left;
 	Expression *right;
+	ExpressionList *lst;
 };
 
 // Класс списка выражений
 class ExpressionList
 {
 public:
+	
 	std::vector<Expression*> lst;
 };
 
@@ -119,6 +134,13 @@ public:
 	virtual ~StatementReturn() = default;
 };
 
+class ParamList
+{
+public:
+	std::vector<const char*> lst;
+	bool hasVararg = false;
+}
+
 // Класс программы, с которого начинается дерево
 class Program
 {
@@ -137,15 +159,28 @@ namespace TreeFactory
 	ExpressionList *CreateExprList();
 	Statement *CreateAssignStatement(Expression *left_, ExpressionList *right_);
 	Statement *CreateReturnStatement(ExpressionList *lst_);
-	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_,Expression *right_);
+	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_, Expression *right_);
 	Expression *CreateExpr(EXPRESSION_TYPE exprType_, Expression *left_);
+	Expression *CreateKeyValueAssoc(Expression *left_, Expression *right_);
+	Expression *CreateKeyValueAssoc(const char *identifier_, Expression *right_);
+	Expression *CreateTableContruct(ExpressionList *lst_);
 	Expression *CreateConstExp(int value);
 	Expression *CreateConstExp(double value);
 	Expression *CreateConstExp(DoublePtrString value);
+	Expression *CreateConstExp(bool value);
+	Expression *CreateNil();
 	Expression *CreateIdfExp(const char *str_);
 	Expression *MakeConstant(Expression *expr);
 	Expression *GetCell(Expression *expr_, Expression *rhs_);
 	Expression *GetCell(Expression *expr_, const char *identifier_);
+	Expression *CreateMethodName(Expression *expr_, const char *name_);
+	Expression *CreateFunctionCall(Expression *callableName_, ExpressionList *args_);
+	Expression *CreateFunctionCall(Expression *callableName_, DoublePtrString arg_);
+	Expression *CreateFunctionCall(Expression *callableName_, Expression *tblArg_);
+
+	ParamList createParamList;
+	Expression *CreateUnnamedFunctionDefinition(Expression *callableName_, Expression *tblArg_);
+
 };
 
 #endif
