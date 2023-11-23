@@ -21,7 +21,7 @@ Program *prg = nullptr;
     const char *identifier;
     DoublePtrString str_const;
     bool bool_const;
-    
+    ParamList *paramlst;
 }
 %type <lst>block_noret
 %type <lst>block
@@ -42,9 +42,9 @@ Program *prg = nullptr;
 %type <exp>table_construct
 %type <explst>expr_list
 %type <explst>expr_listE
-%type <explst>param_list_no_vararg
-%type <explst>param_list
-%type <explst>param_listE
+%type <paramlst>param_list_no_vararg
+%type <paramlst>param_list
+%type <paramlst>param_listE
 %type <explst>assignable_expr_list
 %type <exp>expr
 %type <exp>assignable_expr
@@ -222,22 +222,22 @@ named_function_definition: FUNCTION function_name '(' param_list ')' chunk END {
     | FUNCTION function_name ':' IDENTIFIER '(' param_list ')' chunk END {std::cout << "Merged function definition with :\n";}
     ;
 
-unnamed_function_definition: FUNCTION '(' param_list ')' chunk END {std::cout << "Merged function definition\n";}
+unnamed_function_definition: FUNCTION '(' param_list ')' chunk END {std::cout << "Merged function definition\n"; $$ = TreeFactory::CreateUnnamedFunctionDefinition($3, $5);}
     ;
 
 return_stmt: RETURN expr_list {std::cout << "Merged return\n"; $$ = TreeFactory::CreateReturnStatement($2);}
     ;
 
-param_list:  /* empty */ 
-    | param_listE
-    | param_list_no_vararg {std::cout << "Created final param list without vararg\n";}
+param_list:  /* empty */ {$$ = TreeFactory::CreateParamList();}
+    | param_listE {$$ = $1;}
+    | param_list_no_vararg {std::cout << "Created final param list without vararg\n"; $$ = $1;}
     ;
 
-param_listE: param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n";}
+param_listE: param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n"; $$ = TreeFactory::AddVarargToParamList($1);}
     ;
 
-param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n";}
-    | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n";}
+param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n"; $$ = TreeFactory::CreateParamList($1);}
+    | param_list_no_vararg ',' IDENTIFIER  {std::cout << "Extended param list\n"; $$ = TreeFactory::AppendParamList($1, $3);}
     ;
 
 key_value_association: '[' expr ']' '=' expr {$$ = TreeFactory::CreateKeyValueAssoc($2, $5);}

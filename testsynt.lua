@@ -1,1 +1,4 @@
-res = a():b():c()
+f = function(a, b, ...)
+    a = b
+    b = 5
+end

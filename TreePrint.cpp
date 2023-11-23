@@ -25,6 +25,20 @@ void TreePrint::lst_print(ExpressionList *exprs, int level)
 	} 
 }
 
+void TreePrint::lst_print(ParamList *params_, int level_)
+{
+	for (auto &el : params_->lst)
+	{
+		print_indent(level_ + 1);
+		std::cout << el;
+	} 
+	if (params_->hasVararg)
+	{
+		print_indent(level_ + 1);
+		std::cout << "...";
+	}
+}
+
 void TreePrint::stmt_print(Statement *stmt, int level)
 {
 	switch(stmt->type)
@@ -227,6 +241,13 @@ void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
 		std::cout << "()";
 		expr_print(expr->left, level + 1);
 		lst_print(expr->lst, level + 1);
+		break;
+	case EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION:
+		std::cout << "function ()";
+		lst_print(expr->params, level);
+		print_indent(level);
+		std::cout << "Code:";
+		lst_print(expr->code, level);
 		break;
 	}
 }

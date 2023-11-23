@@ -68,6 +68,8 @@ enum class STATEMENT_TYPE {
 };
 
 class ExpressionList;
+class StatementList;
+class ParamList;
 
 /*
 	Класс выражения
@@ -91,6 +93,8 @@ public:
 	Expression *left;
 	Expression *right;
 	ExpressionList *lst;
+	StatementList *code;
+	ParamList *params;
 };
 
 // Класс списка выражений
@@ -139,7 +143,7 @@ class ParamList
 public:
 	std::vector<const char*> lst;
 	bool hasVararg = false;
-}
+};
 
 // Класс программы, с которого начинается дерево
 class Program
@@ -178,8 +182,11 @@ namespace TreeFactory
 	Expression *CreateFunctionCall(Expression *callableName_, DoublePtrString arg_);
 	Expression *CreateFunctionCall(Expression *callableName_, Expression *tblArg_);
 
-	ParamList createParamList;
-	Expression *CreateUnnamedFunctionDefinition(Expression *callableName_, Expression *tblArg_);
+	ParamList *CreateParamList(const char *identifier_);
+	ParamList *CreateParamList();
+	ParamList *AppendParamList(ParamList *plst_, const char *identifier_);
+	ParamList *AddVarargToParamList(ParamList *plst_);
+	Expression *CreateUnnamedFunctionDefinition(ParamList *params_, StatementList *code_);
 
 };
 

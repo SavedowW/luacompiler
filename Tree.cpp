@@ -286,6 +286,7 @@ Expression *TreeFactory::GetCell(Expression *expr_, const char *identifier_)
 	expr->right = new Expression;
 	expr->right->type=EXPRESSION_TYPE::STRING;
 	expr->right->sValue = DoublePtrString(identifier_);
+	delete identifier_; // TODO: double-check
 	expr->isAssignable = true;
 	return expr;
 }
@@ -328,4 +329,40 @@ Expression *TreeFactory::CreateFunctionCall(Expression *callableName_, Expressio
 	expr->left = callableName_;
 	expr->lst = TreeFactory::CreateExprList(tblArg_);
 	return expr;
+}
+
+ParamList *TreeFactory::CreateParamList(const char *identifier_)
+{
+	std::cout << "Create function call\n";
+	ParamList *plist = new ParamList;
+	plist->lst.push_back(identifier_);
+	return plist;
+}
+
+ParamList *TreeFactory::CreateParamList()
+{
+	std::cout << "Create function call\n";
+	ParamList *plist = new ParamList;
+	return plist;
+}
+
+ParamList *TreeFactory::AppendParamList(ParamList *plst_, const char *identifier_)
+{
+	plst_->lst.push_back(identifier_);
+	return plst_;
+}
+
+ParamList *TreeFactory::AddVarargToParamList(ParamList *plst_)
+{
+	plst_->hasVararg = true;
+	return plst_;
+}
+
+Expression *TreeFactory::CreateUnnamedFunctionDefinition(ParamList *params_, StatementList *code_)
+{
+	std::cout << "Create unnamed function definition\n";
+	Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION;
+	expr->params = params_;
+	expr->code = code_;
 }
