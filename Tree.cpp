@@ -308,7 +308,7 @@ Expression *TreeFactory::GetCell(Expression *expr_, const char *identifier_)
 	expr->right = new Expression;
 	expr->right->type=EXPRESSION_TYPE::STRING;
 	expr->right->sValue = DoublePtrString(identifier_);
-	delete identifier_; // TODO: double-check
+	delete identifier_;
 	expr->isAssignable = true;
 	return expr;
 }
@@ -474,6 +474,7 @@ Statement *TreeFactory::makeForLoopStatement(const char *identifier_, Expression
 	auto *stmt = new StatementForLoop();
 	stmt->type = STATEMENT_TYPE::FOR_NUMERIC;
 	stmt->identifier = std::string(identifier_);
+	delete identifier_;
 	stmt->begin = begin_;
 	stmt->end = end_;
 	stmt->step = (step_ ? step_ : TreeFactory::CreateConstExp(1));
@@ -488,5 +489,23 @@ Statement *TreeFactory::makeForLoopStatement(ParamList *params_, Expression *dat
 	stmt->params = params_;
 	stmt->data = data_;
 	stmt->code = code_;
+	return stmt;
+}
+
+Statement *TreeFactory::makeGotoLabel(const char *identifier_)
+{
+	auto *stmt = new StatementGotoLabel();
+	stmt->type = STATEMENT_TYPE::GOTO_LABEL;
+	stmt->identifier = std::string(identifier_);
+	delete identifier_;
+	return stmt;
+}
+
+Statement *TreeFactory::makeGotoCall(const char *identifier_)
+{
+	auto *stmt = new StatementGotoCall();
+	stmt->type = STATEMENT_TYPE::GOTO_CALL;
+	stmt->identifier = std::string(identifier_);
+	delete identifier_;
 	return stmt;
 }

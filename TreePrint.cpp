@@ -173,6 +173,20 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		lst_print(realstmt->code, level);
 	}
 		break;
+	case STATEMENT_TYPE::GOTO_LABEL:
+	{
+		auto *realstmt = dynamic_cast<StatementGotoLabel*>(stmt);
+		print_indent(level);
+		std::cout << realstmt->identifier << ":";
+	}
+		break;
+	case STATEMENT_TYPE::GOTO_CALL:
+	{
+		auto *realstmt = dynamic_cast<StatementGotoCall*>(stmt);
+		print_indent(level);
+		std::cout << "goto: " << realstmt->identifier;;
+	}
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level, bool noIndent)

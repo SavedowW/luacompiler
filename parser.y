@@ -100,7 +100,7 @@ block: block_noret {printf("Finished block without return\n"); $$ = $1;}
     | return_stmt {printf("Finished block with only return\n"); $$ = TreeFactory::CreateStList($1);}
     ;
 
-block_noret: block stmt {printf("Extended sequence\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
+block_noret: block_noret stmt {printf("Extended sequence\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
     | stmt {printf("Merged sequence\n"); $$ = TreeFactory::CreateStList($1);}
     ;
 
@@ -118,14 +118,14 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | BREAK {std::cout << "BREAK statement found\n"; $$ = TreeFactory::makeBreakStatement();}
     | named_function_definition {$$ = $1;}
     | LOCAL named_function_definition {$$ = TreeFactory::makeAssignmentLocal($2);}
-    | goto_call {std::cout << "Merged goto_call\n";} // TODO:
-    | goto_label {std::cout << "Merged goto_label\n";} // TODO:
+    | goto_call {std::cout << "Merged goto_call\n"; $$ = $1;}
+    | goto_label {std::cout << "Merged goto_label\n"; $$ = $1;}
     ;
 
-goto_label: QDOTS IDENTIFIER QDOTS // TODO:
+goto_label: QDOTS IDENTIFIER QDOTS {$$ = TreeFactory::makeGotoLabel($2);}
     ;
 
-goto_call: GOTO IDENTIFIER // TODO:
+goto_call: GOTO IDENTIFIER {$$ = TreeFactory::makeGotoCall($2);}
     ;
 
 if_stmt: if_unfinished END {printf("Merged into if_stmt\n"); $$ = $1;}

@@ -72,7 +72,9 @@ enum class STATEMENT_TYPE {
 	WHILE_LOOP,
 	REPEAT_LOOP,
 	FOR_NUMERIC,
-	FOR_EACH
+	FOR_EACH,
+	GOTO_LABEL,
+	GOTO_CALL
 };
 
 class ExpressionList;
@@ -218,6 +220,20 @@ public:
 	virtual ~StatementForeachLoop() = default;
 };
 
+class StatementGotoLabel : public Statement
+{
+public:
+	std::string identifier;
+	virtual ~StatementGotoLabel() = default;
+};
+
+class StatementGotoCall : public Statement
+{
+public:
+	std::string identifier;
+	virtual ~StatementGotoCall() = default;
+};
+
 // Класс программы, с которого начинается дерево
 class Program
 {
@@ -275,6 +291,8 @@ namespace TreeFactory
 	Statement *makeRepeatLoopStatement(Expression *condition_, StatementList *trueCode_);
 	Statement *makeForLoopStatement(const char *identifier_, Expression *begin_, Expression *end_, Expression *step_, StatementList *code_);
 	Statement *makeForLoopStatement(ParamList *params_, Expression *data_, StatementList *code_);
+	Statement *makeGotoLabel(const char *identifier_);
+	Statement *makeGotoCall(const char *identifier_);
 
 };
 
