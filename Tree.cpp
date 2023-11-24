@@ -480,3 +480,13 @@ Statement *TreeFactory::makeForLoopStatement(const char *identifier_, Expression
 	stmt->code = code_;
 	return stmt;
 }
+
+Statement *TreeFactory::makeForLoopStatement(ParamList *params_, Expression *data_, StatementList *code_)
+{
+	auto *stmt = new StatementForeachLoop();
+	stmt->type = STATEMENT_TYPE::FOR_EACH;
+	stmt->params = params_;
+	stmt->data = data_;
+	stmt->code = code_;
+	return stmt;
+}

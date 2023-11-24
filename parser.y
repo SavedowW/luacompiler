@@ -113,7 +113,7 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n"); $$ = TreeFactory::makeRepeatLoopStatement($4, $2);}
     | FOR IDENTIFIER '=' expr ',' expr DO chunk END {printf("Merged into single FOR\n"); $$ = TreeFactory::makeForLoopStatement($2, $4, $6, nullptr, $8);}
     | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n"); $$ = TreeFactory::makeForLoopStatement($2, $4, $6, $8, $10);}
-    | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n");} // TODO:
+    | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n"); $$ = TreeFactory::makeForLoopStatement($2, $4, $6);}
     | function_call {std::cout << "Statement from func call\n"; $$ = TreeFactory::CreateFunctionCallStatement($1);}
     | BREAK {std::cout << "BREAK statement found\n"; $$ = TreeFactory::makeBreakStatement();}
     | named_function_definition {$$ = $1;}

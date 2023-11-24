@@ -161,6 +161,18 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		lst_print(realstmt->code, level);
 	}
 		break;
+	case STATEMENT_TYPE::FOR_EACH:
+	{
+		auto *realstmt = dynamic_cast<StatementForeachLoop*>(stmt);
+		print_indent(level);
+		std::cout << "foreach";
+		lst_print(realstmt->params, level);
+		print_indent(level);
+		std::cout << "in";
+		expr_print(realstmt->data, level + 1);
+		lst_print(realstmt->code, level);
+	}
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level, bool noIndent)

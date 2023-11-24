@@ -209,6 +209,15 @@ public:
 	virtual ~StatementForLoop() = default;
 };
 
+class StatementForeachLoop : public Statement
+{
+public:
+	ParamList* params = nullptr;
+	Expression* data = nullptr;
+	StatementList* code = nullptr;
+	virtual ~StatementForeachLoop() = default;
+};
+
 // Класс программы, с которого начинается дерево
 class Program
 {
@@ -265,6 +274,7 @@ namespace TreeFactory
 	Statement *makeWhileLoopStatement(Expression *condition_, StatementList *trueCode_);
 	Statement *makeRepeatLoopStatement(Expression *condition_, StatementList *trueCode_);
 	Statement *makeForLoopStatement(const char *identifier_, Expression *begin_, Expression *end_, Expression *step_, StatementList *code_);
+	Statement *makeForLoopStatement(ParamList *params_, Expression *data_, StatementList *code_);
 
 };
 
