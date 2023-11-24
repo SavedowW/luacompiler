@@ -129,6 +129,17 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		lst_print(realstmt->trueCode, level);
 	}
 		break;
+	case STATEMENT_TYPE::REPEAT_LOOP:
+	{
+		auto *realstmt = dynamic_cast<StatementRepeatLoop*>(stmt);
+		print_indent(level);
+		std::cout << "repeat";
+		lst_print(realstmt->trueCode, level);
+		print_indent(level);
+		std::cout << "until";
+		expr_print(realstmt->condition, level + 1);
+	}
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level, bool noIndent)

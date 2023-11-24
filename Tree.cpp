@@ -459,3 +459,12 @@ Statement *TreeFactory::makeWhileLoopStatement(Expression *condition_, Statement
 	stmt->trueCode = trueCode_;
 	return stmt;
 }
+
+Statement *TreeFactory::makeRepeatLoopStatement(Expression *condition_, StatementList *trueCode_)
+{
+	auto *stmt = new StatementRepeatLoop();
+	stmt->type = STATEMENT_TYPE::REPEAT_LOOP;
+	stmt->condition = condition_;
+	stmt->trueCode = trueCode_;
+	return stmt;
+}

@@ -110,7 +110,7 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
     | if_stmt {printf("Merged single IF into stmt\n"); $$ = $1;}
     | WHILE expr DO chunk END {printf("Merged into single WHILE\n"); $$ = TreeFactory::makeWhileLoopStatement($2, $4);}
-    | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n");} // TODO:
+    | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n"); $$ = TreeFactory::makeRepeatLoopStatement($4, $2);}
     | FOR IDENTIFIER '=' expr ',' expr DO chunk END {printf("Merged into single FOR\n");} // TODO:
     | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n");} // TODO:
     | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n");} // TODO:

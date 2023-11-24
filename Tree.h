@@ -69,7 +69,8 @@ enum class STATEMENT_TYPE {
 	FUNCTION_CALL,
 	BREAK,
 	IF_ELSE,
-	WHILE_LOOP
+	WHILE_LOOP,
+	REPEAT_LOOP
 };
 
 class ExpressionList;
@@ -180,6 +181,14 @@ public:
 	virtual ~StatementWhileLoop() = default;
 };
 
+class StatementRepeatLoop : public Statement
+{
+public:
+	Expression* condition = nullptr;
+	StatementList* trueCode = nullptr;
+	virtual ~StatementRepeatLoop() = default;
+};
+
 class ParamList
 {
 public:
@@ -241,6 +250,7 @@ namespace TreeFactory
 	Statement *addElseifToIfElseStatement(Statement *ifElse_, Expression *condition_, StatementList *trueCode_);
 	Statement *addElseToIfElseStatement(Statement *ifElse_, StatementList *falseCode_);
 	Statement *makeWhileLoopStatement(Expression *condition_, StatementList *trueCode_);
+	Statement *makeRepeatLoopStatement(Expression *condition_, StatementList *trueCode_);
 
 };
 
