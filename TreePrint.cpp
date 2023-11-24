@@ -140,6 +140,27 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		expr_print(realstmt->condition, level + 1);
 	}
 		break;
+	case STATEMENT_TYPE::FOR_NUMERIC:
+	{
+		auto *realstmt = dynamic_cast<StatementForLoop*>(stmt);
+		print_indent(level);
+		std::cout << "for";
+		print_indent(level);
+		std::cout << realstmt->identifier;
+		print_indent(level);
+		std::cout << "begin:";
+		expr_print(realstmt->begin, level + 1);
+		print_indent(level);
+		std::cout << "end:";
+		expr_print(realstmt->end, level + 1);
+		print_indent(level);
+		std::cout << "step:";
+		expr_print(realstmt->step, level + 1);
+		print_indent(level);
+		std::cout << "code";
+		lst_print(realstmt->code, level);
+	}
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level, bool noIndent)

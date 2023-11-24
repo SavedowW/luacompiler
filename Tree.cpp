@@ -468,3 +468,15 @@ Statement *TreeFactory::makeRepeatLoopStatement(Expression *condition_, Statemen
 	stmt->trueCode = trueCode_;
 	return stmt;
 }
+
+Statement *TreeFactory::makeForLoopStatement(const char *identifier_, Expression *begin_, Expression *end_, Expression *step_, StatementList *code_)
+{
+	auto *stmt = new StatementForLoop();
+	stmt->type = STATEMENT_TYPE::FOR_NUMERIC;
+	stmt->identifier = std::string(identifier_);
+	stmt->begin = begin_;
+	stmt->end = end_;
+	stmt->step = (step_ ? step_ : TreeFactory::CreateConstExp(1));
+	stmt->code = code_;
+	return stmt;
+}

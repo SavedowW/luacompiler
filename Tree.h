@@ -70,7 +70,9 @@ enum class STATEMENT_TYPE {
 	BREAK,
 	IF_ELSE,
 	WHILE_LOOP,
-	REPEAT_LOOP
+	REPEAT_LOOP,
+	FOR_NUMERIC,
+	FOR_EACH
 };
 
 class ExpressionList;
@@ -196,6 +198,17 @@ public:
 	bool hasVararg = false;
 };
 
+class StatementForLoop : public Statement
+{
+public:
+	Expression* begin = nullptr;
+	Expression* end = nullptr;
+	Expression* step = nullptr;
+	StatementList* code = nullptr;
+	std::string identifier;
+	virtual ~StatementForLoop() = default;
+};
+
 // Класс программы, с которого начинается дерево
 class Program
 {
@@ -251,6 +264,7 @@ namespace TreeFactory
 	Statement *addElseToIfElseStatement(Statement *ifElse_, StatementList *falseCode_);
 	Statement *makeWhileLoopStatement(Expression *condition_, StatementList *trueCode_);
 	Statement *makeRepeatLoopStatement(Expression *condition_, StatementList *trueCode_);
+	Statement *makeForLoopStatement(const char *identifier_, Expression *begin_, Expression *end_, Expression *step_, StatementList *code_);
 
 };
 
