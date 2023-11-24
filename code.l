@@ -182,7 +182,7 @@ return {printf("Keyword: %s\n", yytext); return RETURN;};
     return DOUBLE;
 };
 {POINT_NUM}[0-9\.Ee_]+ {printf("ERROR: impossible number literal r1: %s\n", yytext);};
-[\s\n ]+ {}
+[\r\n\t\f\v ]+ {}
 [a-zA-Z_]([a-zA-Z_0-9]*) {printf("Identifier: %s\n", yytext); yylval.identifier = allocCopy(yytext); return IDENTIFIER; };
 [0-9]([a-zA-Z_0-9\.]*) {printf("ERROR: malformed number near: %s\n", yytext);};
 %%

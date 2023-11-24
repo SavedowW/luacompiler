@@ -396,6 +396,8 @@ Expression *TreeFactory::CreateUnnamedFunctionDefinition(ParamList *params_, Sta
 	expr->type = EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION;
 	expr->params = params_;
 	expr->code = code_;
+
+	return expr;
 }
 
 Statement *TreeFactory::CreateNamedFunctionDefinition(Expression *functionName_, ParamList *params_, StatementList *code_)
@@ -417,6 +419,13 @@ Statement *TreeFactory::makeAssignmentLocal(Statement *assign_)
 {
 	auto *realstmt = dynamic_cast<StatementAssign*>(assign_);
 	realstmt->isLocal = true;
+}
+
+Expression *TreeFactory::CreateVarargRef()
+{
+    Expression *expr = new Expression;
+	expr->type = EXPRESSION_TYPE::VARARG_REF;
+	return expr;
 }
 
 Statement *TreeFactory::makeBreakStatement()

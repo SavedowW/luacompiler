@@ -57,7 +57,8 @@ enum class EXPRESSION_TYPE {
 	TABLE_CONSTRUCT,
 	METHOD_NAME,
 	FUNCTION_CALL,
-	UNNAMED_FUNCTION_DEFINITION
+	UNNAMED_FUNCTION_DEFINITION,
+	VARARG_REF
 };
 
 // Список всех типов statement'ов
@@ -272,6 +273,7 @@ namespace TreeFactory
 	Expression *CreateFunctionCall(Expression *callableName_, ExpressionList *args_);
 	Expression *CreateFunctionCall(Expression *callableName_, DoublePtrString arg_);
 	Expression *CreateFunctionCall(Expression *callableName_, Expression *tblArg_);
+	Expression *CreateVarargRef();
 	Statement *CreateFunctionCallStatement(Expression *call_);
 
 	ParamList *CreateParamList(const char *identifier_);

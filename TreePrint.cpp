@@ -116,7 +116,7 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		{
 			print_indent(level);
 			std::cout << "else";
-			lst_print(realstmt->trueCode, level);
+			lst_print(realstmt->falseCode, level);
 		}
 	}
 		break;
@@ -341,7 +341,13 @@ void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
 		break;
 	case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
 		std::cout << "[]=";
-		expr_print(expr->left, level + 1);
+		if (expr->left)
+			expr_print(expr->left, level + 1);
+		else
+		{
+			print_indent(level + 1);
+			std::cout << "AUTO_INDEX";
+		}
 		expr_print(expr->right, level + 1);
 		break;
 	case EXPRESSION_TYPE::TABLE_CONSTRUCT:
@@ -368,6 +374,9 @@ void TreePrint::expr_print(Expression *expr, int level, bool noIndent)
 		print_indent(level);
 		std::cout << "Code:";
 		lst_print(expr->code, level);
+		break;
+	case EXPRESSION_TYPE::VARARG_REF:
+		std::cout << "...";
 		break;
 	}
 }

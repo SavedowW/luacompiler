@@ -171,6 +171,7 @@ expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::Cre
     | function_call  {std::cout << "Expression from function call\n"; $$ = $1;}
     | unnamed_function_definition {std::cout << "Unnamed function definition\n"; $$ = $1;}
     | table_construct {$$ = $1;}
+    | VARARG_PARAM {$$ = TreeFactory::CreateVarargRef();}
     ;
 
 expr_list: /* empty */ {std::cout << "Merged empty expr_list\n"; $$ = TreeFactory::CreateExprList();}
@@ -243,6 +244,7 @@ param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n"; $$ = Tree
 
 key_value_association: '[' expr ']' '=' expr {$$ = TreeFactory::CreateKeyValueAssoc($2, $5);}
     | IDENTIFIER '=' expr {std::cout << "HERE: " << $1 << std::endl; $$ = TreeFactory::CreateKeyValueAssoc($1, $3);}
+    | expr {std::cout << "HERE: " << $1 << std::endl; $$ = TreeFactory::CreateKeyValueAssoc((Expression*)nullptr, $1);}
     ;
 
 key_value_association_list: /* empty */ {$$ = TreeFactory::CreateExprList();}
