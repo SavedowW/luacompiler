@@ -425,3 +425,37 @@ Statement *TreeFactory::makeBreakStatement()
 	stmt->type = STATEMENT_TYPE::BREAK;
 	return stmt;
 }
+
+Statement *TreeFactory::makeIfElseStatement(Expression *condition_, StatementList *trueCode_)
+{
+	auto *stmt = new StatementIfElse();
+	stmt->type = STATEMENT_TYPE::IF_ELSE;
+	stmt->condition = condition_;
+	stmt->trueCode = trueCode_;
+	return stmt;
+
+}
+
+Statement *TreeFactory::addElseifToIfElseStatement(Statement *ifElse_, Expression *condition_, StatementList *trueCode_)
+{
+	auto *realstmt = dynamic_cast<StatementIfElse*>(ifElse_);
+	auto *newElif = TreeFactory::makeIfElseStatement(condition_, trueCode_);
+	realstmt->elseifs.push_back(dynamic_cast<StatementIfElse*>(newElif));
+	return realstmt;
+}
+
+Statement *TreeFactory::addElseToIfElseStatement(Statement *ifElse_, StatementList *falseCode_)
+{
+	auto *realstmt = dynamic_cast<StatementIfElse*>(ifElse_);
+	realstmt->falseCode = falseCode_;
+	return realstmt;
+}
+
+Statement *TreeFactory::makeWhileLoopStatement(Expression *condition_, StatementList *trueCode_)
+{
+	auto *stmt = new StatementWhileLoop();
+	stmt->type = STATEMENT_TYPE::WHILE_LOOP;
+	stmt->condition = condition_;
+	stmt->trueCode = trueCode_;
+	return stmt;
+}

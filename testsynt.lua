@@ -1,2 +1,4 @@
-func("arg", 5)
-break
+while true and a do
+    a = a + 1
+    print(a)
+end

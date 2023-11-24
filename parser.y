@@ -108,8 +108,8 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | LOCAL assignable_expr '=' expr_listE {printf("Created assign const expr to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
     | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n"); $$ = TreeFactory::CreateAssignStatement($1, $3, false);}
     | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
-    | if_stmt {printf("Merged single IF into stmt\n");} // TODO:
-    | WHILE expr DO chunk END {printf("Merged into single WHILE\n");} // TODO:
+    | if_stmt {printf("Merged single IF into stmt\n"); $$ = $1;}
+    | WHILE expr DO chunk END {printf("Merged into single WHILE\n"); $$ = TreeFactory::makeWhileLoopStatement($2, $4);} // TODO:
     | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n");} // TODO:
     | FOR IDENTIFIER '=' expr ',' expr DO chunk END {printf("Merged into single FOR\n");} // TODO:
     | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n");} // TODO:
@@ -128,12 +128,12 @@ goto_label: QDOTS IDENTIFIER QDOTS // TODO:
 goto_call: GOTO IDENTIFIER // TODO:
     ;
 
-if_stmt: if_unfinished END {printf("Merged into if_stmt\n");} // TODO:
-    | if_unfinished ELSE chunk END {printf("Merged into if_stmt\n");} // TODO:
+if_stmt: if_unfinished END {printf("Merged into if_stmt\n"); $$ = $1;}
+    | if_unfinished ELSE chunk END {printf("Merged into if_stmt\n"); $$ = TreeFactory::addElseToIfElseStatement($1, $3);}
     ;
 
-if_unfinished: IF expr THEN chunk {printf("Merged initial if_unfinished\n");} // TODO:
-    | if_unfinished ELSEIF expr THEN chunk {printf("Extended if_unfinished\n");} // TODO:
+if_unfinished: IF expr THEN chunk {printf("Merged initial if_unfinished\n"); $$ = TreeFactory::makeIfElseStatement($2, $4);}
+    | if_unfinished ELSEIF expr THEN chunk {printf("Extended if_unfinished\n"); $$ = TreeFactory::addElseifToIfElseStatement($1, $3, $5);} 
     ;
 
 expr: expr '+' expr     {printf("Merged into single +\n"); $$ = TreeFactory::CreateExpr(EXPRESSION_TYPE::BIN_PLUS, $1, $3);}

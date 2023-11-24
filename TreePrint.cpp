@@ -97,6 +97,38 @@ void TreePrint::stmt_print(Statement *stmt, int level)
 		print_indent(level);
 		std::cout << "break";
 		break;
+	case STATEMENT_TYPE::IF_ELSE:
+	{
+		auto *realstmt = dynamic_cast<StatementIfElse*>(stmt);
+		print_indent(level);
+		std::cout << "if";
+		expr_print(realstmt->condition, level + 1);
+		lst_print(realstmt->trueCode, level);
+
+		for (auto *el : realstmt->elseifs)
+		{
+			print_indent(level);
+			std::cout << "elif";
+			stmt_print(el, level);
+		}
+
+		if (realstmt->falseCode)
+		{
+			print_indent(level);
+			std::cout << "else";
+			lst_print(realstmt->trueCode, level);
+		}
+	}
+		break;
+	case STATEMENT_TYPE::WHILE_LOOP:
+	{
+		auto *realstmt = dynamic_cast<StatementWhileLoop*>(stmt);
+		print_indent(level);
+		std::cout << "while";
+		expr_print(realstmt->condition, level + 1);
+		lst_print(realstmt->trueCode, level);
+	}
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr, int level, bool noIndent)

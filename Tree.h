@@ -67,7 +67,9 @@ enum class STATEMENT_TYPE {
 	STMT_LIST,
 	RETURN,
 	FUNCTION_CALL,
-	BREAK
+	BREAK,
+	IF_ELSE,
+	WHILE_LOOP
 };
 
 class ExpressionList;
@@ -160,6 +162,24 @@ public:
 	virtual ~StatementFunctionCall() = default;
 };
 
+class StatementIfElse : public Statement
+{
+public:
+	Expression* condition = nullptr;
+	StatementList* trueCode = nullptr;
+	StatementList* falseCode = nullptr;
+	std::vector<StatementIfElse*> elseifs;
+	virtual ~StatementIfElse() = default;
+};
+
+class StatementWhileLoop : public Statement
+{
+public:
+	Expression* condition = nullptr;
+	StatementList* trueCode = nullptr;
+	virtual ~StatementWhileLoop() = default;
+};
+
 class ParamList
 {
 public:
@@ -217,6 +237,10 @@ namespace TreeFactory
 	Statement *makeAssignmentLocal(Statement *assign_);
 
 	Statement *makeBreakStatement();
+	Statement *makeIfElseStatement(Expression *condition_, StatementList *trueCode_);
+	Statement *addElseifToIfElseStatement(Statement *ifElse_, Expression *condition_, StatementList *trueCode_);
+	Statement *addElseToIfElseStatement(Statement *ifElse_, StatementList *falseCode_);
+	Statement *makeWhileLoopStatement(Expression *condition_, StatementList *trueCode_);
 
 };
 
