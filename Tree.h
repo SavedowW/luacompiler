@@ -15,6 +15,8 @@ public:
 	char *end;
 
 	DoublePtrString clone() const;
+
+	void printWithoutQuotes(std::ostream& out_);
 };
 
 std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_);

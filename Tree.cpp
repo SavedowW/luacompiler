@@ -58,6 +58,19 @@ DoublePtrString::DoublePtrString(char *begin_, char *end_)
 	end = end_;
 }
 
+void DoublePtrString::printWithoutQuotes(std::ostream &out_)
+{
+	char *ptr = begin;
+    while (ptr != end - 1)
+    {
+        if (*ptr == '\0')
+            out_ << '?';
+        else
+            out_ << *ptr;
+        ptr++;
+    }
+}
+
 std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_)
 {
     char *ptr = s_.begin;

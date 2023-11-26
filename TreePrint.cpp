@@ -19,7 +19,7 @@ void TreePrint::lst_print(StatementList *stmts)
 
 	
 
-	std::cout << "subgraph cluster_" << stmts->lst[0]->name << " { style=filled; color=lightgrey; ";
+	std::cout << "subgraph cluster_" << stmts->lst[0]->name << " { style=filled; color=lightgrey; node [style=filled,color=white]; ";
 	std::cout << stmts->lst[0]->name;
 	for (int i = 1; i < stmts->lst.size(); ++i)
 	{
@@ -46,6 +46,8 @@ void TreePrint::lst_print(ExpressionList *exprs)
 	} 
 	std::cout << " } ";
 
+
+
 	for (auto &el : exprs->lst)
 	{
 		expr_print(el);
@@ -71,8 +73,8 @@ void TreePrint::stmt_print(Statement *stmt)
 	{
 		auto *realstmt = dynamic_cast<StatementAssign*>(stmt);
 		std::cout << stmt->name << " [label=\"=\"] ; ";
-		std::cout << stmt->name << "->" << realstmt->left->name << " ; ";
-		std::cout << stmt->name << "->" << realstmt->right->name << " ; ";
+		std::cout << stmt->name << "->" << realstmt->left->name << " [label=\"left side\"]; ";
+		std::cout << stmt->name << "->" << realstmt->right->name << " [label=\"right side\"]; ";
 		expr_print(realstmt->left);
 		lst_print(realstmt->right);
 	}
@@ -81,8 +83,8 @@ void TreePrint::stmt_print(Statement *stmt)
 	{
 		auto *realstmt = dynamic_cast<StatementMultipleAssign*>(stmt);
 		std::cout << stmt->name << " [label=\"=\"] ; ";
-		std::cout << stmt->name << "->" << realstmt->left->name << " ; ";
-		std::cout << stmt->name << "->" << realstmt->right->name << " ; ";
+		std::cout << stmt->name << "->" << realstmt->left->name << " [label=\"left side\"]; ";
+		std::cout << stmt->name << "->" << realstmt->right->name << " [label=\"right side\"]; ";
 		lst_print(realstmt->left);
 		lst_print(realstmt->right);
 	}
@@ -105,20 +107,22 @@ void TreePrint::stmt_print(Statement *stmt)
 		}
 	}
 		break;
-	/*case STATEMENT_TYPE::FUNCTION_CALL:
+	case STATEMENT_TYPE::FUNCTION_CALL:
 	{
 		auto *realstmt = dynamic_cast<StatementFunctionCall*>(stmt);
 		
-		std::cout << "()";
+		std::cout << stmt->name << " [label=\"function call\"] ; ";
+		std::cout << stmt->name << "->" << realstmt->functionName->name << " [label=\"function name\"]; ";
+		std::cout << stmt->name << "->" << realstmt->lst->name << " [label=\"arguments\"]; ";
 		expr_print(realstmt->functionName);
 		lst_print(realstmt->lst);
 	}
 		break;
 	case STATEMENT_TYPE::BREAK:
 		
-		std::cout << "break";
+		std::cout << stmt->name << " [label=\"break\"] ; ";
 		break;
-	case STATEMENT_TYPE::IF_ELSE:
+	/*case STATEMENT_TYPE::IF_ELSE:
 	{
 		auto *realstmt = dynamic_cast<StatementIfElse*>(stmt);
 		
@@ -221,7 +225,9 @@ void TreePrint::expr_print(Expression *expr)
 		std::cout << expr->name << " [label=\"" << expr->fValue << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::STRING:
-		std::cout << expr->name << " [label=\"" << expr->sValue << "\"] ; ";
+		std::cout << expr->name << " [label=\"\\\"";
+		expr->sValue.printWithoutQuotes(std::cout);
+		std::cout << "\\\"\"] ; ";
 		break;
 	case EXPRESSION_TYPE::BOOL:
 		std::cout << std::boolalpha << expr->name << " [label=\"" << expr->bValue << "\"] ; ";;
