@@ -11,8 +11,8 @@ namespace TreePrint
 	void lst_print(StatementList *stmts_);
 	void lst_print(ExpressionList *exprs_);
 	void lst_print(ParamList *params_);
-	void stmt_print(Statement *stmt, int savedNum_, int ownNum_);
-	void expr_print(Expression *expr, int savedNum_, int ownNum_);
+	void stmt_print(Statement *stmt);
+	void expr_print(Expression *expr);
 	void print_indent();
 };
 

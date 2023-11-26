@@ -16,21 +16,21 @@ void TreePrint::lst_print(StatementList *stmts)
 {
 	if (stmts->lst.size() == 0)
 		return;
-	auto savednum = stlistnumber;
-	stlistnumber++;
 
-	std::cout << "ST_" << savednum << "_0";
+	
 
+	std::cout << "subgraph cluster_" << stmts->lst[0]->name << " { style=filled; color=lightgrey; ";
+	std::cout << stmts->lst[0]->name;
 	for (int i = 1; i < stmts->lst.size(); ++i)
 	{
-		std::cout << "->ST_" << savednum << "_" << i;
+		std::cout << "->" << stmts->lst[i]->name;
 	} 
+	std::cout << " } ";
 
-	std::cout << " ; ";
 
 	for (int i = 0; i < stmts->lst.size(); ++i)
 	{
-		stmt_print(stmts->lst[i], savednum, i);
+		stmt_print(stmts->lst[i]);
 	}
 }
 
@@ -38,13 +38,13 @@ void TreePrint::lst_print(ExpressionList *exprs)
 {
 	if (exprs->lst.size() == 0)
 		return;
-	auto savednum = stlistnumber;
-	stlistnumber++;
 
+	std::cout << "subgraph cluster_" << exprs->lst[0]->name << " {  ";
 	for (int i = 0; i < exprs->lst.size(); ++i)
 	{
-		std::cout << "EXL_" << savednum << "->ST_" << savednum << "_" << i << " ; ";
+		std::cout << exprs->name << "->" << exprs->lst[i]->name << " ; ";
 	} 
+	std::cout << " } ";
 
 	for (auto &el : exprs->lst)
 	{
@@ -54,49 +54,36 @@ void TreePrint::lst_print(ExpressionList *exprs)
 
 void TreePrint::lst_print(ParamList *params_)
 {
-	for (auto &el : params_->lst)
-	{
-		std::cout << el;
-	} 
-	if (params_->hasVararg)
-	{
-		std::cout << "...";
-	}
-
-	auto savednum = stlistnumber;
-	stlistnumber++;
+	if (params_->lst.size() == 0)
+		return;
 
 	for (int i = 0; i < params_->lst.size(); ++i)
 	{
-		std::cout << "PLS_" << savednum << "->EXPR_" << savednum << "_" << i << " ; ";
-	} 
-
-	for (int i = 0; i < params_->lst.size(); ++i)
-	{
-		std::cout << "EXPR_" << savednum << "_" << i << " [label=\"" << params_->lst[i] << "\"] ; ";
+		std::cout << params_->name << "->" << params_->name << "_" << i  << " ; ";
 	} 
 }
 
-void TreePrint::stmt_print(Statement *stmt, int savedNum_, int ownNum_)
+void TreePrint::stmt_print(Statement *stmt)
 {
 	switch(stmt->type)
 	{
 	case STATEMENT_TYPE::ASSIGN:
 	{
-		std::cout << "ST_" << savedNum_ << "_" << ownNum_ << " [label=\"=\"] ; ";
-		expr_print(realstmt->left, savedNum_, );
+		auto *realstmt = dynamic_cast<StatementAssign*>(stmt);
+		std::cout << stmt->name << " [label=\"=\"] ; ";
+		std::cout << stmt->name << "->" << realstmt->left->name << " ; ";
+		std::cout << stmt->name << "->" << realstmt->right->name << " ; ";
+		expr_print(realstmt->left);
 		lst_print(realstmt->right);
 	}
 		break;
-	/*case STATEMENT_TYPE::MULTIPLE_ASSIGN:
+	case STATEMENT_TYPE::MULTIPLE_ASSIGN:
 	{
 		auto *realstmt = dynamic_cast<StatementMultipleAssign*>(stmt);
-		printf("=");
-		if (realstmt->isLocal)
-			std::cout << " (LOCAL)";
-		std::cout << "Left:";
+		std::cout << stmt->name << " [label=\"=\"] ; ";
+		std::cout << stmt->name << "->" << realstmt->left->name << " ; ";
+		std::cout << stmt->name << "->" << realstmt->right->name << " ; ";
 		lst_print(realstmt->left);
-		std::cout << "Right:";
 		lst_print(realstmt->right);
 	}
 		break;
@@ -110,12 +97,15 @@ void TreePrint::stmt_print(Statement *stmt, int savedNum_, int ownNum_)
 	{
 		auto *realstmt = dynamic_cast<StatementReturn*>(stmt);
 		
-		printf("return");
+		std::cout << stmt->name << " [label=\"return\"] ; ";
 		if (realstmt->lst)
+		{
+			std::cout << stmt->name << "->" << realstmt->lst->name << " ; ";
 			lst_print(realstmt->lst);
+		}
 	}
 		break;
-	case STATEMENT_TYPE::FUNCTION_CALL:
+	/*case STATEMENT_TYPE::FUNCTION_CALL:
 	{
 		auto *realstmt = dynamic_cast<StatementFunctionCall*>(stmt);
 		
@@ -220,27 +210,29 @@ void TreePrint::stmt_print(Statement *stmt, int savedNum_, int ownNum_)
 		break;*/
 	}
 }
-void TreePrint::expr_print(Expression *expr, int savedNum_, int ownNum_)
+void TreePrint::expr_print(Expression *expr)
 {
 	switch(expr->type)
 	{
 	case EXPRESSION_TYPE::INT:
-		printf("%d",expr->iValue);
+		std::cout << expr->name << " [label=\"" << expr->iValue << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::DOUBLE:
-		std::cout << expr->fValue;
+		std::cout << expr->name << " [label=\"" << expr->fValue << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::STRING:
-		std::cout << expr->sValue;
+		std::cout << expr->name << " [label=\"" << expr->sValue << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::BOOL:
-		std::cout << std::boolalpha << expr->bValue;
+		std::cout << std::boolalpha << expr->name << " [label=\"" << expr->bValue << "\"] ; ";;
 		break;
 	case EXPRESSION_TYPE::NIL:
-		std::cout << "nil";
+		std::cout << expr->name << " [label=\"nil\"] ; ";
 		break;
 	case EXPRESSION_TYPE::BIN_PLUS:
-		printf("+");
+		std::cout << expr->name << " [label=\"" << "+" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
@@ -304,7 +296,8 @@ void TreePrint::expr_print(Expression *expr, int savedNum_, int ownNum_)
 		expr_print(expr->left);
 		break;
 	case EXPRESSION_TYPE::UNAR_UMINUS:
-		printf("-");
+		std::cout << expr->name << " [label=\"" << "-" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
 		expr_print(expr->left);
 		break;
 	case EXPRESSION_TYPE::UNAR_BITWISE_NOT:
@@ -361,7 +354,7 @@ void TreePrint::expr_print(Expression *expr, int savedNum_, int ownNum_)
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::IDENTIFIER:
-		std::cout << expr->identifier;
+		std::cout << expr->name << " [label=\"" << expr->identifier << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::CELL_BY_EXPR:
 		std::cout << "[]";

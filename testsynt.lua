@@ -1,2 +1,3 @@
 a = 5 + f
-c = d
+a, c = -5
+return 5, a, b

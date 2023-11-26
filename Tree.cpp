@@ -3,6 +3,37 @@
 #include <stdio.h>
 #include <string.h>
 
+int lastTreeElemID = 1;
+int Expression::lastID = 0;
+int ExpressionList::lastID = 0;
+int ParamList::lastID = 0;
+int Statement::lastID = 0;
+
+
+Expression::Expression()
+{
+	name = "EXPR_" + std::to_string(lastID++);
+	std::cout << "Created name " << name << std::endl;
+}
+
+ExpressionList::ExpressionList()
+{
+	name = "EXPRLST_" + std::to_string(lastID++);
+	std::cout << "Created name " << name << std::endl;
+}
+
+ParamList::ParamList()
+{
+	name = "PRMLST_" + std::to_string(lastID++);
+	std::cout << "Created name " << name << std::endl;
+}
+
+Statement::Statement()
+{
+	name = "STMT_" + std::to_string(lastID++);
+	std::cout << "Created name " << name << std::endl;
+}
+
 DoublePtrString DoublePtrString::clone() const
 {
 	DoublePtrString s;

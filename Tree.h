@@ -94,6 +94,8 @@ class ParamList;
 class Expression
 {
 public:
+	Expression();
+
 	bool isAssignable = false;
 	EXPRESSION_TYPE type;
 	int iValue;
@@ -106,22 +108,33 @@ public:
 	ExpressionList *lst;
 	StatementList *code;
 	ParamList *params;
+
+	std::string name;
+	static int lastID;
 };
 
 // Класс списка выражений
 class ExpressionList
 {
 public:
-	
+	ExpressionList();
+
 	std::vector<Expression*> lst;
+
+	std::string name;
+	static int lastID;
 };
 
 // Абстрактный класс Statement
 class Statement
 {
 public:
+	Statement();	
 	STATEMENT_TYPE type;
 	virtual ~Statement() = default;
+
+	std::string name;
+	static int lastID;
 };
 
 // Список statement'ов
@@ -197,8 +210,13 @@ public:
 class ParamList
 {
 public:
+	ParamList();
+
 	std::vector<const char*> lst;
 	bool hasVararg = false;
+
+	std::string name;
+	static int lastID;
 };
 
 class StatementForLoop : public Statement
