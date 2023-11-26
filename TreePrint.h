@@ -8,12 +8,12 @@
 namespace TreePrint
 {
 	int printTree(void);
-	void lst_print(StatementList *stmts_, int level_);
-	void lst_print(ExpressionList *exprs_, int level_);
-	void lst_print(ParamList *params_, int level_);
-	void stmt_print(Statement *stmt, int level);
-	void expr_print(Expression *expr, int level, bool noIndent = false);
-	void print_indent(int level);
+	void lst_print(StatementList *stmts_);
+	void lst_print(ExpressionList *exprs_);
+	void lst_print(ParamList *params_);
+	void stmt_print(Statement *stmt, int savedNum_, int ownNum_);
+	void expr_print(Expression *expr, int savedNum_, int ownNum_);
+	void print_indent();
 };
 
 #endif
