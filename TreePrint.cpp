@@ -154,73 +154,88 @@ void TreePrint::stmt_print(Statement *stmt)
 		}
 	}
 		break;
-	/*case STATEMENT_TYPE::WHILE_LOOP:
+	case STATEMENT_TYPE::WHILE_LOOP:
 	{
 		auto *realstmt = dynamic_cast<StatementWhileLoop*>(stmt);
 		
-		std::cout << "while";
+		std::cout << realstmt->name << " [label=\"" << "while" << "\"] ; ";
 		expr_print(realstmt->condition);
-		lst_print(realstmt->trueCode);
+		std::cout << realstmt->name << "->" << realstmt->condition->name << " [label=\"condition\"]; ";
+		if (realstmt->trueCode)
+		{
+			lst_print(realstmt->trueCode);
+			std::cout << realstmt->name << "->" << realstmt->trueCode->lst[0]->name << " [label=\"code\"]; ";
+		}
+
 	}
 		break;
 	case STATEMENT_TYPE::REPEAT_LOOP:
 	{
 		auto *realstmt = dynamic_cast<StatementRepeatLoop*>(stmt);
 		
-		std::cout << "repeat";
-		lst_print(realstmt->trueCode);
-		
-		std::cout << "until";
+		std::cout << realstmt->name << " [label=\"" << "repeat" << "\"] ; ";
 		expr_print(realstmt->condition);
+		std::cout << realstmt->name << "->" << realstmt->condition->name << " [label=\"until\"]; ";
+		if (realstmt->trueCode)
+		{
+			lst_print(realstmt->trueCode);
+			std::cout << realstmt->name << "->" << realstmt->trueCode->lst[0]->name << " [label=\"code\"]; ";
+		}
 	}
 		break;
 	case STATEMENT_TYPE::FOR_NUMERIC:
 	{
 		auto *realstmt = dynamic_cast<StatementForLoop*>(stmt);
-		
-		std::cout << "for";
-		
-		std::cout << realstmt->identifier;
-		
-		std::cout << "begin:";
+
 		expr_print(realstmt->begin);
-		
-		std::cout << "end:";
 		expr_print(realstmt->end);
-		
-		std::cout << "step:";
 		expr_print(realstmt->step);
-		
-		std::cout << "code";
 		lst_print(realstmt->code);
+
+		std::cout << realstmt->name << " [label=\"" << "for" << "\"] ; ";
+
+		std::cout << realstmt->name << "->" << realstmt->name << "_idf" << " [label=\"identifier\"]; ";
+		std::cout << realstmt->name << "_idf" << " [label=\"" << realstmt->identifier << "\"]; ";
+
+		std::cout << realstmt->name << "->" << realstmt->begin->name << " [label=\"begin\"]; ";
+		std::cout << realstmt->name << "->" << realstmt->end->name << " [label=\"end\"]; ";
+		std::cout << realstmt->name << "->" << realstmt->step->name << " [label=\"step\"]; ";
+
+		if (realstmt->code->lst.size() > 0)
+			std::cout << realstmt->name << "->" << realstmt->code->lst[0]->name << " [label=\"code\"]; ";
 	}
 		break;
 	case STATEMENT_TYPE::FOR_EACH:
 	{
 		auto *realstmt = dynamic_cast<StatementForeachLoop*>(stmt);
-		
-		std::cout << "foreach";
+
+
 		lst_print(realstmt->params);
-		
-		std::cout << "in";
 		expr_print(realstmt->data);
 		lst_print(realstmt->code);
+		std::cout << realstmt->name << " [label=\"" << "foreach" << "\"] ; ";
+		std::cout << realstmt->name << "->" << realstmt->params->name << " [label=\"parameters\"]; ";
+		std::cout << realstmt->name << "->" << realstmt->data->name << " [label=\"in\"]; ";
+
+		if (realstmt->code->lst.size() > 0)
+			std::cout << realstmt->name << "->" << realstmt->code->lst[0]->name << " [label=\"code\"]; ";
+
 	}
 		break;
 	case STATEMENT_TYPE::GOTO_LABEL:
 	{
 		auto *realstmt = dynamic_cast<StatementGotoLabel*>(stmt);
 		
-		std::cout << realstmt->identifier << ":";
+		std::cout << realstmt->name << " [label=\"::" << realstmt->identifier << "::\"] ; ";
 	}
 		break;
 	case STATEMENT_TYPE::GOTO_CALL:
 	{
 		auto *realstmt = dynamic_cast<StatementGotoCall*>(stmt);
 		
-		std::cout << "goto: " << realstmt->identifier;;
+		std::cout << realstmt->name << " [label=\"goto: " << realstmt->identifier << "\"] ; ";
 	}
-		break;*/
+		break;
 	}
 }
 void TreePrint::expr_print(Expression *expr)
