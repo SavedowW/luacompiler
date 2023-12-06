@@ -61,8 +61,16 @@ void TreePrint::lst_print(ParamList *params_)
 
 	for (int i = 0; i < params_->lst.size(); ++i)
 	{
-		std::cout << params_->name << "->" << params_->name << "_" << i  << " ; ";
+		std::cout << params_->name << "->" << params_->name << "_" << i  << " [label=\"" << i << "\"] ; ";
+		std::cout << params_->name << "_" << i << " [label=\"" << params_->lst[i] << "\"] ; ";
 	} 
+
+	if (params_->hasVararg)
+	{
+		int i = params_->lst.size();
+		std::cout << params_->name << "->" << params_->name << "_" << i << " [label=\"" << i << "\"] ; ";
+		std::cout << params_->name << "_" << i << " [label=\"...\"] ; ";
+	}
 }
 
 void TreePrint::stmt_print(Statement *stmt)
@@ -230,7 +238,7 @@ void TreePrint::expr_print(Expression *expr)
 		std::cout << "\\\"\"] ; ";
 		break;
 	case EXPRESSION_TYPE::BOOL:
-		std::cout << std::boolalpha << expr->name << " [label=\"" << expr->bValue << "\"] ; ";;
+		std::cout << std::boolalpha << expr->name << " [label=\"" << expr->bValue << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::NIL:
 		std::cout << expr->name << " [label=\"nil\"] ; ";
@@ -363,45 +371,65 @@ void TreePrint::expr_print(Expression *expr)
 		std::cout << expr->name << " [label=\"" << expr->identifier << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::CELL_BY_EXPR:
-		std::cout << "[]";
+		std::cout << expr->name << " [label=\"" << "[]" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " [label=\"table\"]; ";
+		std::cout << expr->name << "->" << expr->right->name  << " [label=\"index\"]; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
-		std::cout << "[]=";
 		if (expr->left)
+		{
+			std::cout << expr->name << " [label=\"" << "[]=" << "\"] ; ";
+			std::cout << expr->name << "->" << expr->left->name << " [label=\"index\"]; ";
 			expr_print(expr->left);
+		}
 		else
 		{
-			std::cout << "AUTO_INDEX";
+			std::cout << expr->name << " [label=\"" << "[AUTO_INDEX]=" << "\"] ; ";
 		}
+		
+		std::cout << expr->name << "->" << expr->right->name  << " [label=\"assigned value\"]; ";
 		expr_print(expr->right);
+
 		break;
 	case EXPRESSION_TYPE::TABLE_CONSTRUCT:
-		std::cout << "{}";
-		if (!expr->lst)
-			std::cout << " *empty*";
-		else
-			lst_print(expr->lst);
+		std::cout << expr->name << " [label=\"" << "{}" << "\"] ; ";
+
+		for (int i = 0; i < expr->lst->lst.size(); ++i)
+		{
+			std::cout << expr->name << "->" << expr->lst->lst[i]->name << " ; ";
+		} 
+	
+		for (auto &el : expr->lst->lst)
+		{
+			expr_print(el);
+		}
 		break;
 	case EXPRESSION_TYPE::METHOD_NAME:
-		std::cout << ":";
+		std::cout << expr->name << " [label=\"" << ":" << expr->identifier << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
 		expr_print(expr->left);
-		std::cout << expr->identifier << std::endl;
 		break;
 	case EXPRESSION_TYPE::FUNCTION_CALL:
-		std::cout << "()";
+		std::cout << expr->name << " [label=\"" << "function call" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " [label=\"function name\"]; ";
+		std::cout << expr->name << "->" << expr->lst->name  << " [label=\"arguments\"]; ";
 		expr_print(expr->left);
 		lst_print(expr->lst);
 		break;
 	case EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION:
-		std::cout << "function ()";
 		lst_print(expr->params);
-		std::cout << "Code:";
 		lst_print(expr->code);
+		std::cout << expr->name << " [label=\"" << "function definition" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->params->name << " [label=\"parameters\"]; ";
+		if (expr->code->lst.size() > 0)
+		{
+			std::cout << expr->name << "->" << expr->code->lst[0]->name << " [label=\"code\"]; ";
+		}
 		break;
 	case EXPRESSION_TYPE::VARARG_REF:
-		std::cout << "...";
+		std::cout << expr->name << " [label=\"" << "..." << "\"] ; ";
 		break;
 	}
 }

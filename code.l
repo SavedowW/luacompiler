@@ -245,7 +245,6 @@ int main(int argc, char **argv)
     
     yyparse();
     TreePrint::printTree();
-    getch();
     
     return 0;
 }

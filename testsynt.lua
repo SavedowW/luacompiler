@@ -1,5 +1,5 @@
-a = 5 + f
-a, c = -5
-print("hello world")
-break
-return 5, a, b
+foo = function (pr1, pr2, ...)
+  a = pr1 + pr2
+  print(a)
+  return a
+end
