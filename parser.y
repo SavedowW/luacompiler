@@ -97,7 +97,9 @@ chunk: /* empty */ {printf("Merged empty chunk\n"); $$ = TreeFactory::CreateStLi
 
 block: block_noret {printf("Finished block without return\n"); $$ = $1;}
     | block_noret return_stmt {printf("Finished block with return\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
+    | block_noret BREAK {printf("Finished block with break\n"); $$ = TreeFactory::AppendStatementToList($1, TreeFactory::makeBreakStatement());}
     | return_stmt {printf("Finished block with only return\n"); $$ = TreeFactory::CreateStList($1);}
+    | BREAK {printf("Finished block with only break\n"); $$ = TreeFactory::CreateStList(TreeFactory::makeBreakStatement());}
     ;
 
 block_noret: block_noret stmt {printf("Extended sequence\n"); $$ = TreeFactory::AppendStatementToList($1, $2);}
@@ -115,7 +117,6 @@ stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ 
     | FOR IDENTIFIER '=' expr ',' expr ',' expr DO chunk END {printf("Merged into single FOR with step\n"); $$ = TreeFactory::makeForLoopStatement($2, $4, $6, $8, $10);}
     | FOR param_list_no_vararg IN expr DO chunk END {printf("Merged into single generic FOR\n"); $$ = TreeFactory::makeForLoopStatement($2, $4, $6);}
     | function_call {std::cout << "Statement from func call\n"; $$ = TreeFactory::CreateFunctionCallStatement($1);}
-    | BREAK {std::cout << "BREAK statement found\n"; $$ = TreeFactory::makeBreakStatement();}
     | named_function_definition {$$ = $1;}
     | LOCAL named_function_definition {$$ = TreeFactory::makeAssignmentLocal($2);}
     | goto_call {std::cout << "Merged goto_call\n"; $$ = $1;}
