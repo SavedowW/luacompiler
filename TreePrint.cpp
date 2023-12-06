@@ -130,30 +130,31 @@ void TreePrint::stmt_print(Statement *stmt)
 		
 		std::cout << stmt->name << " [label=\"break\"] ; ";
 		break;
-	/*case STATEMENT_TYPE::IF_ELSE:
+	case STATEMENT_TYPE::IF_ELSE:
 	{
 		auto *realstmt = dynamic_cast<StatementIfElse*>(stmt);
-		
-		std::cout << "if";
 		expr_print(realstmt->condition);
 		lst_print(realstmt->trueCode);
+		if (realstmt->falseCode)
+			lst_print(realstmt->falseCode);
 
+		std::cout << realstmt->name << " [label=\"" << "if-else" << "\"] ; ";
+		std::cout << realstmt->name << "->" << realstmt->condition->name << " [label=\"condition\"]; ";
+		if (realstmt->trueCode->lst.size() > 0)
+			std::cout << realstmt->name << "->" << realstmt->trueCode->lst[0]->name << " [label=\"true\"]; ";
+		if (realstmt->falseCode && realstmt->falseCode->lst.size() > 0)
+			std::cout << realstmt->name << "->" << realstmt->falseCode->lst[0]->name << " [label=\"false\"]; ";
+
+		int it = 1;
 		for (auto *el : realstmt->elseifs)
 		{
-			
-			std::cout << "elif";
+			std::cout << realstmt->name << "->" << el->name << " [label=\"elseif " << it << "\"]; ";
 			stmt_print(el);
-		}
-
-		if (realstmt->falseCode)
-		{
-			
-			std::cout << "else";
-			lst_print(realstmt->falseCode);
+			it++;
 		}
 	}
 		break;
-	case STATEMENT_TYPE::WHILE_LOOP:
+	/*case STATEMENT_TYPE::WHILE_LOOP:
 	{
 		auto *realstmt = dynamic_cast<StatementWhileLoop*>(stmt);
 		

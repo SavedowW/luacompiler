@@ -105,11 +105,11 @@ public:
 	DoublePtrString sValue;
 	bool bValue;
 	std::string identifier;
-	Expression *left;
-	Expression *right;
-	ExpressionList *lst;
-	StatementList *code;
-	ParamList *params;
+	Expression *left = nullptr;
+	Expression *right = nullptr;
+	ExpressionList *lst = nullptr;
+	StatementList *code = nullptr;
+	ParamList *params = nullptr;
 
 	std::string name;
 	static int lastID;
