@@ -267,62 +267,85 @@ void TreePrint::expr_print(Expression *expr)
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_MINUS:
-		printf("-");
+		std::cout << expr->name << " [label=\"" << "-" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_MUL:
-		printf("*");
+		std::cout << expr->name << " [label=\"" << "*" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_DIV:
-		printf("/");
+		std::cout << expr->name << " [label=\"" << "/" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_CONCAT:
-		printf("..");
+		std::cout << expr->name << " [label=\"" << ".." << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_REM_DIV:
-		printf("%");
+		std::cout << expr->name << " [label=\"" << "%" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_EXPON:
-		printf("^");
+		std::cout << expr->name << " [label=\"" << "^" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_AND:
-		printf("&");
+		std::cout << expr->name << " [label=\"" << "&" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_OR:
-		printf("|");
+		std::cout << expr->name << " [label=\"" << "|" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_NOT:
-		printf("~");
+		std::cout << expr->name << " [label=\"" << "~" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::LOG_AND:
-		printf("AND");
+		std::cout << expr->name << " [label=\"" << "AND" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::LOG_OR:
-		printf("OR");
+		std::cout << expr->name << " [label=\"" << "OR" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::LOG_NOT:
-		printf("NOT");
+		std::cout << expr->name << " [label=\"" << "NOT" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
 		expr_print(expr->left);
 		break;
 	case EXPRESSION_TYPE::UNAR_UMINUS:
@@ -331,55 +354,75 @@ void TreePrint::expr_print(Expression *expr)
 		expr_print(expr->left);
 		break;
 	case EXPRESSION_TYPE::UNAR_BITWISE_NOT:
-		printf("~");
+		std::cout << expr->name << " [label=\"" << "~" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
 		expr_print(expr->left);
 		break;
 	case EXPRESSION_TYPE::UNAR_LEN:
-		printf("#");
+		std::cout << expr->name << " [label=\"" << "#" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
 		expr_print(expr->left);
 		break;
 	case EXPRESSION_TYPE::REL_EQUALS:
-		printf("==");
+		std::cout << expr->name << " [label=\"" << "==" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::REL_NOT_EQUALS:
-		printf("~=");
+		std::cout << expr->name << " [label=\"" << "~=" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::REL_GREATER:
-		printf(">");
+		std::cout << expr->name << " [label=\"" << ">" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::REL_GREATER_EQUALS:
-		printf(">=");
+		std::cout << expr->name << " [label=\"" << ">=" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::REL_LESS:
-		printf("<");
+		std::cout << expr->name << " [label=\"" << "<" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::REL_LESS_EQUALS:
-		printf("<=");
+		std::cout << expr->name << " [label=\"" << "<=" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BIN_FLOOR_DIVISION:
-		printf("//");
+		std::cout << expr->name << " [label=\"" << "//" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BITWISE_LEFT_SHIFT:
-		printf("<<");
+		std::cout << expr->name << " [label=\"" << "<<" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::BITWISE_RIGHT_SHIFT:
-		printf(">>");
+		std::cout << expr->name << " [label=\"" << ">>" << "\"] ; ";
+		std::cout << expr->name << "->" << expr->left->name << " ; ";
+		std::cout << expr->name << "->" << expr->right->name  << " ; ";
 		expr_print(expr->left);
 		expr_print(expr->right);
 		break;
