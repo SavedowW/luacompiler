@@ -460,14 +460,17 @@ void TreePrint::expr_print(Expression *expr)
 	case EXPRESSION_TYPE::TABLE_CONSTRUCT:
 		std::cout << expr->name << " [label=\"" << "{}" << "\"] ; ";
 
-		for (int i = 0; i < expr->lst->lst.size(); ++i)
+		if (expr->lst)
 		{
-			std::cout << expr->name << "->" << expr->lst->lst[i]->name << " ; ";
-		} 
-	
-		for (auto &el : expr->lst->lst)
-		{
-			expr_print(el);
+			for (int i = 0; i < expr->lst->lst.size(); ++i)
+			{
+				std::cout << expr->name << "->" << expr->lst->lst[i]->name << " ; ";
+			} 
+		
+			for (auto &el : expr->lst->lst)
+			{
+				expr_print(el);
+			}
 		}
 		break;
 	case EXPRESSION_TYPE::METHOD_NAME:

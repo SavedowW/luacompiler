@@ -490,6 +490,7 @@ Statement *TreeFactory::makeAssignmentLocal(Statement *assign_)
 {
 	auto *realstmt = dynamic_cast<StatementAssign*>(assign_);
 	realstmt->isLocal = true;
+	return realstmt;
 }
 
 Expression *TreeFactory::CreateVarargRef()
