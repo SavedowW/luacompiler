@@ -6,9 +6,14 @@ int stlistnumber = 0;
 
 int TreePrint::printTree(void)
 {
+	if (!prg)
+	{
+		std::cout << "Cannot print tree, root node was not created\n";
+		return 1;
+	}
 	std::cout << "digraph G { ";
 	lst_print(prg->stmts);
-	std::cout << "}";
+	std::cout << "}\n";
 	return 0;
 }
 

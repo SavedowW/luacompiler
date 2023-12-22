@@ -3,6 +3,7 @@
 %option noyywrap
 %option never-interactive
 %{
+    #include <filesystem>
     #include <string.h>
     #include <math.h>
     #include <stdlib.h>
@@ -10,6 +11,7 @@
     #include "Tree.h"
     #include "TreePrint.h"
     #include "parser.hpp"
+    #include "ClassTable.h"
     char str[1000];
     char *lineEnd = str;
     int stringOpenerLevel = 0;
@@ -240,11 +242,23 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    std::filesystem::path p(argv[1]);
+    auto filename = p.stem().string();
+
     FILE *fp = fopen(argv[1],"r");
     yyin = fp;
     
-    yyparse();
+    auto res = yyparse();
+    if (res != 0)
+    {
+        std::cout << "\nyyparse returned " << res << ", cannot continue compilation\n";
+        return res;
+    }
+
     TreePrint::printTree();
+    ClassTable table;
+    table.generateClassTable(filename);
+    table.generateClassFile();
     
     return 0;
 }

@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.20)
 
-project (LuaAnalysis)
+set(PROJECT_NAME LuaAnalysis)
+project (${PROJECT_NAME})
+set(CMAKE_CXX_STANDARD 23)
 
 find_package(BISON)
 find_package(FLEX)
@@ -17,6 +19,7 @@ message(${BISON_MyParser_OUTPUTS})
 set(SRC_FILES
 Tree.cpp
 TreePrint.cpp
+ClassTable.cpp
 ${BISON_MyParser_OUTPUT_SOURCE}
 ${FLEX_MyScanner_OUTPUTS}
 )

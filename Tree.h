@@ -1,6 +1,7 @@
 #define YYERROR_VERBOSE
 #ifndef TREE_H_
 #define TREE_H_
+#include <string.h>
 #include <string>
 #include <vector>
 
@@ -17,6 +18,10 @@ public:
 	DoublePtrString clone() const;
 
 	void printWithoutQuotes(std::ostream& out_);
+
+	bool operator==(const DoublePtrString &rhs_) const;
+	bool operator==(const std::string &rhs_) const;
+
 };
 
 std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_);

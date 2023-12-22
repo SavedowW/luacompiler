@@ -1,7 +1,6 @@
 #include "Tree.h"
 #include <iostream>
 #include <stdio.h>
-#include <string.h>
 
 int lastTreeElemID = 1;
 int Expression::lastID = 0;
@@ -69,6 +68,34 @@ void DoublePtrString::printWithoutQuotes(std::ostream &out_)
             out_ << *ptr;
         ptr++;
     }
+}
+
+bool DoublePtrString::operator==(const DoublePtrString &rhs_) const
+{
+    if (end - begin != rhs_.end - rhs_.begin)
+		return false;
+
+	for (auto i = 0; i < end - begin - 1; ++i)
+	{
+		if (begin[i] != rhs_.begin[i])
+			return false;
+	}
+
+	return true;
+}
+
+bool DoublePtrString::operator==(const std::string &rhs_) const
+{
+	if (end - begin - 1 != rhs_.size())
+		return false;
+
+	for (auto i = 0; i < end - begin - 1; ++i)
+	{
+		if (begin[i] != rhs_[i])
+			return false;
+	}
+
+	return true;
 }
 
 std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_)
