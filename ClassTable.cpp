@@ -14,6 +14,13 @@ Utf8Info::Utf8Info(const std::string &s_):
 {
 }
 
+ClassInfo::ClassInfo(size_t nameIndex_):
+    TableEntry(TableEntry::ENTRY_TYPE::CLASS),
+    m_nameIndex(nameIndex_)
+{
+}
+
+
 Utf8Info::~Utf8Info()
 {
     delete[] m_str.begin;
@@ -32,7 +39,8 @@ void ClassTable::generateClassTable(const std::string &classname_)
 {
     m_classname = classname_;
 
-    auto classid = addOrConfirmUtf8ToTable(classname_);
+    m_mainClassID = addOrConfirmClassToTable(classname_);
+    m_javaLangObjectID = addOrConfirmClassToTable("java/lang/Object");
 }
 
 void ClassTable::generateClassFile()
@@ -58,13 +66,21 @@ void ClassTable::generateClassFile()
                 auto *properptr = dynamic_cast<Utf8Info*>(m_constantPool[i]);
                 writeBytes(properptr->m_str.end - properptr->m_str.begin - 1, 2);
                 writeBytes(properptr->m_str);
+                break;
+            }
+
+            case (TableEntry::ENTRY_TYPE::CLASS):
+            {
+                auto *properptr = dynamic_cast<ClassInfo*>(m_constantPool[i]);
+                writeBytes(properptr->m_nameIndex, 2);
+                break;
             }
         }
     }
     
     writeBytes(0x0021, 2); // Access flags
-    writeBytes(0x0002, 2); // This class
-    writeBytes(0x0000, 2); // Super class
+    writeBytes(m_mainClassID, 2); // This class
+    writeBytes(m_javaLangObjectID, 2); // Super class
     writeBytes(0x0000, 2); // Interface count
     writeBytes(0x0000, 2); // Fields count
     writeBytes(0x0000, 2); // Methods count
@@ -91,7 +107,29 @@ size_t ClassTable::addOrConfirmUtf8ToTable(const std::string &s_)
 
     std::cout << "Added utf-8 string \"" << s_ << "\" to the constant pool\n";
     m_constantPool.push_back(new Utf8Info(s_));
-    return m_constantPool.size() - 1;
+    return m_constantPool.size();
+}
+
+size_t ClassTable::addOrConfirmClassToTable(const std::string &s_)
+{
+    auto classNameEntry = addOrConfirmUtf8ToTable(s_);
+    for (int i = 0; i < m_constantPool.size(); ++i)
+    {
+        auto *el = m_constantPool[i];
+        if (el->m_type == TableEntry::ENTRY_TYPE::CLASS)
+        {
+            auto *utfstr = dynamic_cast<ClassInfo*>(el);
+            if (utfstr->m_nameIndex == classNameEntry - 1)
+            {
+                std::cout << "Class \"" << s_ << "\" already exists\n";
+                return i;
+            }
+        }
+    }
+
+    std::cout << "Added class \"" << s_ << "\" to the constant pool\n";
+    m_constantPool.push_back(new ClassInfo(classNameEntry));
+    return m_constantPool.size();
 }
 
 void ClassTable::writeBytes(uint64_t bytes_, size_t countBytes_)

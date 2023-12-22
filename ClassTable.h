@@ -38,6 +38,14 @@ public:
     virtual ~Utf8Info();
 };
 
+class ClassInfo : public TableEntry
+{
+public:
+    ClassInfo(size_t nameIndex_);
+    size_t m_nameIndex;
+    virtual ~ClassInfo() = default;
+};
+
 class ClassTable
 {
 public:
@@ -49,11 +57,14 @@ public:
 private:
     std::string m_classname;
     std::ofstream m_output;
+    size_t m_mainClassID = 1;
+    size_t m_javaLangObjectID = 1;
 
     size_t addOrConfirmUtf8ToTable(const std::string &s_);
+    size_t addOrConfirmClassToTable(const std::string &s_);
     void writeBytes(uint64_t bytes_, size_t countBytes_);
     void writeBytes(const DoublePtrString &str_);
-    std::vector<TableEntry*> m_constantPool;
+    std::vector<TableEntry*> m_constantPool; // TODO: use unique ptr
 };
 
 #endif
