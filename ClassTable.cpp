@@ -74,19 +74,19 @@ void ClassTable::generateClassTable(const std::string &classname_)
     m_helloWorldStr = addOrConfirmStringToTable("Hello, world!");
     m_placeholderStr = addOrConfirmStringToTable("Placeholder func");
     m_outFieldID = addOrConfirmFieldRefToTable("out", "Ljava/io/PrintStream;", "java/lang/System");
-    m_printlnStrID = addOrConfirmMethodRefToTable("println", "(Ljava/lang/String;)V", "java/io/PrintStream");
+    m_printlnStrID = addOrConfirmMethodRefToTable("println", "(I)V", "java/io/PrintStream");
     m_mainNameID = addOrConfirmUtf8ToTable("main");
     m_mainTypeID = addOrConfirmUtf8ToTable("([Ljava/lang/String;)V");
     m_codeAttrNameID = addOrConfirmUtf8ToTable("Code");
     m_codeAttrNameID = addOrConfirmUtf8ToTable("Code");
 
-    auto fldName = addOrConfirmUtf8ToTable("msg");
-    auto fldDesc = addOrConfirmUtf8ToTable("Ljava/lang/String;");
-    m_fldref = addOrConfirmFieldRefToTable("msg", "Ljava/lang/String;", classname_);
+    auto fldName = addOrConfirmUtf8ToTable("nobj");
+    auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+    m_fldref = addOrConfirmFieldRefToTable("nobj", "LDynamicType;", classname_);
 
-    auto mtd2Name = addOrConfirmUtf8ToTable("nothingatall");
-    auto mtd2Type = addOrConfirmUtf8ToTable("()V");
-    m_mtd2ref = addOrConfirmMethodRefToTable("nothingatall", "()V", classname_);
+    auto dtclass = addOrConfirmClassToTable("DynamicType");
+    auto dtinitid = addOrConfirmMethodRefToTable("<init>", "(I)V", "DynamicType");
+    auto dtfieldid = addOrConfirmFieldRefToTable("iValue", "I", "DynamicType");
 
     // =========== MAIN =================
     auto *mainmethod = new MethodInfo();
@@ -95,48 +95,30 @@ void ClassTable::generateClassTable(const std::string &classname_)
     mainmethod->m_descIndex = m_mainTypeID;
     mainmethod->m_attribCount = 1;
     mainmethod->m_codeAttrNameIndex = m_codeAttrNameID;
-    mainmethod->m_maxStack = 2;
+    mainmethod->m_maxStack = 3;
     mainmethod->m_maxLocals = 1;
 
-    mainmethod->addBytes(0x12, 1); // ldc
-    mainmethod->addBytes(m_helloWorldStr, 1); // "Hello, world!" string
+    mainmethod->addBytes(0xbb, 1); // new
+    mainmethod->addBytes(dtclass, 2); // new
+    mainmethod->addBytes(0x59, 1); // dup
+    mainmethod->addBytes(0x2, 1); // iconst_m1
+    mainmethod->addBytes(0xb7, 1); // invokespecial
+    mainmethod->addBytes(dtinitid, 2); // <init>
     mainmethod->addBytes(0xb3, 1); // putstatic
-    mainmethod->addBytes(m_fldref, 2); // msg field
+    mainmethod->addBytes(m_fldref, 2); // nobj field
     mainmethod->addBytes(0xb2, 1); // getstatic
     mainmethod->addBytes(m_outFieldID, 2); // System.out field
     mainmethod->addBytes(0xb2, 1); // getstatic
-    mainmethod->addBytes(m_fldref, 2); // msg field
+    mainmethod->addBytes(m_fldref, 2); // nobj field
+    mainmethod->addBytes(0xb4, 1); // getfield
+    mainmethod->addBytes(dtfieldid, 2); // iValue field
     mainmethod->addBytes(0xb6, 1); // Invoke virtual
     mainmethod->addBytes(m_printlnStrID, 2); // println(string)
-    mainmethod->addBytes(0xb8, 1); // Invoke virtual
-    mainmethod->addBytes(m_mtd2ref, 2); // nothingatall()
     mainmethod->addBytes(0xb1, 1);
     mainmethod->m_codeLength = mainmethod->m_byteCode.size();
     mainmethod->m_codeAttrLength = mainmethod->m_codeLength + 12;
 
     m_methodPool.push_back(mainmethod);
-
-    // =============== nothingatall ===============
-    auto *nothingatall = new MethodInfo();
-    nothingatall->m_accessFlags = 0x0009;
-    nothingatall->m_nameIndex = mtd2Name;
-    nothingatall->m_descIndex = mtd2Type;
-    nothingatall->m_attribCount = 1;
-    nothingatall->m_codeAttrNameIndex = m_codeAttrNameID;
-    nothingatall->m_maxStack = 2;
-    nothingatall->m_maxLocals = 1;
-
-    nothingatall->addBytes(0xb2, 1); // getstatic
-    nothingatall->addBytes(m_outFieldID, 2); // System.out field
-    nothingatall->addBytes(0x12, 1); // ldc
-    nothingatall->addBytes(m_placeholderStr, 1); // "Hello, world!" string
-    nothingatall->addBytes(0xb6, 1); // Invoke virtual
-    nothingatall->addBytes(m_printlnStrID, 2); // println(string)
-    nothingatall->addBytes(0xb1, 1);
-    nothingatall->m_codeLength = nothingatall->m_byteCode.size();
-    nothingatall->m_codeAttrLength = nothingatall->m_codeLength + 12;
-
-    m_methodPool.push_back(nothingatall);
 
     auto *mainfield = new FieldInfo();
     mainfield->m_accessFlags = 0x0009;
@@ -155,7 +137,7 @@ void ClassTable::generateClassFile()
     }
 
     writeBytes(0xcafebabe, 4); // Magic number
-    writeBytes(0x00000034, 4); // Java version
+    writeBytes(0x0000003f, 4); // Java version
     writeBytes(m_constantPool.size() + 1, 2); // Constant pool size
 
     for (int i = 0; i < m_constantPool.size(); ++i)
