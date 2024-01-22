@@ -20,6 +20,8 @@ set(SRC_FILES
 Tree.cpp
 TreePrint.cpp
 ClassTable.cpp
+MainClassTable.cpp
+FunctionClassTable.cpp
 ${BISON_MyParser_OUTPUT_SOURCE}
 ${FLEX_MyScanner_OUTPUTS}
 )

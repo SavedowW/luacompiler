@@ -11,7 +11,7 @@
     #include "Tree.h"
     #include "TreePrint.h"
     #include "parser.hpp"
-    #include "ClassTable.h"
+    #include "MainClassTable.h"
     char str[1000];
     char *lineEnd = str;
     int stringOpenerLevel = 0;
@@ -256,8 +256,8 @@ int main(int argc, char **argv)
     }
 
     TreePrint::printTree();
-    ClassTable table;
-    table.generateClassTable(filename);
+    MainClassTable table;
+    table.generateClassTable("Main");
     table.generateClassFile();
     
     return 0;

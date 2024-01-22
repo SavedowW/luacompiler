@@ -78,7 +78,7 @@ public:
     MethodInfo() = default;
     uint32_t m_accessFlags;
     size_t m_nameIndex;
-    size_t m_descIndex;
+    size_t m_descIndex; // descriptor (type)
     uint32_t m_attribCount = 1;
     uint32_t m_codeAttrNameIndex;
     uint32_t m_codeAttrLength;
@@ -112,27 +112,13 @@ class ClassTable
 {
 public:
     ClassTable();
-    void generateClassTable(const std::string &classname_);
-    void generateClassFile();
+    virtual void generateClassTable(const std::string &classname_) = 0;
+    virtual void generateClassFile();
 
 
-private:
-    std::string m_classname;
+protected:
+    std::string m_classname;    
     std::ofstream m_output;
-    size_t m_mainClassID = 1;
-    size_t m_javaLangObjectID = 1;
-    size_t m_javaLangSystemID = 1;
-    size_t m_javaIOPrintStreamID = 1;
-    size_t m_outFieldID = 1;
-    size_t m_helloWorldStr = 1;
-    size_t m_printlnStrID = 1;
-    size_t m_mainNameID = 1;
-    size_t m_mainTypeID = 1;
-    size_t m_codeAttrNameID = 1;
-    size_t m_fldref = 1;
-    size_t m_mtd2ref = 1;
-    size_t m_placeholderStr = 1;
-
     size_t addOrConfirmUtf8ToTable(const std::string &s_);
     size_t addOrConfirmClassToTable(const std::string &s_);
     size_t addOrConfirmStringToTable(const std::string &s_);
@@ -141,6 +127,10 @@ private:
     size_t addOrConfirmMethodRefToTable(const std::string &name_, const std::string &descriptor_, const std::string &class_);
     void writeBytes(uint64_t bytes_, size_t countBytes_);
     void writeBytes(const DoublePtrString &str_);
+
+    size_t m_thisClassID = 0;
+    size_t m_superClassID = 0;
+
     std::vector<TableEntry*> m_constantPool; // TODO: use unique ptr
     std::vector<MethodInfo*> m_methodPool; // TODO: use unique ptr
     std::vector<FieldInfo*> m_fieldPool; // TODO: use unique ptr
