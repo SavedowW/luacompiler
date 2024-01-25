@@ -38,6 +38,14 @@ public:
     virtual ~Utf8Info();
 };
 
+class IntegerInfo : public TableEntry
+{
+public:
+    IntegerInfo(int num_);
+    int m_num;
+    virtual ~IntegerInfo() = default;
+};
+
 class StringInfo : public TableEntry
 {
 public:
@@ -120,6 +128,7 @@ protected:
     std::string m_classname;    
     std::ofstream m_output;
     size_t addOrConfirmUtf8ToTable(const std::string &s_);
+    size_t addOrConfirmIntegerToTable(int num_);
     size_t addOrConfirmClassToTable(const std::string &s_);
     size_t addOrConfirmStringToTable(const std::string &s_);
     size_t addOrConfirmNameAndTypeToTable(const std::string &name_, const std::string &descriptor_);
@@ -127,6 +136,7 @@ protected:
     size_t addOrConfirmMethodRefToTable(const std::string &name_, const std::string &descriptor_, const std::string &class_);
     void writeBytes(uint64_t bytes_, size_t countBytes_);
     void writeBytes(const DoublePtrString &str_);
+    void writeInt(int32_t bytes_);
 
     size_t m_thisClassID = 0;
     size_t m_superClassID = 0;

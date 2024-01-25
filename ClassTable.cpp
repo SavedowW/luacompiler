@@ -14,6 +14,12 @@ Utf8Info::Utf8Info(const std::string &s_):
 {
 }
 
+IntegerInfo::IntegerInfo(int num_):
+    TableEntry(TableEntry::ENTRY_TYPE::INTEGER),
+    m_num(num_)
+{
+}
+
 StringInfo::StringInfo(size_t stringIndex_):
     TableEntry(TableEntry::ENTRY_TYPE::STRING),
     m_stringIndex(stringIndex_)
@@ -81,6 +87,27 @@ size_t ClassTable::addOrConfirmUtf8ToTable(const std::string &s_)
 
     std::cout << "Added utf-8 string \"" << s_ << "\" to the constant pool\n";
     m_constantPool.push_back(new Utf8Info(s_));
+    return m_constantPool.size();
+}
+
+size_t ClassTable::addOrConfirmIntegerToTable(int num_)
+{
+    for (int i = 0; i < m_constantPool.size(); ++i)
+    {
+        auto *el = m_constantPool[i];
+        if (el->m_type == TableEntry::ENTRY_TYPE::INTEGER)
+        {
+            auto *intfield = dynamic_cast<IntegerInfo*>(el);
+            if (intfield->m_num == num_)
+            {
+                std::cout << "Integer \"" << num_ << "\" already exists\n";
+                return i + 1;
+            }
+        }
+    }
+
+    std::cout << "Added integer \"" << num_ << "\" to the constant pool\n";
+    m_constantPool.push_back(new IntegerInfo(num_));
     return m_constantPool.size();
 }
 
@@ -201,7 +228,6 @@ void ClassTable::writeBytes(uint64_t bytes_, size_t countBytes_)
 {
     char *arr = (char*)&bytes_;  // TODO: to reinterpret
     auto end = sizeof(bytes_);
-    auto begin = end - countBytes_;
     for (auto i = countBytes_ - 1; i >= 0 && i < countBytes_; --i)
     {
         m_output.write(arr + i, 1);
@@ -211,6 +237,16 @@ void ClassTable::writeBytes(uint64_t bytes_, size_t countBytes_)
 void ClassTable::writeBytes(const DoublePtrString &str_)
 {
     m_output.write(str_.begin, str_.end - str_.begin - 1);
+}
+
+void ClassTable::writeInt(int32_t bytes_)
+{
+    char *arr = (char*)&bytes_;  // TODO: to reinterpret
+    auto end = sizeof(bytes_);
+    for (auto i = 3; i >= 0 && i < 4; --i)
+    {
+        m_output.write(arr + i, 1);
+    }
 }
 
 void MethodInfo::addBytes(uint64_t bytes_, size_t countBytes_)
@@ -248,6 +284,13 @@ void ClassTable::generateClassFile()
                 auto *properptr = dynamic_cast<Utf8Info*>(m_constantPool[i]);
                 writeBytes(properptr->m_str.end - properptr->m_str.begin - 1, 2);
                 writeBytes(properptr->m_str);
+                break;
+            }
+
+            case (TableEntry::ENTRY_TYPE::INTEGER):
+            {
+                auto *properptr = dynamic_cast<IntegerInfo*>(m_constantPool[i]);
+                writeInt(properptr->m_num);
                 break;
             }
 

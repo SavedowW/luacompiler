@@ -10,6 +10,12 @@ struct FieldData
     size_t m_fieldRefID;
 };
 
+struct VarsContext
+{
+    std::vector<std::string> m_variables;
+    std::vector<VarsContext> m_contexts;
+};
+
 class MainClassTable : public ClassTable
 {
 public:
@@ -18,17 +24,8 @@ public:
 
 
 protected:
-    FieldData createFunctionField(MethodInfo *method, const std::string &functionName, const std::string &className);
-
-    size_t m_javaLangSystemID = 1;
-    size_t m_javaIOPrintStreamID = 1;
-    size_t m_outFieldID = 1;
-    size_t m_helloWorldStr = 1;
-    size_t m_printlnStrID = 1;
-    size_t m_mainNameID = 1;
-    size_t m_mainTypeID = 1;
-    size_t m_codeAttrNameID = 1;
-    size_t m_placeholderStr = 1;
+    FieldData createFunctionField(MethodInfo *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
+    void createDynamicType(MethodInfo *method, int num_);
 
     size_t m_dtClass = 1;
     size_t m_dtInitIdI = 1;
@@ -41,6 +38,24 @@ protected:
     size_t m_dtFieldIdS = 1;
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
+
+    void treeBypass(Program *);
+    void treeBypass(StatementList *);
+    void treeBypass(Statement *);
+    void treeBypass(ExpressionList *);
+    void treeBypass(ParamList *);
+    void treeBypass(Expression *);
+    void treeBypass(StatementGotoCall *);
+    void treeBypass(StatementGotoLabel *); 
+    void treeBypass(StatementForeachLoop *);
+    void treeBypass(StatementForLoop *);
+    void treeBypass(StatementRepeatLoop *);
+    void treeBypass(StatementWhileLoop *);
+    void treeBypass(StatementIfElse *);
+    void treeBypass(StatementFunctionCall *);
+    void treeBypass(StatementReturn *);
+    void treeBypass(StatementMultipleAssign *);
+    void treeBypass(StatementAssign *);
 };
 
 #endif
