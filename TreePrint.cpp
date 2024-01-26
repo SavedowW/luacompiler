@@ -1,4 +1,5 @@
 #include "TreePrint.h"
+#include "ClassTable.h"
 
 extern Program *prg;
 
@@ -24,7 +25,7 @@ void TreePrint::lst_print(StatementList *stmts)
 
 	
 
-	std::cout << "subgraph cluster_" << stmts->lst[0]->name << " { style=filled; color=lightgrey; node [style=filled,color=white]; ";
+	std::cout << "subgraph cluster_" << stmts->lst[0]->name << " { label = \" CONTEXT_" << stmts->ownContext->contextID << "\" style=filled; color=lightgrey; node [style=filled,color=white]; ";
 	std::cout << stmts->lst[0]->name;
 	for (int i = 1; i < stmts->lst.size(); ++i)
 	{
@@ -432,7 +433,7 @@ void TreePrint::expr_print(Expression *expr)
 		expr_print(expr->right);
 		break;
 	case EXPRESSION_TYPE::IDENTIFIER:
-		std::cout << expr->name << " [label=\"" << expr->identifier << "\"] ; ";
+		std::cout << expr->name << " [label=\"CONTEXT_" << expr->varContext->contextID << "::" << expr->identifier << "\"] ; ";
 		break;
 	case EXPRESSION_TYPE::CELL_BY_EXPR:
 		std::cout << expr->name << " [label=\"" << "[]" << "\"] ; ";

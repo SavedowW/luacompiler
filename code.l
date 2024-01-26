@@ -255,10 +255,10 @@ int main(int argc, char **argv)
         return res;
     }
 
-    TreePrint::printTree();
     MainClassTable table;
     table.generateClassTable("Main");
     table.generateClassFile();
+    TreePrint::printTree();
     
     return 0;
 }

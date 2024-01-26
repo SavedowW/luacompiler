@@ -6,6 +6,22 @@
 #include <cstdint>
 #include <memory>
 
+struct VarsContext
+{
+    VarsContext(VarsContext *parentContext_);
+
+    std::vector<std::string> m_variables;
+    std::vector<VarsContext*> m_contexts;
+    VarsContext *m_parentContext = nullptr;
+
+    VarsContext *confirmLocalVar(const std::string &identifier_);
+    VarsContext *confirmGlobalVar(const std::string &identifier_);
+    VarsContext *createChildContext();
+    
+    static int lastID;
+    int contextID = 0;
+};
+
 class TableEntry
 {
 public:
@@ -144,6 +160,30 @@ protected:
     std::vector<TableEntry*> m_constantPool; // TODO: use unique ptr
     std::vector<MethodInfo*> m_methodPool; // TODO: use unique ptr
     std::vector<FieldInfo*> m_fieldPool; // TODO: use unique ptr
+
+
+    // Code gen
+    VarsContext *m_ownContext;
+    VarsContext *m_currentContext = nullptr;
+    bool m_defineLocalVars = false;
+
+    void treeBypass(Program *);
+    void treeBypass(StatementList *);
+    void treeBypass(Statement *);
+    void treeBypass(ExpressionList *);
+    void treeBypass(ParamList *);
+    void treeBypass(Expression *);
+    void treeBypass(StatementGotoCall *);
+    void treeBypass(StatementGotoLabel *); 
+    void treeBypass(StatementForeachLoop *);
+    void treeBypass(StatementForLoop *);
+    void treeBypass(StatementRepeatLoop *);
+    void treeBypass(StatementWhileLoop *);
+    void treeBypass(StatementIfElse *);
+    void treeBypass(StatementFunctionCall *);
+    void treeBypass(StatementReturn *);
+    void treeBypass(StatementMultipleAssign *);
+    void treeBypass(StatementAssign *);
 };
 
 #endif

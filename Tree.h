@@ -88,6 +88,7 @@ enum class STATEMENT_TYPE {
 class ExpressionList;
 class StatementList;
 class ParamList;
+class VarsContext;
 
 /*
 	Класс выражения
@@ -118,6 +119,7 @@ public:
 
 	std::string name;
 	static int lastID;
+	VarsContext *varContext = nullptr;
 };
 
 // Класс списка выражений
@@ -150,6 +152,8 @@ class StatementList : public Statement
 public:
 	std::vector<Statement*> lst;
 	virtual ~StatementList() = default;
+
+	VarsContext *ownContext = nullptr;;
 };
 
 // Присваивание

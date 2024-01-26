@@ -10,12 +10,6 @@ struct FieldData
     size_t m_fieldRefID;
 };
 
-struct VarsContext
-{
-    std::vector<std::string> m_variables;
-    std::vector<VarsContext> m_contexts;
-};
-
 class MainClassTable : public ClassTable
 {
 public:
@@ -38,24 +32,6 @@ protected:
     size_t m_dtFieldIdS = 1;
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
-
-    void treeBypass(Program *);
-    void treeBypass(StatementList *);
-    void treeBypass(Statement *);
-    void treeBypass(ExpressionList *);
-    void treeBypass(ParamList *);
-    void treeBypass(Expression *);
-    void treeBypass(StatementGotoCall *);
-    void treeBypass(StatementGotoLabel *); 
-    void treeBypass(StatementForeachLoop *);
-    void treeBypass(StatementForLoop *);
-    void treeBypass(StatementRepeatLoop *);
-    void treeBypass(StatementWhileLoop *);
-    void treeBypass(StatementIfElse *);
-    void treeBypass(StatementFunctionCall *);
-    void treeBypass(StatementReturn *);
-    void treeBypass(StatementMultipleAssign *);
-    void treeBypass(StatementAssign *);
 };
 
 #endif
