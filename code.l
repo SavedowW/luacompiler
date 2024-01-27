@@ -257,7 +257,7 @@ int main(int argc, char **argv)
 
     MainClassTable table;
     table.generateClassTable("Main");
-    table.generateClassFile();
+    table.generateClassFiles();
     TreePrint::printTree();
     
     return 0;

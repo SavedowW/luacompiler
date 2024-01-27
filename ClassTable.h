@@ -9,6 +9,13 @@
 struct VarDependency;
 struct ParameterDependency;
 
+struct FieldData
+{
+    size_t m_fieldNameID;
+    size_t m_fieldDescID;
+    size_t m_fieldRefID;
+};
+
 struct VarsContext
 {
     VarsContext(VarsContext *parentContext_);
@@ -172,6 +179,10 @@ protected:
     void writeBytes(uint64_t bytes_, size_t countBytes_);
     void writeBytes(const DoublePtrString &str_);
     void writeInt(int32_t bytes_);
+    virtual void grabParams();
+    void generateUniversalTable();
+    
+    virtual void initVar(const std::string &identifier_, VarsContext *context_, int fieldref) = 0;
 
     void generateFunctionClassVariables(VarsContext *currentContext);
 
@@ -184,7 +195,48 @@ protected:
 
 
     // Code gen
-    VarsContext *m_ownContext;
+    size_t m_dtClass = 1;
+    size_t m_dtInitIdI = 1;
+    size_t m_dtInitIdD = 1;
+    size_t m_dtInitIdS = 1;
+    size_t m_dtInitIdF = 1;
+    size_t m_dtInitIdNIL = 1;
+    size_t m_dtFieldIdI = 1;
+    size_t m_dtFieldIdD = 1;
+    size_t m_dtFieldIdS = 1;
+    size_t m_dtFieldIdF = 1;
+    size_t m_dtCallRef = 1;
+    size_t m_varlistClass = 1;
+    size_t m_varlistInit = 1;
+    size_t m_varlistAdd = 1;
+    size_t m_varlistGet = 1;
+    size_t m_codeAttrNameID = 1;
+
+    VarsContext *m_ownContext = nullptr;
+    MethodInfo *m_constructor = nullptr;
+    MethodInfo *m_function = nullptr;
+
+    FieldData createFunctionField(MethodInfo *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
+    void createDynamicType(MethodInfo *method, int num_);
+    void createDynamicType(MethodInfo *method);
+
+    void treeBypassCodeGen(Program *);
+    void treeBypassCodeGen(StatementList *);
+    void treeBypassCodeGen(Statement *);
+    void treeBypassCodeGen(ExpressionList *);
+    void treeBypassCodeGen(ParamList *);
+    void treeBypassCodeGen(Expression *);
+    void treeBypassCodeGen(StatementGotoCall *);
+    void treeBypassCodeGen(StatementGotoLabel *); 
+    void treeBypassCodeGen(StatementForeachLoop *);
+    void treeBypassCodeGen(StatementForLoop *);
+    void treeBypassCodeGen(StatementRepeatLoop *);
+    void treeBypassCodeGen(StatementWhileLoop *);
+    void treeBypassCodeGen(StatementIfElse *);
+    void treeBypassCodeGen(StatementFunctionCall *);
+    void treeBypassCodeGen(StatementReturn *);
+    void treeBypassCodeGen(StatementMultipleAssign *);
+    void treeBypassCodeGen(StatementAssign *);
 };
 
 #endif

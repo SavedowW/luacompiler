@@ -13,67 +13,58 @@ void FunctionClassTable::generateClassTable(const std::string &classname_)
 {
     m_classname = classname_;
 
+    generateUniversalTable();
+
     m_thisClassID = addOrConfirmClassToTable(classname_);
     m_superClassID = addOrConfirmClassToTable("FunctionClass");
 
-    auto strid = addOrConfirmStringToTable("filler text");
-    auto outFieldID = addOrConfirmFieldRefToTable("out", "Ljava/io/PrintStream;", "java/lang/System");
-    auto printid = addOrConfirmMethodRefToTable("println", "(Ljava/lang/String;)V", "java/io/PrintStream");
-
     auto functionUTF8 = addOrConfirmUtf8ToTable("function");
     auto functionType = addOrConfirmUtf8ToTable("()V");
-    auto codeAttrNameID = addOrConfirmUtf8ToTable("Code");
 
     auto initUTF8 = addOrConfirmUtf8ToTable("<init>");
     auto superInit = addOrConfirmMethodRefToTable("<init>", "()V", "FunctionClass");
 
-    //auto dtclass = addOrConfirmClassToTable("DynamicType");
-    //auto dtinitid = addOrConfirmMethodRefToTable("<init>", "(I)V", "DynamicType");
-    //auto dtfieldid = addOrConfirmFieldRefToTable("iValue", "I", "DynamicType");
-
     // =========== INIT =================
-    auto *mainmethod = new MethodInfo();
-    mainmethod->m_accessFlags = 0x0001;
-    mainmethod->m_nameIndex = initUTF8;
-    mainmethod->m_descIndex = functionType;
-    mainmethod->m_attribCount = 1;
-    mainmethod->m_codeAttrNameIndex = codeAttrNameID;
-    mainmethod->m_maxStack = 1;
-    mainmethod->m_maxLocals = 1;
+    m_constructor = new MethodInfo();
+    m_constructor->m_accessFlags = 0x0001;
+    m_constructor->m_nameIndex = initUTF8;
+    m_constructor->m_descIndex = functionType;
+    m_constructor->m_attribCount = 1;
+    m_constructor->m_codeAttrNameIndex = m_codeAttrNameID;
+    m_constructor->m_maxStack = 10;
+    m_constructor->m_maxLocals = 1;
 
-    mainmethod->addBytes(0x2a, 1); // aload_0
-    mainmethod->addBytes(0xb7, 1); // invokespecial
-    mainmethod->addBytes(superInit, 2); // super consutrctor
-    mainmethod->addBytes(0xb1, 1);
-    mainmethod->m_codeLength = mainmethod->m_byteCode.size();
-    mainmethod->m_codeAttrLength = mainmethod->m_codeLength + 12;
+    m_constructor->addBytes(0x2a, 1); // aload_0
+    m_constructor->addBytes(0xb7, 1); // invokespecial
+    m_constructor->addBytes(superInit, 2); // super consutrctor
 
-    m_methodPool.push_back(mainmethod);
+    m_methodPool.push_back(m_constructor);
 
     // =========== MAIN =================
-    mainmethod = new MethodInfo();
-    mainmethod->m_accessFlags = 0x0001;
-    mainmethod->m_nameIndex = functionUTF8;
-    mainmethod->m_descIndex = functionType;
-    mainmethod->m_attribCount = 1;
-    mainmethod->m_codeAttrNameIndex = codeAttrNameID;
-    mainmethod->m_maxStack = 3;
-    mainmethod->m_maxLocals = 1;
+    m_function = new MethodInfo();
+    m_function->m_accessFlags = 0x0001;
+    m_function->m_nameIndex = functionUTF8;
+    m_function->m_descIndex = functionType;
+    m_function->m_attribCount = 1;
+    m_function->m_codeAttrNameIndex = m_codeAttrNameID;
+    m_function->m_maxStack = 3;
+    m_function->m_maxLocals = 1;
 
-    mainmethod->addBytes(0xb2, 1); // getstatic
-    mainmethod->addBytes(outFieldID, 2); // System.out field
-    mainmethod->addBytes(0x12, 1); // ldc
-    mainmethod->addBytes(strid, 1); // string
-    mainmethod->addBytes(0xb6, 1); // Invoke virtual
-    mainmethod->addBytes(printid, 2); // println(string)
-    mainmethod->addBytes(0xb1, 1);
-    mainmethod->m_codeLength = mainmethod->m_byteCode.size();
-    mainmethod->m_codeAttrLength = mainmethod->m_codeLength + 12;
-
-    m_methodPool.push_back(mainmethod);
+    m_methodPool.push_back(m_function);
 
     std::cout << "VAR DATA: " << m_classname << std::endl;
     generateFunctionClassVariables(m_ownContext);
+
+
+
+    m_constructor->addBytes(0xb1, 1);
+    m_constructor->m_codeLength = m_constructor->m_byteCode.size();
+    m_constructor->m_codeAttrLength = m_constructor->m_codeLength + 12;
+    
+    m_function->addBytes(0xb1, 1);
+
+    m_function->m_codeLength = m_function->m_byteCode.size();
+    m_function->m_codeAttrLength = m_function->m_codeLength + 12;
 }
 
 int FunctionClassTable::getClassID() const
@@ -84,4 +75,19 @@ int FunctionClassTable::getClassID() const
 std::string FunctionClassTable::generateClassName() const
 {
     return std::string("FunctionClass") + std::to_string(m_functionClassID);
+}
+
+void FunctionClassTable::initVar(const std::string &identifier_, VarsContext *context_, int fieldref)
+{
+    createDynamicType(m_function);
+    m_function->addBytes(0xb3, 1); // putstatic
+    m_function->addBytes(fieldref, 2); // putstatic
+}
+
+void FunctionClassTable::grabParams()
+{
+    for (auto &param : m_ownContext->m_parameters)
+    {
+        m_function->addBytes(0x2b, 1); // aload_1
+    }
 }

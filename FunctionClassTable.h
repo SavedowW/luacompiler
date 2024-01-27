@@ -12,6 +12,8 @@ public:
 
 
 protected:
+    void initVar(const std::string &identifier_, VarsContext *context_, int fieldref) override;
+    void grabParams() override;
 
     static int lastID;
     int m_functionClassID = 0;

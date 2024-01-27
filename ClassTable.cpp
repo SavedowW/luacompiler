@@ -252,6 +252,35 @@ void ClassTable::writeInt(int32_t bytes_)
     }
 }
 
+void ClassTable::grabParams()
+{
+}
+
+void ClassTable::generateUniversalTable()
+{
+    m_thisClassID = addOrConfirmClassToTable(m_classname);
+    m_superClassID = addOrConfirmClassToTable("java/lang/Object");
+    m_codeAttrNameID = addOrConfirmUtf8ToTable("Code");
+
+    m_dtClass = addOrConfirmClassToTable("DynamicType");
+    m_dtInitIdI = addOrConfirmMethodRefToTable("<init>", "(I)V", "DynamicType");
+    m_dtInitIdD = addOrConfirmMethodRefToTable("<init>", "(D)V", "DynamicType");
+    m_dtInitIdS = addOrConfirmMethodRefToTable("<init>", "(Ljava/lang/String;)V", "DynamicType");
+    m_dtInitIdF = addOrConfirmMethodRefToTable("<init>", "(LFunctionClass;)V", "DynamicType");
+    m_dtInitIdNIL = addOrConfirmMethodRefToTable("<init>", "()V", "DynamicType");
+    m_dtFieldIdI = addOrConfirmFieldRefToTable("iValue", "I", "DynamicType");
+    m_dtFieldIdD = addOrConfirmFieldRefToTable("dValue", "D", "DynamicType");
+    m_dtFieldIdS = addOrConfirmFieldRefToTable("sValue", "Ljava/lang/String;", "DynamicType");
+    m_dtFieldIdF = addOrConfirmFieldRefToTable("fValue", "LFunctionClass;", "DynamicType");
+
+    m_dtCallRef = addOrConfirmMethodRefToTable("__call", "(LDynamicType;LVarList;)LVarList;", "DynamicType");
+    
+    m_varlistClass = addOrConfirmClassToTable("VarList");
+    m_varlistInit = addOrConfirmMethodRefToTable("<init>", "()V", "VarList");
+    m_varlistAdd = addOrConfirmMethodRefToTable("add", "(LDynamicType;)V", "VarList");
+    m_varlistGet = addOrConfirmMethodRefToTable("get", "(I)LDynamicType;", "VarList");
+}
+
 void MethodInfo::addBytes(uint64_t bytes_, size_t countBytes_)
 {
     char *arr = (char*)&bytes_;  // TODO: to reinterpret
@@ -473,21 +502,64 @@ void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
     {
         std::cout << "Parameters:\n";
         for (auto &el : currentContext->m_parameters)
-            std::cout << m_classname << "::" << "CONTEXT_" << currentContext->contextID << "_" << el.paramName << " (" << el.paramID << ")\n";
+        {
+            auto varname = std::string("CONTEXT_") + std::to_string(currentContext->contextID) + "_" + el.paramName;
+            auto fldName = addOrConfirmUtf8ToTable(varname);
+            auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+            auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", currentContext->className);
+            auto *paramfld = new FieldInfo();
+            paramfld->m_accessFlags = 0x0009;
+            paramfld->m_nameIndex = fldName;
+            paramfld->m_descIndex = fldDesc;
+            m_fieldPool.push_back(paramfld);
+            std::cout << m_classname << "::" << varname << " (" << el.paramID << ")\n";
+        }
     }
 
     if (currentContext->m_dependencies.size() > 0)
     {
         std::cout << "Dependencies:\n";
         for (auto &el : currentContext->m_dependencies)
+        {
+            auto varname = std::string("DEP_CONTEXT_") + std::to_string(currentContext->contextID) + "_" + el.varName;
+            auto sourceVarName = std::string("CONTEXT_") + std::to_string(el.m_context->contextID) + "_" + el.varName;
+            auto fldName = addOrConfirmUtf8ToTable(varname);
+            auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+            auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", currentContext->className);
+            auto sourceVarNameFieldRef = addOrConfirmFieldRefToTable(sourceVarName, "LDynamicType;", el.m_context->className);
+            auto *depfld = new FieldInfo();
+            depfld->m_accessFlags = 0x0001;
+            depfld->m_nameIndex = fldName;
+            depfld->m_descIndex = fldDesc;
+            m_fieldPool.push_back(depfld);
+
+            m_constructor->addBytes(0x2a, 1); // aload_0
+            m_constructor->addBytes(0xb2, 1); // getstatic
+            m_constructor->addBytes(sourceVarNameFieldRef, 2); // field reference
+            m_constructor->addBytes(0xb5, 1); // putfield
+            m_constructor->addBytes(fldRef, 2); // putfield
+
             std::cout << el.m_context->className << "::" << "CONTEXT_" << el.m_context->contextID << "_" << el.varName << std::endl;
+        }
     }
 
     if (currentContext->m_variables.size() > 0)
     {
         std::cout << "Variables:\n";
         for (auto &el : currentContext->m_variables)
-            std::cout << m_classname << "::" << "CONTEXT_" << currentContext->contextID << "_" << el << std::endl;
+        {
+            auto varname = std::string("CONTEXT_") + std::to_string(currentContext->contextID) + "_" + el;
+            auto fldName = addOrConfirmUtf8ToTable(varname);
+            auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+            auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", currentContext->className);
+            auto *varfld = new FieldInfo();
+            varfld->m_accessFlags = 0x0009;
+            varfld->m_nameIndex = fldName;
+            varfld->m_descIndex = fldDesc;
+            m_fieldPool.push_back(varfld);
+            initVar(varname, currentContext, fldRef);
+            std::cout << m_classname << "::" << varname << std::endl;
+        }
     }
 
     for (auto *child : currentContext->m_contexts)
@@ -496,3 +568,108 @@ void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
             generateFunctionClassVariables(child);
     }
 }
+
+
+FieldData ClassTable::createFunctionField(MethodInfo *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className)
+{
+    auto fldName = addOrConfirmUtf8ToTable(functionName);
+    auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+    auto fldRef = addOrConfirmFieldRefToTable(functionName, "LDynamicType;", className);
+
+    auto functionClass = addOrConfirmClassToTable(functionOwnerClassName);
+    //auto functionCall = addOrConfirmMethodRefToTable("function", "(LVarList;)LVarList;", "print");
+    auto fuhctionInit = addOrConfirmMethodRefToTable("<init>", "()V", functionName);
+
+    // Create DynamicType
+    method->addBytes(0xbb, 1); // new
+    method->addBytes(m_dtClass, 2); // DynamicType
+    method->addBytes(0x59, 1); // dup
+    
+    // Create and initialize function class
+    method->addBytes(0xbb, 1); // new
+    method->addBytes(functionClass, 2); // FunctionClass
+    method->addBytes(0x59, 1); // dup
+    method->addBytes(0xb7, 1); // invokespecial
+    method->addBytes(fuhctionInit, 2); // <init>
+
+    // Initialize DynamicType
+    method->addBytes(0xb7, 1); // invokespecial
+    method->addBytes(m_dtInitIdF, 2); // <init>
+
+    // Put function into static field
+    method->addBytes(0xb3, 1); // putstatic
+    method->addBytes(fldRef, 2); // print field
+
+
+    auto *mainfield = new FieldInfo();
+    mainfield->m_accessFlags = 0x0009;
+    mainfield->m_nameIndex = fldName;
+    mainfield->m_descIndex = fldDesc;
+    m_fieldPool.push_back(mainfield);
+
+    return {fldName, fldDesc, fldRef};
+
+}
+
+void ClassTable::createDynamicType(MethodInfo *method, int num_)
+{
+    // Create DT
+    method->addBytes(0xbb, 1); // new
+    method->addBytes(m_dtClass, 2); // DynamicType
+    method->addBytes(0x59, 1); // dup
+
+    switch (num_)
+    {
+        case (-1):
+            method->addBytes(0x2, 1); // dup
+            break;
+
+        case (0):
+            method->addBytes(0x3, 1); // dup
+            break;
+
+        case (1):
+            method->addBytes(0x4, 1); // dup
+            break;
+        
+        case (2):
+            method->addBytes(0x5, 1); // dup
+            break;
+
+        case (3):
+            method->addBytes(0x6, 1); // dup
+            break;
+
+        case (4):
+            method->addBytes(0x7, 1); // dup
+            break;
+
+        case (5):
+            method->addBytes(0x8, 1); // dup
+            break;
+
+        default:
+        {
+            auto numberId = addOrConfirmIntegerToTable(num_);
+            method->addBytes(0x13, 1); // ldc_w
+            method->addBytes(numberId, 2); // field with number
+            break;
+        }
+    }
+
+
+    method->addBytes(0xb7, 1); // invokespecial
+    method->addBytes(m_dtInitIdI, 2); // <init>
+}
+
+void ClassTable::createDynamicType(MethodInfo *method)
+{
+    // Create DT
+    method->addBytes(0xbb, 1); // new
+    method->addBytes(m_dtClass, 2); // DynamicType
+    method->addBytes(0x59, 1); // dup
+
+    method->addBytes(0xb7, 1); // invokespecial
+    method->addBytes(m_dtInitIdNIL, 2); // <init>
+}
+
