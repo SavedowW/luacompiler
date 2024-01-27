@@ -6,20 +6,39 @@
 #include <cstdint>
 #include <memory>
 
+struct VarDependency;
+struct ParameterDependency;
+
 struct VarsContext
 {
     VarsContext(VarsContext *parentContext_);
 
     std::vector<std::string> m_variables;
     std::vector<VarsContext*> m_contexts;
+    std::vector<VarDependency> m_dependencies;
+    std::vector<ParameterDependency> m_parameters;
     VarsContext *m_parentContext = nullptr;
 
     VarsContext *confirmLocalVar(const std::string &identifier_);
     VarsContext *confirmGlobalVar(const std::string &identifier_);
+    VarsContext *confirmParameter(const std::string &identifier_, int paramID_);
     VarsContext *createChildContext();
+    void grabNearestClassName();
+    VarsContext *getOriginalFunctionContext();
     
     static int lastID;
     int contextID = 0;
+    std::string className;
+};
+
+struct VarDependency {
+    VarsContext *m_context;
+    std::string varName;
+};
+
+struct ParameterDependency {
+    std::string paramName;
+    int paramID;
 };
 
 class TableEntry
@@ -154,6 +173,8 @@ protected:
     void writeBytes(const DoublePtrString &str_);
     void writeInt(int32_t bytes_);
 
+    void generateFunctionClassVariables(VarsContext *currentContext);
+
     size_t m_thisClassID = 0;
     size_t m_superClassID = 0;
 
@@ -164,26 +185,6 @@ protected:
 
     // Code gen
     VarsContext *m_ownContext;
-    VarsContext *m_currentContext = nullptr;
-    bool m_defineLocalVars = false;
-
-    void treeBypass(Program *);
-    void treeBypass(StatementList *);
-    void treeBypass(Statement *);
-    void treeBypass(ExpressionList *);
-    void treeBypass(ParamList *);
-    void treeBypass(Expression *);
-    void treeBypass(StatementGotoCall *);
-    void treeBypass(StatementGotoLabel *); 
-    void treeBypass(StatementForeachLoop *);
-    void treeBypass(StatementForLoop *);
-    void treeBypass(StatementRepeatLoop *);
-    void treeBypass(StatementWhileLoop *);
-    void treeBypass(StatementIfElse *);
-    void treeBypass(StatementFunctionCall *);
-    void treeBypass(StatementReturn *);
-    void treeBypass(StatementMultipleAssign *);
-    void treeBypass(StatementAssign *);
 };
 
 #endif

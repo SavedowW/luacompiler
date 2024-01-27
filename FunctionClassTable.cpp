@@ -1,9 +1,12 @@
 #include "FunctionClassTable.h"
 
-FunctionClassTable::FunctionClassTable() :
+int FunctionClassTable::lastID = 1;
+
+FunctionClassTable::FunctionClassTable(VarsContext *ownContext_) :
     ClassTable()
 {
-
+    m_ownContext = ownContext_;
+    m_functionClassID = lastID++;
 }
 
 void FunctionClassTable::generateClassTable(const std::string &classname_)
@@ -68,4 +71,17 @@ void FunctionClassTable::generateClassTable(const std::string &classname_)
     mainmethod->m_codeAttrLength = mainmethod->m_codeLength + 12;
 
     m_methodPool.push_back(mainmethod);
+
+    std::cout << "VAR DATA: " << m_classname << std::endl;
+    generateFunctionClassVariables(m_ownContext);
+}
+
+int FunctionClassTable::getClassID() const
+{
+    return m_functionClassID;
+}
+
+std::string FunctionClassTable::generateClassName() const
+{
+    return std::string("FunctionClass") + std::to_string(m_functionClassID);
 }

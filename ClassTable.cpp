@@ -380,519 +380,6 @@ void ClassTable::generateClassFile()
     m_output.close();
 }
 
-//функции обхода деревьев
-void ClassTable::treeBypass(Program *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->stmts << std::endl;
-    m_ownContext = new VarsContext(nullptr);
-    m_currentContext = m_ownContext;
-	treeBypass(node->stmts);
-}
-
-void ClassTable::treeBypass(StatementGotoCall *node)
-{
-    // TODO: No idea what to do with it
-	if (node==NULL)	return;
-	std::cout << node->identifier << std::endl;
-}
-void ClassTable::treeBypass(StatementGotoLabel *node)
-{
-    // TODO: No idea what to do with it
-	if (node==NULL)	return;
-	std::cout << node->identifier << std::endl;
-}
-void ClassTable::treeBypass(StatementForeachLoop *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-	treeBypass(node->params);
-	treeBypass(node->data);
-
-    m_currentContext = m_currentContext->createChildContext();
-	treeBypass(node->code);
-    m_currentContext = m_currentContext->m_parentContext;
-
-}
-void ClassTable::treeBypass(StatementForLoop *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-	std::cout << node->identifier << std::endl;
-	treeBypass(node->begin);
-	treeBypass(node->end);
-	treeBypass(node->step);
-
-    m_currentContext = m_currentContext->createChildContext();
-	treeBypass(node->code);
-    m_currentContext = m_currentContext->m_parentContext;
-}
-
-void ClassTable::treeBypass(ParamList *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-	for (int i = 0; i < node->lst.size(); i++)
-    {
-		std::cout << "Param: " << node->lst[i] << std::endl;
-        m_currentContext->confirmLocalVar(node->lst[i]);
-	}
-}
-
-void ClassTable::treeBypass(StatementRepeatLoop *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-    m_currentContext = m_currentContext->createChildContext();
-	treeBypass(node->trueCode);
-    m_currentContext = m_currentContext->m_parentContext;
-
-	treeBypass(node->condition);
-}
-
-void ClassTable::treeBypass(StatementWhileLoop *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-	treeBypass(node->condition);
-
-    m_currentContext = m_currentContext->createChildContext();
-	treeBypass(node->trueCode);
-    m_currentContext = m_currentContext->m_parentContext;
-}
-
-void ClassTable::treeBypass(StatementIfElse *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-	treeBypass(node->condition);
-
-    m_currentContext = m_currentContext->createChildContext();
-	treeBypass(node->trueCode);
-    m_currentContext = m_currentContext->m_parentContext;
-
-    for (int i = 0; i < node->elseifs.size(); i++)
-    {
-        m_currentContext = m_currentContext->createChildContext();
-		treeBypass(node->elseifs[i]->trueCode);
-        m_currentContext = m_currentContext->m_parentContext;
-	}
-
-    m_currentContext = m_currentContext->createChildContext();
-	treeBypass(node->falseCode);
-    m_currentContext = m_currentContext->m_parentContext;
-}
-
-void ClassTable::treeBypass(StatementFunctionCall *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-	treeBypass(node->functionName);
-	treeBypass(node->lst);
-}
-
-void ClassTable::treeBypass(StatementReturn *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-	treeBypass(node->lst);
-}
-
-void ClassTable::treeBypass(StatementMultipleAssign *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-	// Since rights side should ignore newly defined local vars, its vars are calculated first
-	treeBypass(node->right);
-
-    if (node->isLocal)
-        m_defineLocalVars = true;
-	treeBypass(node->left);
-    if (node->isLocal)
-        m_defineLocalVars = false;
-}
-
-void ClassTable::treeBypass(StatementAssign *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-    // Since rights side should ignore newly defined local vars, its vars are calculated first
-	treeBypass(node->right);
-
-    if (node->isLocal)
-        m_defineLocalVars = true;
-	treeBypass(node->left);
-    if (node->isLocal)
-        m_defineLocalVars = false;
-}
-
-void ClassTable::treeBypass(StatementList *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-    node->ownContext = m_currentContext;
-	for (int i = 0; i < node->lst.size(); i++)
-    {
-		treeBypass(node->lst[i]);
-	}
-}
-
-void ClassTable::treeBypass(Statement *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-	switch(node->type)
-	{
-		case STATEMENT_TYPE::ASSIGN:
-		{
-			auto *realnode = dynamic_cast<StatementAssign*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::MULTIPLE_ASSIGN:
-		{
-			auto *realnode = dynamic_cast<StatementMultipleAssign*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::STMT_LIST:
-		{
-			throw std::string("Statement list should not be kept as a statement");
-		}
-		break;
-		case STATEMENT_TYPE::RETURN:
-		{
-			auto *realnode = dynamic_cast<StatementReturn*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::FUNCTION_CALL:
-		{
-			auto *realnode = dynamic_cast<StatementFunctionCall*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::BREAK:
-		{
-			// TODO: No type, just logic
-		}
-		break;
-		case STATEMENT_TYPE::IF_ELSE:
-		{
-			auto *realnode = dynamic_cast<StatementIfElse*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::WHILE_LOOP:
-		{
-			auto *realnode = dynamic_cast<StatementWhileLoop*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::REPEAT_LOOP:
-		{
-			auto *realnode = dynamic_cast<StatementRepeatLoop*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::FOR_NUMERIC:
-		{
-			auto *realnode = dynamic_cast<StatementForLoop*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::FOR_EACH:
-		{
-			auto *realnode = dynamic_cast<StatementForeachLoop*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::GOTO_LABEL:
-		{
-			auto *realnode = dynamic_cast<StatementGotoLabel*>(node);
-			treeBypass(realnode);
-		}
-		break;
-		case STATEMENT_TYPE::GOTO_CALL:
-		{
-			auto *realnode = dynamic_cast<StatementGotoCall*>(node);
-			treeBypass(realnode);
-		}
-		break;
-	}
-}
-
-void ClassTable::treeBypass(ExpressionList *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-	for (int i = 0; i < node->lst.size(); i++){
-		treeBypass(node->lst[i]);
-	}
-}
-
-void ClassTable::treeBypass(Expression *node)
-{
-	if (node==NULL)	return;
-	std::cout << node->name << std::endl;
-
-	switch(node->type)
-	{
-		case EXPRESSION_TYPE::INT:
-            // TODO: code gen
-            // Put DT value on stack
-		    break;
-		case EXPRESSION_TYPE::DOUBLE:
-            // TODO: code gen
-            // Put DT value on stack
-		    break;
-		case EXPRESSION_TYPE::STRING:
-            // TODO: code gen
-            // Put DT value on stack
-		    break;
-		case EXPRESSION_TYPE::BOOL:
-            // TODO: code gen
-            // Put DT value on stack
-		    break;
-		case EXPRESSION_TYPE::NIL:
-            // TODO: code gen
-            // Put DT value on stack
-		    break;
-		case EXPRESSION_TYPE::IDENTIFIER:
-            // Generate var
-            if (m_defineLocalVars)
-                node->varContext = m_currentContext->confirmLocalVar(node->identifier);
-            else
-                node->varContext = m_currentContext->confirmGlobalVar(node->identifier);
-            // TODO: Code gen
-            // Put variable on top of stack
-		    break;
-		case EXPRESSION_TYPE::BIN_PLUS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_MINUS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_MUL:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_DIV:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_CONCAT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::CELL_BY_EXPR:
-            // TODO: code gen
-            // call func, leaves cell DT on stack
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_REM_DIV:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_EXPON:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_AND:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_OR:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_NOT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::LOG_AND:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::LOG_OR:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::LOG_NOT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-		    break;
-		case EXPRESSION_TYPE::UNAR_UMINUS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-		    break;
-		case EXPRESSION_TYPE::UNAR_BITWISE_NOT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-		    break;
-		case EXPRESSION_TYPE::UNAR_LEN:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-		    break;
-		case EXPRESSION_TYPE::REL_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::REL_NOT_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::REL_GREATER:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::REL_GREATER_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::REL_LESS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::REL_LESS_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BIN_FLOOR_DIVISION:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BITWISE_LEFT_SHIFT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::BITWISE_RIGHT_SHIFT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
-            // TODO: code gen
-            // expects table on top of stack
-            // performs assignment of cell
-            // keeps table on top
-            treeBypass(node->left);
-            treeBypass(node->right);
-		    break;
-		case EXPRESSION_TYPE::TABLE_CONSTRUCT:
-            // TODO: code gen
-            // creates table on top of stack
-            // recursively assigns values to cells
-            treeBypass(node->lst);
-		    break;
-		case EXPRESSION_TYPE::METHOD_NAME:
-            // TODO: code gen
-            // expr in left should leave table on top of stack
-            // identifier is cell name
-            treeBypass(node->left);
-		    break;
-		case EXPRESSION_TYPE::FUNCTION_CALL:
-            // TODO: code gen
-            // generates VarList, calls function, leaves VarList of returned values
-            // expr in left puts function DynamicType on top of the stack
-            treeBypass(node->left);
-            treeBypass(node->lst);
-		    break;
-		case EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION:
-            // TODO: code gen
-            // generates DynamicType with function on top of stack
-            // Probably should be delegated to the FunctionClassTable from this point
-            m_currentContext = m_currentContext->createChildContext();
-            treeBypass(node->params);
-            treeBypass(node->code);
-            m_currentContext = m_currentContext->m_parentContext;
-		    break;
-		case EXPRESSION_TYPE::VARARG_REF:
-            throw std::string("VARARG_REF shouldn't exist");
-		    break;
-	}
-}
-
 VarsContext::VarsContext(VarsContext *parentContext_) :
     m_parentContext(parentContext_)
 {
@@ -911,15 +398,101 @@ VarsContext *VarsContext::confirmLocalVar(const std::string &identifier_)
 VarsContext *VarsContext::confirmGlobalVar(const std::string &identifier_)
 {
     auto *context = this;
-    while (std::find(context->m_variables.begin(), context->m_variables.end(), identifier_) != context->m_variables.end() && context->m_parentContext)
+    while (std::find(context->m_variables.begin(), context->m_variables.end(), identifier_) == context->m_variables.end() && context->m_parentContext)
+    {
         context = context->m_parentContext;
+    }
 
-    return context->confirmLocalVar(identifier_);
+    if (context->className != className)
+    {
+        bool alreadyHasDependency = false;
+        auto functionContext = getOriginalFunctionContext();
+        for (const auto &el : functionContext->m_dependencies)
+        {
+            if (el.m_context == context && el.varName == identifier_)
+            {
+                alreadyHasDependency = true;
+                break;
+            }
+        }
+        if (!alreadyHasDependency)
+            functionContext->m_dependencies.push_back({context, identifier_});
+    }
+    else
+    {
+        context->confirmLocalVar(identifier_);
+    }
+
+    return context;
+}
+
+VarsContext *VarsContext::confirmParameter(const std::string &identifier_, int paramID_)
+{
+    if (std::find(m_variables.begin(), m_variables.end(), identifier_) == m_variables.end())
+    {
+        m_variables.push_back(identifier_);
+        m_parameters.push_back({identifier_, paramID_});
+    }
+
+    return this;
 }
 
 VarsContext *VarsContext::createChildContext()
 {
     auto *newcontext = new VarsContext(this);
     m_contexts.push_back(newcontext);
+    newcontext->grabNearestClassName();
     return newcontext;
+}
+
+void VarsContext::grabNearestClassName()
+{
+    auto *context = m_parentContext;
+    while (context->className == "" && context->m_parentContext)
+    {
+        context = context->m_parentContext;
+    }
+
+    className = context->className;
+}
+
+VarsContext *VarsContext::getOriginalFunctionContext()
+{
+    auto *context = this;
+    while (context->m_parentContext && context->className == context->m_parentContext->className)
+    {
+        context = context->m_parentContext;
+    }
+
+    return context;
+}
+
+void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
+{
+    if (currentContext->m_parameters.size() > 0)
+    {
+        std::cout << "Parameters:\n";
+        for (auto &el : currentContext->m_parameters)
+            std::cout << m_classname << "::" << "CONTEXT_" << currentContext->contextID << "_" << el.paramName << " (" << el.paramID << ")\n";
+    }
+
+    if (currentContext->m_dependencies.size() > 0)
+    {
+        std::cout << "Dependencies:\n";
+        for (auto &el : currentContext->m_dependencies)
+            std::cout << el.m_context->className << "::" << "CONTEXT_" << el.m_context->contextID << "_" << el.varName << std::endl;
+    }
+
+    if (currentContext->m_variables.size() > 0)
+    {
+        std::cout << "Variables:\n";
+        for (auto &el : currentContext->m_variables)
+            std::cout << m_classname << "::" << "CONTEXT_" << currentContext->contextID << "_" << el << std::endl;
+    }
+
+    for (auto *child : currentContext->m_contexts)
+    {
+        if (child->className == currentContext->className)
+            generateFunctionClassVariables(child);
+    }
 }

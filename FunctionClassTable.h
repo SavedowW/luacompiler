@@ -5,11 +5,16 @@
 class FunctionClassTable : public ClassTable
 {
 public:
-    FunctionClassTable();
+    FunctionClassTable(VarsContext *ownContext_);
     void generateClassTable(const std::string &classname_) override;
+    int getClassID() const;
+    std::string generateClassName() const;
 
 
 protected:
+
+    static int lastID;
+    int m_functionClassID = 0;
 };
 
 #endif

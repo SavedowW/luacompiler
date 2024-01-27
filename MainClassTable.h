@@ -32,6 +32,28 @@ protected:
     size_t m_dtFieldIdS = 1;
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
+
+    std::vector<FunctionClassTable*> m_functionClasses;
+    VarsContext *m_currentContext = nullptr;
+    bool m_defineLocalVars = false;
+
+    void treeBypassVarLinking(Program *);
+    void treeBypassVarLinking(StatementList *);
+    void treeBypassVarLinking(Statement *);
+    void treeBypassVarLinking(ExpressionList *);
+    void treeBypassVarLinking(ParamList *);
+    void treeBypassVarLinking(Expression *);
+    void treeBypassVarLinking(StatementGotoCall *);
+    void treeBypassVarLinking(StatementGotoLabel *); 
+    void treeBypassVarLinking(StatementForeachLoop *);
+    void treeBypassVarLinking(StatementForLoop *);
+    void treeBypassVarLinking(StatementRepeatLoop *);
+    void treeBypassVarLinking(StatementWhileLoop *);
+    void treeBypassVarLinking(StatementIfElse *);
+    void treeBypassVarLinking(StatementFunctionCall *);
+    void treeBypassVarLinking(StatementReturn *);
+    void treeBypassVarLinking(StatementMultipleAssign *);
+    void treeBypassVarLinking(StatementAssign *);
 };
 
 #endif
