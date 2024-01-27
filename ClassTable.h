@@ -46,6 +46,7 @@ struct VarDependency {
 struct ParameterDependency {
     std::string paramName;
     int paramID;
+    int paramFldRef;
 };
 
 class TableEntry
@@ -76,6 +77,7 @@ class Utf8Info : public TableEntry
 {
 public:
     Utf8Info(const std::string &s_);
+    Utf8Info(const DoublePtrString &s_);
     DoublePtrString m_str;
     virtual ~Utf8Info();
 };
@@ -86,6 +88,14 @@ public:
     IntegerInfo(int num_);
     int m_num;
     virtual ~IntegerInfo() = default;
+};
+
+class DoubleInfo : public TableEntry
+{
+public:
+    DoubleInfo(double num_);
+    int m_num;
+    virtual ~DoubleInfo() = default;
 };
 
 class StringInfo : public TableEntry
@@ -164,23 +174,30 @@ public:
     ClassTable();
     virtual void generateClassTable(const std::string &classname_) = 0;
     virtual void generateClassFile();
+    virtual void generateCode() = 0;
 
 
 protected:
     std::string m_classname;    
     std::ofstream m_output;
     size_t addOrConfirmUtf8ToTable(const std::string &s_);
+    size_t addOrConfirmUtf8ToTable(const DoublePtrString &s_);
     size_t addOrConfirmIntegerToTable(int num_);
+    size_t addOrConfirmDoubleToTable(double num_);
     size_t addOrConfirmClassToTable(const std::string &s_);
     size_t addOrConfirmStringToTable(const std::string &s_);
+    size_t addOrConfirmStringToTable(const DoublePtrString &s_);
     size_t addOrConfirmNameAndTypeToTable(const std::string &name_, const std::string &descriptor_);
     size_t addOrConfirmFieldRefToTable(const std::string &name_, const std::string &descriptor_, const std::string &class_);
     size_t addOrConfirmMethodRefToTable(const std::string &name_, const std::string &descriptor_, const std::string &class_);
     void writeBytes(uint64_t bytes_, size_t countBytes_);
     void writeBytes(const DoublePtrString &str_);
     void writeInt(int32_t bytes_);
+    void writeDouble(double bytes_);
     virtual void grabParams();
     void generateUniversalTable();
+
+    bool doesFieldExist(int nameId_);
     
     virtual void initVar(const std::string &identifier_, VarsContext *context_, int fieldref) = 0;
 
@@ -199,6 +216,7 @@ protected:
     size_t m_dtInitIdI = 1;
     size_t m_dtInitIdD = 1;
     size_t m_dtInitIdS = 1;
+    size_t m_dtInitIdB = 1;
     size_t m_dtInitIdF = 1;
     size_t m_dtInitIdNIL = 1;
     size_t m_dtFieldIdI = 1;
@@ -206,10 +224,14 @@ protected:
     size_t m_dtFieldIdS = 1;
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
+    size_t m_dt__add = 1;
     size_t m_varlistClass = 1;
     size_t m_varlistInit = 1;
     size_t m_varlistAdd = 1;
+    size_t m_varlistAddRef = 1;
     size_t m_varlistGet = 1;
+    size_t m_varlistAssign = 1;
+    size_t m_varlistAppend = 1;
     size_t m_codeAttrNameID = 1;
 
     VarsContext *m_ownContext = nullptr;
@@ -217,13 +239,24 @@ protected:
     MethodInfo *m_function = nullptr;
 
     FieldData createFunctionField(MethodInfo *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
+    void createIntOnStack(MethodInfo *method, int num_);
+    void createDoubleOnStack(MethodInfo *method, double num_);
+    void createStringOnStack(MethodInfo *method, const DoublePtrString &s_);
+    void createVarList(MethodInfo *method);
     void createDynamicType(MethodInfo *method, int num_);
+    void createDynamicType(MethodInfo *method, double num_);
+    void createDynamicType(MethodInfo *method, const DoublePtrString &s_);
+    void createDynamicType(MethodInfo *method, bool val_);
     void createDynamicType(MethodInfo *method);
 
     void treeBypassCodeGen(Program *);
     void treeBypassCodeGen(StatementList *);
     void treeBypassCodeGen(Statement *);
+    void treeBypassCodeGen(StatementAssign *);
+    void treeBypassCodeGen(StatementMultipleAssign *);
+    void treeBypassCodeGen(StatementFunctionCall *);
     void treeBypassCodeGen(ExpressionList *);
+    void treeBypassCodeGen_CreateReferences(ExpressionList *);
     void treeBypassCodeGen(ParamList *);
     void treeBypassCodeGen(Expression *);
     void treeBypassCodeGen(StatementGotoCall *);
@@ -233,10 +266,7 @@ protected:
     void treeBypassCodeGen(StatementRepeatLoop *);
     void treeBypassCodeGen(StatementWhileLoop *);
     void treeBypassCodeGen(StatementIfElse *);
-    void treeBypassCodeGen(StatementFunctionCall *);
     void treeBypassCodeGen(StatementReturn *);
-    void treeBypassCodeGen(StatementMultipleAssign *);
-    void treeBypassCodeGen(StatementAssign *);
 };
 
 #endif

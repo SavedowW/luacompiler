@@ -9,6 +9,7 @@ public:
     MainClassTable();
     void generateClassTable(const std::string &classname_) override;
     void generateClassFiles();
+    void generateCode() override;
 
 
 protected:

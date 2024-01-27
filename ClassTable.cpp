@@ -1,5 +1,6 @@
 #include "ClassTable.h"
 #include <algorithm>
+#include "Instructions.h"
 
 extern Program *prg;
 
@@ -17,8 +18,20 @@ Utf8Info::Utf8Info(const std::string &s_):
 {
 }
 
+Utf8Info::Utf8Info(const DoublePtrString &s_):
+    TableEntry(TableEntry::ENTRY_TYPE::UTF8),
+    m_str(s_)
+{
+}
+
 IntegerInfo::IntegerInfo(int num_):
     TableEntry(TableEntry::ENTRY_TYPE::INTEGER),
+    m_num(num_)
+{
+}
+
+DoubleInfo::DoubleInfo(double num_):
+    TableEntry(TableEntry::ENTRY_TYPE::DOUBLE),
     m_num(num_)
 {
 }
@@ -93,6 +106,27 @@ size_t ClassTable::addOrConfirmUtf8ToTable(const std::string &s_)
     return m_constantPool.size();
 }
 
+size_t ClassTable::addOrConfirmUtf8ToTable(const DoublePtrString &s_)
+{
+    for (int i = 0; i < m_constantPool.size(); ++i)
+    {
+        auto *el = m_constantPool[i];
+        if (el->m_type == TableEntry::ENTRY_TYPE::UTF8)
+        {
+            auto *utfstr = dynamic_cast<Utf8Info*>(el);
+            if (utfstr->m_str == s_)
+            {
+                std::cout << "String \"" << s_ << "\" already exists\n";
+                return i + 1;
+            }
+        }
+    }
+
+    std::cout << "Added utf-8 string \"" << s_ << "\" to the constant pool\n";
+    m_constantPool.push_back(new Utf8Info(s_));
+    return m_constantPool.size();
+}
+
 size_t ClassTable::addOrConfirmIntegerToTable(int num_)
 {
     for (int i = 0; i < m_constantPool.size(); ++i)
@@ -110,6 +144,27 @@ size_t ClassTable::addOrConfirmIntegerToTable(int num_)
     }
 
     std::cout << "Added integer \"" << num_ << "\" to the constant pool\n";
+    m_constantPool.push_back(new IntegerInfo(num_));
+    return m_constantPool.size();
+}
+
+size_t ClassTable::addOrConfirmDoubleToTable(double num_)
+{
+    for (int i = 0; i < m_constantPool.size(); ++i)
+    {
+        auto *el = m_constantPool[i];
+        if (el->m_type == TableEntry::ENTRY_TYPE::DOUBLE)
+        {
+            auto *doublefield = dynamic_cast<DoubleInfo*>(el);
+            if (doublefield->m_num == num_)
+            {
+                std::cout << "Doubke \"" << num_ << "\" already exists\n";
+                return i + 1;
+            }
+        }
+    }
+
+    std::cout << "Added double \"" << num_ << "\" to the constant pool\n";
     m_constantPool.push_back(new IntegerInfo(num_));
     return m_constantPool.size();
 }
@@ -137,6 +192,28 @@ size_t ClassTable::addOrConfirmClassToTable(const std::string &s_)
 }
 
 size_t ClassTable::addOrConfirmStringToTable(const std::string &s_)
+{
+    auto utfstrid = addOrConfirmUtf8ToTable(s_);
+    for (int i = 0; i < m_constantPool.size(); ++i)
+    {
+        auto *el = m_constantPool[i];
+        if (el->m_type == TableEntry::ENTRY_TYPE::STRING)
+        {
+            auto *utfstr = dynamic_cast<StringInfo*>(el);
+            if (utfstr->m_stringIndex == utfstrid)
+            {
+                std::cout << "String \"" << s_ << "\" already exists\n";
+                return i + 1;
+            }
+        }
+    }
+
+    std::cout << "Added string \"" << s_ << "\" to the constant pool\n";
+    m_constantPool.push_back(new StringInfo(utfstrid));
+    return m_constantPool.size();
+}
+
+size_t ClassTable::addOrConfirmStringToTable(const DoublePtrString &s_)
 {
     auto utfstrid = addOrConfirmUtf8ToTable(s_);
     for (int i = 0; i < m_constantPool.size(); ++i)
@@ -252,6 +329,16 @@ void ClassTable::writeInt(int32_t bytes_)
     }
 }
 
+void ClassTable::writeDouble(double bytes_)
+{
+    char *arr = (char*)&bytes_; 
+    auto end = sizeof(bytes_);
+    for (auto i = 7; i >= 0 && i < 8; --i)
+    {
+        m_output.write(arr + i, 1);
+    }
+}
+
 void ClassTable::grabParams()
 {
 }
@@ -260,25 +347,46 @@ void ClassTable::generateUniversalTable()
 {
     m_thisClassID = addOrConfirmClassToTable(m_classname);
     m_superClassID = addOrConfirmClassToTable("java/lang/Object");
-    m_codeAttrNameID = addOrConfirmUtf8ToTable("Code");
+    m_codeAttrNameID = addOrConfirmUtf8ToTable(std::string("Code"));
 
     m_dtClass = addOrConfirmClassToTable("DynamicType");
     m_dtInitIdI = addOrConfirmMethodRefToTable("<init>", "(I)V", "DynamicType");
     m_dtInitIdD = addOrConfirmMethodRefToTable("<init>", "(D)V", "DynamicType");
     m_dtInitIdS = addOrConfirmMethodRefToTable("<init>", "(Ljava/lang/String;)V", "DynamicType");
+    m_dtInitIdB = addOrConfirmMethodRefToTable("<init>", "(Z)V", "DynamicType");
     m_dtInitIdF = addOrConfirmMethodRefToTable("<init>", "(LFunctionClass;)V", "DynamicType");
     m_dtInitIdNIL = addOrConfirmMethodRefToTable("<init>", "()V", "DynamicType");
     m_dtFieldIdI = addOrConfirmFieldRefToTable("iValue", "I", "DynamicType");
     m_dtFieldIdD = addOrConfirmFieldRefToTable("dValue", "D", "DynamicType");
     m_dtFieldIdS = addOrConfirmFieldRefToTable("sValue", "Ljava/lang/String;", "DynamicType");
     m_dtFieldIdF = addOrConfirmFieldRefToTable("fValue", "LFunctionClass;", "DynamicType");
+    m_dtFieldIdF = addOrConfirmFieldRefToTable("fValue", "LFunctionClass;", "DynamicType");
+
+    m_dt__add = addOrConfirmMethodRefToTable("__add", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
 
     m_dtCallRef = addOrConfirmMethodRefToTable("__call", "(LDynamicType;LVarList;)LVarList;", "DynamicType");
     
     m_varlistClass = addOrConfirmClassToTable("VarList");
     m_varlistInit = addOrConfirmMethodRefToTable("<init>", "()V", "VarList");
     m_varlistAdd = addOrConfirmMethodRefToTable("add", "(LDynamicType;)V", "VarList");
+    m_varlistAddRef = addOrConfirmMethodRefToTable("addRef", "(LDynamicType;)V", "VarList");
     m_varlistGet = addOrConfirmMethodRefToTable("get", "(I)LDynamicType;", "VarList");
+    m_varlistAssign = addOrConfirmMethodRefToTable("multipleAssign", "(LVarList;LVarList;)V", "VarList");
+    m_varlistAppend = addOrConfirmMethodRefToTable("append", "(LVarList;)V", "VarList");
+}
+
+bool ClassTable::doesFieldExist(int nameId_)
+{
+    for (auto &el : m_fieldPool)
+    {
+        if (el->m_nameIndex == nameId_)
+        {
+            return true;
+            break;
+        }
+    }
+
+    return false;
 }
 
 void MethodInfo::addBytes(uint64_t bytes_, size_t countBytes_)
@@ -323,6 +431,13 @@ void ClassTable::generateClassFile()
             {
                 auto *properptr = dynamic_cast<IntegerInfo*>(m_constantPool[i]);
                 writeInt(properptr->m_num);
+                break;
+            }
+
+            case (TableEntry::ENTRY_TYPE::DOUBLE):
+            {
+                auto *properptr = dynamic_cast<DoubleInfo*>(m_constantPool[i]);
+                writeDouble(properptr->m_num);
                 break;
             }
 
@@ -460,7 +575,7 @@ VarsContext *VarsContext::confirmParameter(const std::string &identifier_, int p
     if (std::find(m_variables.begin(), m_variables.end(), identifier_) == m_variables.end())
     {
         m_variables.push_back(identifier_);
-        m_parameters.push_back({identifier_, paramID_});
+        m_parameters.push_back({identifier_, paramID_, -1});
     }
 
     return this;
@@ -505,13 +620,14 @@ void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
         {
             auto varname = std::string("CONTEXT_") + std::to_string(currentContext->contextID) + "_" + el.paramName;
             auto fldName = addOrConfirmUtf8ToTable(varname);
-            auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+            auto fldDesc = addOrConfirmUtf8ToTable(std::string("LDynamicType;"));
             auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", currentContext->className);
             auto *paramfld = new FieldInfo();
             paramfld->m_accessFlags = 0x0009;
             paramfld->m_nameIndex = fldName;
             paramfld->m_descIndex = fldDesc;
             m_fieldPool.push_back(paramfld);
+            el.paramFldRef = fldRef;
             std::cout << m_classname << "::" << varname << " (" << el.paramID << ")\n";
         }
     }
@@ -524,7 +640,7 @@ void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
             auto varname = std::string("DEP_CONTEXT_") + std::to_string(currentContext->contextID) + "_" + el.varName;
             auto sourceVarName = std::string("CONTEXT_") + std::to_string(el.m_context->contextID) + "_" + el.varName;
             auto fldName = addOrConfirmUtf8ToTable(varname);
-            auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+            auto fldDesc = addOrConfirmUtf8ToTable(std::string("LDynamicType;"));
             auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", currentContext->className);
             auto sourceVarNameFieldRef = addOrConfirmFieldRefToTable(sourceVarName, "LDynamicType;", el.m_context->className);
             auto *depfld = new FieldInfo();
@@ -550,14 +666,17 @@ void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
         {
             auto varname = std::string("CONTEXT_") + std::to_string(currentContext->contextID) + "_" + el;
             auto fldName = addOrConfirmUtf8ToTable(varname);
-            auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+            auto fldDesc = addOrConfirmUtf8ToTable(std::string("LDynamicType;"));
             auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", currentContext->className);
-            auto *varfld = new FieldInfo();
-            varfld->m_accessFlags = 0x0009;
-            varfld->m_nameIndex = fldName;
-            varfld->m_descIndex = fldDesc;
-            m_fieldPool.push_back(varfld);
-            initVar(varname, currentContext, fldRef);
+            if (!doesFieldExist(fldName))
+            {
+                auto *varfld = new FieldInfo();
+                varfld->m_accessFlags = 0x0009;
+                varfld->m_nameIndex = fldName;
+                varfld->m_descIndex = fldDesc;
+                m_fieldPool.push_back(varfld);
+                initVar(varname, currentContext, fldRef);
+            }
             std::cout << m_classname << "::" << varname << std::endl;
         }
     }
@@ -573,12 +692,11 @@ void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
 FieldData ClassTable::createFunctionField(MethodInfo *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className)
 {
     auto fldName = addOrConfirmUtf8ToTable(functionName);
-    auto fldDesc = addOrConfirmUtf8ToTable("LDynamicType;");
+    auto fldDesc = addOrConfirmUtf8ToTable(std::string("LDynamicType;"));
     auto fldRef = addOrConfirmFieldRefToTable(functionName, "LDynamicType;", className);
 
     auto functionClass = addOrConfirmClassToTable(functionOwnerClassName);
-    //auto functionCall = addOrConfirmMethodRefToTable("function", "(LVarList;)LVarList;", "print");
-    auto fuhctionInit = addOrConfirmMethodRefToTable("<init>", "()V", functionName);
+    auto fuhctionInit = addOrConfirmMethodRefToTable("<init>", "()V", functionOwnerClassName);
 
     // Create DynamicType
     method->addBytes(0xbb, 1); // new
@@ -600,76 +718,619 @@ FieldData ClassTable::createFunctionField(MethodInfo *method, const std::string 
     method->addBytes(0xb3, 1); // putstatic
     method->addBytes(fldRef, 2); // print field
 
-
-    auto *mainfield = new FieldInfo();
-    mainfield->m_accessFlags = 0x0009;
-    mainfield->m_nameIndex = fldName;
-    mainfield->m_descIndex = fldDesc;
-    m_fieldPool.push_back(mainfield);
+    if (!doesFieldExist(fldName))
+    {
+        auto *mainfield = new FieldInfo();
+        mainfield->m_accessFlags = 0x0009;
+        mainfield->m_nameIndex = fldName;
+        mainfield->m_descIndex = fldDesc;
+        m_fieldPool.push_back(mainfield);
+    }
 
     return {fldName, fldDesc, fldRef};
 
 }
 
-void ClassTable::createDynamicType(MethodInfo *method, int num_)
+void ClassTable::createIntOnStack(MethodInfo *method_, int num_)
 {
-    // Create DT
-    method->addBytes(0xbb, 1); // new
-    method->addBytes(m_dtClass, 2); // DynamicType
-    method->addBytes(0x59, 1); // dup
-
     switch (num_)
     {
         case (-1):
-            method->addBytes(0x2, 1); // dup
+            method_->addBytes(ICONST_M1, 1); // dup
             break;
 
         case (0):
-            method->addBytes(0x3, 1); // dup
+            method_->addBytes(ICONST_0, 1); // dup
             break;
 
         case (1):
-            method->addBytes(0x4, 1); // dup
+            method_->addBytes(ICONST_1, 1); // dup
             break;
         
         case (2):
-            method->addBytes(0x5, 1); // dup
+            method_->addBytes(ICONST_2, 1); // dup
             break;
 
         case (3):
-            method->addBytes(0x6, 1); // dup
+            method_->addBytes(ICONST_3, 1); // dup
             break;
 
         case (4):
-            method->addBytes(0x7, 1); // dup
+            method_->addBytes(ICONST_4, 1); // dup
             break;
 
         case (5):
-            method->addBytes(0x8, 1); // dup
+            method_->addBytes(ICONST_5, 1); // dup
             break;
 
         default:
         {
             auto numberId = addOrConfirmIntegerToTable(num_);
-            method->addBytes(0x13, 1); // ldc_w
-            method->addBytes(numberId, 2); // field with number
+            method_->addBytes(LDC_W, 1); // ldc_w
+            method_->addBytes(numberId, 2); // field with number
             break;
         }
     }
+}
 
+void ClassTable::createDoubleOnStack(MethodInfo *method_, double num_)
+{
+    auto numberId = addOrConfirmDoubleToTable(num_);
+    method_->addBytes(LDC2_W, 1); // ldc_w
+    method_->addBytes(numberId, 2); // field with number
+}
 
-    method->addBytes(0xb7, 1); // invokespecial
-    method->addBytes(m_dtInitIdI, 2); // <init>
+void ClassTable::createStringOnStack(MethodInfo *method_, const DoublePtrString &s_)
+{
+    auto numberId = addOrConfirmStringToTable(s_);
+    method_->addBytes(LDC_W, 1); // ldc_w
+    method_->addBytes(numberId, 2); // field with number
+}
+
+void ClassTable::createVarList(MethodInfo *method)
+{
+    method->addBytes(NEW, 1);
+    method->addBytes(m_varlistClass, 2);
+    method->addBytes(DUP, 1); // dup
+
+    method->addBytes(INVOKESPECIAL, 1); // invokespecial
+    method->addBytes(m_varlistInit, 2); // <init>
+}
+
+void ClassTable::createDynamicType(MethodInfo *method_, int num_)
+{
+    // Create DT
+    method_->addBytes(NEW, 1); // new
+    method_->addBytes(m_dtClass, 2); // DynamicType
+    method_->addBytes(DUP, 1); // dup
+
+    createIntOnStack(method_, num_);
+
+    method_->addBytes(INVOKESPECIAL, 1); // invokespecial
+    method_->addBytes(m_dtInitIdI, 2); // <init>
+}
+
+void ClassTable::createDynamicType(MethodInfo *method_, double num_)
+{
+    // Create DT
+    method_->addBytes(NEW, 1); // new
+    method_->addBytes(m_dtClass, 2); // DynamicType
+    method_->addBytes(DUP, 1); // dup
+
+    createDoubleOnStack(method_, num_);
+
+    method_->addBytes(INVOKESPECIAL, 1); // invokespecial
+    method_->addBytes(m_dtInitIdD, 2); // <init>
+}
+
+void ClassTable::createDynamicType(MethodInfo *method_, const DoublePtrString &s_)
+{
+    // Create DT
+    method_->addBytes(NEW, 1); // new
+    method_->addBytes(m_dtClass, 2); // DynamicType
+    method_->addBytes(DUP, 1); // dup
+
+    createStringOnStack(method_, s_);
+
+    method_->addBytes(INVOKESPECIAL, 1); // invokespecial
+    method_->addBytes(m_dtInitIdS, 2); // <init>
+}
+
+void ClassTable::createDynamicType(MethodInfo *method_, bool val_)
+{
+    // Create DT
+    method_->addBytes(NEW, 1); // new
+    method_->addBytes(m_dtClass, 2); // DynamicType
+    method_->addBytes(DUP, 1); // dup
+
+    createIntOnStack(method_, (val_ ? 1 : 0));
+
+    method_->addBytes(INVOKESPECIAL, 1); // invokespecial
+    method_->addBytes(m_dtInitIdB, 2); // <init>
 }
 
 void ClassTable::createDynamicType(MethodInfo *method)
 {
     // Create DT
-    method->addBytes(0xbb, 1); // new
+    method->addBytes(NEW, 1); // new
     method->addBytes(m_dtClass, 2); // DynamicType
-    method->addBytes(0x59, 1); // dup
+    method->addBytes(DUP, 1); // dup
 
-    method->addBytes(0xb7, 1); // invokespecial
+    method->addBytes(INVOKESPECIAL, 1); // invokespecial
     method->addBytes(m_dtInitIdNIL, 2); // <init>
 }
 
+void ClassTable::treeBypassCodeGen(Program *node)
+{
+	if (node==NULL)	return;
+	treeBypassCodeGen(node->stmts);
+}
+
+void ClassTable::treeBypassCodeGen(StatementList *node)
+{
+	if (node==NULL)	return;
+	for (int i = 0; i < node->lst.size(); i++)
+    {
+		treeBypassCodeGen(node->lst[i]);
+	}
+}
+
+void ClassTable::treeBypassCodeGen(Statement *node)
+{
+	if (node==NULL)	return;
+
+	switch(node->type)
+	{
+		case STATEMENT_TYPE::ASSIGN:
+		{
+			auto *realnode = dynamic_cast<StatementAssign*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::MULTIPLE_ASSIGN:
+		{
+			auto *realnode = dynamic_cast<StatementMultipleAssign*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::STMT_LIST:
+		{
+			throw std::string("Statement list should not be kept as a statement");
+		}
+		break;
+		case STATEMENT_TYPE::STRETURN:
+		{
+			auto *realnode = dynamic_cast<StatementReturn*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::FUNCTION_CALL:
+		{
+			auto *realnode = dynamic_cast<StatementFunctionCall*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::BREAK:
+		{
+			// TODO: No type, just logic
+		}
+		break;
+		case STATEMENT_TYPE::IF_ELSE:
+		{
+			auto *realnode = dynamic_cast<StatementIfElse*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::WHILE_LOOP:
+		{
+			auto *realnode = dynamic_cast<StatementWhileLoop*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::REPEAT_LOOP:
+		{
+			auto *realnode = dynamic_cast<StatementRepeatLoop*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::FOR_NUMERIC:
+		{
+			auto *realnode = dynamic_cast<StatementForLoop*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::FOR_EACH:
+		{
+			auto *realnode = dynamic_cast<StatementForeachLoop*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::GOTO_LABEL:
+		{
+			auto *realnode = dynamic_cast<StatementGotoLabel*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+		case STATEMENT_TYPE::GOTO_CALL:
+		{
+			auto *realnode = dynamic_cast<StatementGotoCall*>(node);
+			treeBypassCodeGen(realnode);
+		}
+		break;
+	}
+}
+
+void ClassTable::treeBypassCodeGen(StatementMultipleAssign *node)
+{
+	if (node==NULL)	return;	
+
+    if (node->isLocal)
+    {
+        for (auto &leftel : node->left->lst)
+        {
+            if (leftel->type != EXPRESSION_TYPE::IDENTIFIER)
+                throw std::string("All left-side operators of local assignment should be identifiers");
+            auto varname = std::string("CONTEXT_") + std::to_string(leftel->varContext->contextID) + "_" + leftel->identifier;
+            auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", leftel->varContext->className);
+            createDynamicType(m_function);
+            m_function->addBytes(PUTSTATIC, 1); // putstatic
+            m_function->addBytes(fldRef, 2); // putstatic
+        }
+    }
+
+    treeBypassCodeGen_CreateReferences(node->left); // Should create VarList with references
+
+    treeBypassCodeGen(node->right); // Should create VarList
+
+    m_function->addBytes(INVOKESTATIC, 1);
+    m_function->addBytes(m_varlistAssign, 2);
+}
+
+void ClassTable::treeBypassCodeGen(StatementAssign *node)
+{
+	if (node==NULL)	return;	
+
+    if (node->isLocal)
+    {
+        if (node->left->type != EXPRESSION_TYPE::IDENTIFIER)
+            throw std::string("All left-side operators of local assignment should be identifiers");
+        auto varname = std::string("CONTEXT_") + std::to_string(node->left->varContext->contextID) + "_" + node->left->identifier;
+        auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", node->left->varContext->className);
+        createDynamicType(m_function);
+        m_function->addBytes(PUTSTATIC, 1); // putstatic
+        m_function->addBytes(fldRef, 2); // putstatic
+    }
+
+    createVarList(m_function);
+    m_function->addBytes(DUP, 1);
+	treeBypassCodeGen(node->left); // Should create DynamicType on stack that most likely references existing and accessable variable
+    m_function->addBytes(INVOKEVIRTUAL, 1);
+    m_function->addBytes(m_varlistAddRef, 2);
+
+    treeBypassCodeGen(node->right); // Should create VarList
+
+    m_function->addBytes(INVOKESTATIC, 1);
+    m_function->addBytes(m_varlistAssign, 2);
+}
+
+void ClassTable::treeBypassCodeGen(StatementFunctionCall *node)
+{
+    if (node==NULL)	return;
+	treeBypassCodeGen(node->functionName); // Creates DynamicType with function on stack
+	treeBypassCodeGen(node->lst); // Create VarList on stack
+    m_function->addBytes(INVOKESTATIC, 1);
+    m_function->addBytes(m_dtCallRef, 2); // Leaves VarList on stack
+    m_function->addBytes(POP, 1);
+}
+
+void ClassTable::treeBypassCodeGen(ExpressionList *node)
+{
+	if (node==NULL)	return;
+
+    createVarList(m_function);
+
+	for (int i = 0; i < node->lst.size(); i++)
+    {
+        m_function->addBytes(DUP, 1);
+		treeBypassCodeGen(node->lst[i]); // Creates DynamicType unless function call or vararg
+        if (node->lst[i]->type == EXPRESSION_TYPE::FUNCTION_CALL)
+        {
+            // If function call is the last element, append it entirely
+            if (i == node->lst.size() - 1)
+            {
+                m_function->addBytes(INVOKEVIRTUAL, 1);
+                m_function->addBytes(m_varlistAppend, 2);
+            }
+            else
+            {
+                createIntOnStack(m_function, 0);
+                m_function->addBytes(INVOKEVIRTUAL, 1);
+                m_function->addBytes(m_varlistGet, 2);
+                m_function->addBytes(INVOKEVIRTUAL, 1);
+                m_function->addBytes(m_varlistAdd, 2);
+            }
+        }
+        else
+        {
+            m_function->addBytes(INVOKEVIRTUAL, 1);
+            m_function->addBytes(m_varlistAdd, 2);
+        }
+	}
+}
+
+void ClassTable::treeBypassCodeGen_CreateReferences(ExpressionList *node)
+{
+	if (node==NULL)	return;
+
+    createVarList(m_function);
+
+	for (int i = 0; i < node->lst.size(); i++)
+    {
+        m_function->addBytes(DUP, 1);
+		treeBypassCodeGen(node->lst[i]); // Creates DynamicType unless function call or vararg
+        if (node->lst[i]->type == EXPRESSION_TYPE::FUNCTION_CALL)
+        {
+            throw std::string("Function calls or varargs can't be on the left side of assignment");
+        }
+        else
+        {
+            m_function->addBytes(INVOKEVIRTUAL, 1);
+            m_function->addBytes(m_varlistAddRef, 2);
+        }
+	}
+}
+
+void ClassTable::treeBypassCodeGen(ParamList *node)
+{
+	// Parameters are already grabbed by the function, no need to do anything
+}
+
+void ClassTable::treeBypassCodeGen(Expression *node)
+{
+	if (node==NULL)	return;
+	std::cout << node->name << std::endl;
+
+	switch(node->type)
+	{
+		case EXPRESSION_TYPE::INT:
+            createDynamicType(m_function, node->iValue);
+		    break;
+		case EXPRESSION_TYPE::DOUBLE:
+            createDynamicType(m_function, node->fValue);
+		    break;
+		case EXPRESSION_TYPE::STRING:
+            createDynamicType(m_function, node->sValue);
+		    break;
+		case EXPRESSION_TYPE::BOOL:
+            createDynamicType(m_function, node->bValue);
+		    break;
+		case EXPRESSION_TYPE::NIL:
+            createDynamicType(m_function);
+		    break;
+		case EXPRESSION_TYPE::IDENTIFIER:
+            {
+                // Puts a reference to the variable
+                if (node->varContext->className == m_ownContext->className)
+                {
+                    // If its a local variable
+                    auto varname = std::string("CONTEXT_") + std::to_string(node->varContext->contextID) + "_" + node->identifier;
+                    auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", node->varContext->className);
+                    m_function->addBytes(GETSTATIC, 1);
+                    m_function->addBytes(fldRef, 2);
+                }
+                else
+                {
+                    // If its a dependency from a higher-level scope
+                    auto varname = std::string("DEP_CONTEXT_") + std::to_string(m_ownContext->contextID) + "_" + node->identifier;
+                    auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", m_ownContext->className);
+                    m_function->addBytes(ALOAD_0, 1);
+                    m_function->addBytes(GETFIELD, 1);
+                    m_function->addBytes(fldRef, 2);
+                }
+            }
+		    break;
+		case EXPRESSION_TYPE::BIN_PLUS:
+            treeBypassCodeGen(node->left);
+            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL)
+            {
+                createIntOnStack(m_function, 0);
+                m_function->addBytes(INVOKEVIRTUAL, 1);
+                m_function->addBytes(m_varlistGet, 2);
+            }
+            treeBypassCodeGen(node->right);
+            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL)
+            {
+                createIntOnStack(m_function, 0);
+                m_function->addBytes(INVOKEVIRTUAL, 1);
+                m_function->addBytes(m_varlistGet, 2);
+            }
+
+            m_function->addBytes(INVOKESTATIC, 1);
+            m_function->addBytes(m_dt__add, 2);
+
+		    break;
+		case EXPRESSION_TYPE::BIN_MINUS:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_MUL:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_DIV:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_CONCAT:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::CELL_BY_EXPR:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_REM_DIV:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_EXPON:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_AND:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_OR:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_NOT:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::LOG_AND:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::LOG_OR:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::REL_EQUALS:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::REL_NOT_EQUALS:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::REL_GREATER:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::REL_GREATER_EQUALS:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::REL_LESS:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::REL_LESS_EQUALS:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BIN_FLOOR_DIVISION:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BITWISE_LEFT_SHIFT:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::BITWISE_RIGHT_SHIFT:
+            // TODO: code gen
+            // Probably should use fallthrough and put logic here
+		    break;
+        case EXPRESSION_TYPE::LOG_NOT:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::UNAR_UMINUS:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::UNAR_BITWISE_NOT:
+            // TODO: code gen
+		    break;
+		case EXPRESSION_TYPE::UNAR_LEN:
+            // TODO: code gen
+            // Last unar operator
+		    break;
+		case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
+            // TODO: code gen
+            // expects table on top of stack
+            // performs assignment of cell
+            // keeps table on top
+		    break;
+		case EXPRESSION_TYPE::TABLE_CONSTRUCT:
+            // TODO: code gen
+            // creates table on top of stack
+            // recursively assigns values to cells
+            //treeBypassCodeGen(node->lst);
+		    break;
+		case EXPRESSION_TYPE::METHOD_NAME:
+            // TODO: code gen
+            // expr in left should leave table on top of stack
+            // identifier is cell name
+		    break;
+		case EXPRESSION_TYPE::FUNCTION_CALL:
+            if (node==NULL)	return;
+	        treeBypassCodeGen(node->left); // Creates DynamicType with function on stack
+	        treeBypassCodeGen(node->lst); // Create VarList on stack
+            m_function->addBytes(INVOKESTATIC, 1);
+            m_function->addBytes(m_dtCallRef, 2); // Leaves VarList on stack
+		    break;
+		case EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION:
+        {
+            auto funcClassID = addOrConfirmClassToTable(node->varContext->className);
+            auto funcClassInitID = addOrConfirmMethodRefToTable("<init>", "()V", node->varContext->className);
+
+            // Create DynamicType
+            m_function->addBytes(NEW, 1);
+            m_function->addBytes(m_dtClass, 2);
+            m_function->addBytes(DUP, 1);
+
+            // Create FunctionClass
+            m_function->addBytes(NEW, 1);
+            m_function->addBytes(funcClassID, 2);
+            m_function->addBytes(DUP, 1);
+            m_function->addBytes(INVOKESPECIAL, 1);
+            m_function->addBytes(funcClassInitID, 2);
+
+            // Initialize DynamicType
+            m_function->addBytes(INVOKESPECIAL, 1);
+            m_function->addBytes(m_dtInitIdF, 2);
+        }
+		    break;
+		case EXPRESSION_TYPE::VARARG_REF:
+            throw std::string("VARARG_REF shouldn't exist");
+		    break;
+	}
+}
+
+void ClassTable::treeBypassCodeGen(StatementGotoCall *node)
+{
+    // TODO: No idea what to do with it
+	if (node==NULL)	return;
+}
+
+void ClassTable::treeBypassCodeGen(StatementGotoLabel *node)
+{
+    // TODO: No idea what to do with it
+	if (node==NULL)	return;
+}
+
+void ClassTable::treeBypassCodeGen(StatementForeachLoop *node)
+{
+	if (node==NULL)	return;
+	
+    // TODO:
+
+}
+
+void ClassTable::treeBypassCodeGen(StatementForLoop *node)
+{
+	if (node==NULL)	return;
+
+	// TODO:
+}
+
+void ClassTable::treeBypassCodeGen(StatementRepeatLoop *node)
+{
+	if (node==NULL)	return;
+
+    // TODO:
+}
+
+void ClassTable::treeBypassCodeGen(StatementWhileLoop *node)
+{
+	if (node==NULL)	return;
+
+	// TODO:
+}
+
+void ClassTable::treeBypassCodeGen(StatementIfElse *node)
+{
+	if (node==NULL)	return;
+
+	// TODO:
+}
+
+void ClassTable::treeBypassCodeGen(StatementReturn *node)
+{
+	if (node==NULL)	return;
+	
+	treeBypassCodeGen(node->lst);
+
+    m_function->addBytes(ARETURN, 1);
+}

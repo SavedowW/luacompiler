@@ -223,7 +223,7 @@ Statement *TreeFactory::CreateReturnStatement(ExpressionList *lst_)
 {
 	std::cout << "Created return statement\n";
 	StatementReturn *ret = new StatementReturn;
-	ret->type = STATEMENT_TYPE::RETURN;
+	ret->type = STATEMENT_TYPE::STRETURN;
 	ret->lst = (lst_->lst.size() > 0 ? lst_ : nullptr);
 	return ret;
 }
@@ -473,6 +473,14 @@ Expression *TreeFactory::CreateUnnamedFunctionDefinition(ParamList *params_, Sta
 
 Statement *TreeFactory::CreateNamedFunctionDefinition(Expression *functionName_, ParamList *params_, StatementList *code_)
 {
+	if (functionName_->type == EXPRESSION_TYPE::METHOD_NAME)
+	{
+		params_->lst.insert(params_->lst.begin(), "self");
+		functionName_->type = EXPRESSION_TYPE::CELL_BY_EXPR;
+		functionName_->right = new Expression;
+		functionName_->right->type=EXPRESSION_TYPE::STRING;
+		functionName_->right->sValue = DoublePtrString(functionName_->identifier.c_str());
+	}
 	auto *func = TreeFactory::CreateUnnamedFunctionDefinition(params_, code_);
 	auto *res = TreeFactory::CreateAssignStatement(functionName_, TreeFactory::CreateExprList(func), false);
 	return res;

@@ -5,10 +5,11 @@
 class FunctionClassTable : public ClassTable
 {
 public:
-    FunctionClassTable(VarsContext *ownContext_);
+    FunctionClassTable(VarsContext *ownContext_, ParamList *params_, StatementList *code_);
     void generateClassTable(const std::string &classname_) override;
     int getClassID() const;
     std::string generateClassName() const;
+    void generateCode() override;
 
 
 protected:
@@ -17,6 +18,9 @@ protected:
 
     static int lastID;
     int m_functionClassID = 0;
+
+    ParamList *m_params;
+    StatementList *m_code;
 };
 
 #endif

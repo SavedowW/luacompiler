@@ -19,8 +19,8 @@ void MainClassTable::generateClassTable(const std::string &classname_)
 
     generateUniversalTable();
 
-    auto mainNameID = addOrConfirmUtf8ToTable("main");
-    auto mainTypeID = addOrConfirmUtf8ToTable("([Ljava/lang/String;)V");
+    auto mainNameID = addOrConfirmUtf8ToTable(std::string("main"));
+    auto mainTypeID = addOrConfirmUtf8ToTable(std::string("([Ljava/lang/String;)V"));
 
     // =========== MAIN =================
     m_function = new MethodInfo();
@@ -33,7 +33,7 @@ void MainClassTable::generateClassTable(const std::string &classname_)
     m_function->m_maxLocals = 1;
 
     // === Initialize DynamicType with print function and put into field
-    auto printdata = createFunctionField(m_function, "print", "print", classname_);
+    auto printdata = createFunctionField(m_function, "CONTEXT_0_print", "print", classname_);
 
     m_methodPool.push_back(m_function);
 
@@ -44,7 +44,7 @@ void MainClassTable::generateClassTable(const std::string &classname_)
         el->generateClassTable(el->generateClassName());
     }
 
-    m_function->addBytes(0xb1, 1);
+    generateCode();
 
     m_function->m_codeLength = m_function->m_byteCode.size();
     m_function->m_codeAttrLength = m_function->m_codeLength + 12;
@@ -59,6 +59,17 @@ void MainClassTable::generateClassFiles()
     }
 }
 
+void MainClassTable::generateCode()
+{
+    treeBypassCodeGen(prg->stmts);
+    m_function->addBytes(0xb1, 1);
+
+    for (auto &el : m_functionClasses)
+    {
+        el->generateCode();
+    }
+}
+
 void MainClassTable::initVar(const std::string &identifier_, VarsContext *context_, int fieldref)
 {
     createDynamicType(m_function);
@@ -66,7 +77,7 @@ void MainClassTable::initVar(const std::string &identifier_, VarsContext *contex
     m_function->addBytes(fieldref, 2); // putstatic
 }
 
-// функции обхода деревьев
+// Tree bypass for variables
 void MainClassTable::treeBypassVarLinking(Program *node)
 {
 	if (node==NULL)	return;
@@ -83,12 +94,14 @@ void MainClassTable::treeBypassVarLinking(StatementGotoCall *node)
 	if (node==NULL)	return;
 	std::cout << node->identifier << std::endl;
 }
+
 void MainClassTable::treeBypassVarLinking(StatementGotoLabel *node)
 {
     // TODO: No idea what to do with it
 	if (node==NULL)	return;
 	std::cout << node->identifier << std::endl;
 }
+
 void MainClassTable::treeBypassVarLinking(StatementForeachLoop *node)
 {
 	if (node==NULL)	return;
@@ -102,6 +115,7 @@ void MainClassTable::treeBypassVarLinking(StatementForeachLoop *node)
     m_currentContext = m_currentContext->m_parentContext;
 
 }
+
 void MainClassTable::treeBypassVarLinking(StatementForLoop *node)
 {
 	if (node==NULL)	return;
@@ -254,7 +268,7 @@ void MainClassTable::treeBypassVarLinking(Statement *node)
 			throw std::string("Statement list should not be kept as a statement");
 		}
 		break;
-		case STATEMENT_TYPE::RETURN:
+		case STATEMENT_TYPE::STRETURN:
 		{
 			auto *realnode = dynamic_cast<StatementReturn*>(node);
 			treeBypassVarLinking(realnode);
@@ -333,24 +347,19 @@ void MainClassTable::treeBypassVarLinking(Expression *node)
 	switch(node->type)
 	{
 		case EXPRESSION_TYPE::INT:
-            // TODO: code gen
-            // Put DT value on stack
+            // No need to do anything
 		    break;
 		case EXPRESSION_TYPE::DOUBLE:
-            // TODO: code gen
-            // Put DT value on stack
+            // No need to do anything
 		    break;
 		case EXPRESSION_TYPE::STRING:
-            // TODO: code gen
-            // Put DT value on stack
+            // No need to do anything
 		    break;
 		case EXPRESSION_TYPE::BOOL:
-            // TODO: code gen
-            // Put DT value on stack
+            // No need to do anything
 		    break;
 		case EXPRESSION_TYPE::NIL:
-            // TODO: code gen
-            // Put DT value on stack
+            // No need to do anything
 		    break;
 		case EXPRESSION_TYPE::IDENTIFIER:
             // Generate var
@@ -362,216 +371,123 @@ void MainClassTable::treeBypassVarLinking(Expression *node)
             // Put variable on top of stack
 		    break;
 		case EXPRESSION_TYPE::BIN_PLUS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_MINUS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_MUL:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_DIV:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_CONCAT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::CELL_BY_EXPR:
-            // TODO: code gen
-            // call func, leaves cell DT on stack
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_REM_DIV:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_EXPON:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_AND:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_OR:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_NOT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::LOG_AND:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::LOG_OR:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::LOG_NOT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
 		    break;
 		case EXPRESSION_TYPE::UNAR_UMINUS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
 		    break;
 		case EXPRESSION_TYPE::UNAR_BITWISE_NOT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
 		    break;
 		case EXPRESSION_TYPE::UNAR_LEN:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
 		    break;
 		case EXPRESSION_TYPE::REL_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::REL_NOT_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::REL_GREATER:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::REL_GREATER_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::REL_LESS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::REL_LESS_EQUALS:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BIN_FLOOR_DIVISION:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BITWISE_LEFT_SHIFT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::BITWISE_RIGHT_SHIFT:
-            // TODO: code gen
-            // call func, leaves result on stack
-            // if any side is a function call, extracts first value (same as all operators)
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
-            // TODO: code gen
-            // expects table on top of stack
-            // performs assignment of cell
-            // keeps table on top
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->right);
 		    break;
 		case EXPRESSION_TYPE::TABLE_CONSTRUCT:
-            // TODO: code gen
-            // creates table on top of stack
-            // recursively assigns values to cells
             treeBypassVarLinking(node->lst);
 		    break;
 		case EXPRESSION_TYPE::METHOD_NAME:
-            // TODO: code gen
-            // expr in left should leave table on top of stack
-            // identifier is cell name
             treeBypassVarLinking(node->left);
 		    break;
 		case EXPRESSION_TYPE::FUNCTION_CALL:
-            // TODO: code gen
-            // generates VarList, calls function, leaves VarList of returned values
-            // expr in left puts function DynamicType on top of the stack
             treeBypassVarLinking(node->left);
             treeBypassVarLinking(node->lst);
 		    break;
 		case EXPRESSION_TYPE::UNNAMED_FUNCTION_DEFINITION:
         {
-            // TODO: code gen
-            // generates DynamicType with function on top of stack
-            // Probably should be delegated to the FunctionClassTable from this point
             m_currentContext = m_currentContext->createChildContext();
-            auto newFunctionClass = new FunctionClassTable(m_currentContext);
+            auto newFunctionClass = new FunctionClassTable(m_currentContext, node->params, node->code);
             m_functionClasses.push_back(newFunctionClass);
             m_currentContext->className = newFunctionClass->generateClassName();
             node->varContext = m_currentContext;

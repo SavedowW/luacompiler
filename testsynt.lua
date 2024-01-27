@@ -1,12 +1,21 @@
 x = 1
-y = 2
-function f(param1, param2)
-    local y = y
-    y = y + 4
-    while true do
-        local x = x
+
+function f1(param)
+    local x = param
+    return function ()
+        x = x + 1
+        print(x)
     end
 end
-while true do
-        local y = y
-end
+
+res1 = f1(5)
+res1()
+res1()
+
+res2 = f1(100)
+res2()
+res2()
+
+print "\n\n"
+res1()
+res2()

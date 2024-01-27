@@ -109,7 +109,7 @@ void TreePrint::stmt_print(Statement *stmt)
 		lst_print(realstmt);
 	}
 		break;
-	case STATEMENT_TYPE::RETURN:
+	case STATEMENT_TYPE::STRETURN:
 	{
 		auto *realstmt = dynamic_cast<StatementReturn*>(stmt);
 		
