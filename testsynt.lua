@@ -1,21 +1,24 @@
-x = 1
+x = 0
 
-function f1(param)
-    local x = param
-    return function ()
-        x = x + 1
-        print(x)
+function pp()
+    local tempx = x
+    x = x + 1
+    return tempx
+end
+
+while (pp() < 5) do
+    if (pp() == 1) then
+        print "one"
+    elseif (pp() == 2) then
+        print "two"
+    elseif (pp() == 3) then
+        print "three"
+    else
+        print "different"
     end
 end
 
-res1 = f1(5)
-res1()
-res1()
 
-res2 = f1(100)
-res2()
-res2()
+print "end"
 
-print "\n\n"
-res1()
-res2()
+print(x)

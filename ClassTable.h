@@ -132,7 +132,17 @@ public:
     virtual ~MethodRefInfo() = default;
 };
 
-class MethodInfo
+struct CodeRecorder
+{
+    CodeRecorder() = default;
+    std::vector<char> m_byteCode;
+    void addBytes(uint64_t bytes_, size_t countBytes_);
+    void addBytes(int16_t bytes_);
+    void append(CodeRecorder *moreCode_);
+    virtual ~CodeRecorder() = default;
+};
+
+class MethodInfo : public CodeRecorder
 {
 public:
     MethodInfo() = default;
@@ -145,8 +155,6 @@ public:
     uint32_t m_maxStack = 2;
     uint32_t m_maxLocals = 1;
     uint32_t m_codeLength = 1;
-    std::vector<char> m_byteCode;
-    void addBytes(uint64_t bytes_, size_t countBytes_);
     virtual ~MethodInfo() = default;
 };
 
@@ -225,6 +233,9 @@ protected:
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
     size_t m_dt__add = 1;
+    size_t m_dt__lt = 1;
+    size_t m_dt__eq = 1;
+    size_t m_dt_toBool = 1;
     size_t m_varlistClass = 1;
     size_t m_varlistInit = 1;
     size_t m_varlistAdd = 1;
@@ -238,16 +249,19 @@ protected:
     MethodInfo *m_constructor = nullptr;
     MethodInfo *m_function = nullptr;
 
-    FieldData createFunctionField(MethodInfo *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
-    void createIntOnStack(MethodInfo *method, int num_);
-    void createDoubleOnStack(MethodInfo *method, double num_);
-    void createStringOnStack(MethodInfo *method, const DoublePtrString &s_);
-    void createVarList(MethodInfo *method);
-    void createDynamicType(MethodInfo *method, int num_);
-    void createDynamicType(MethodInfo *method, double num_);
-    void createDynamicType(MethodInfo *method, const DoublePtrString &s_);
-    void createDynamicType(MethodInfo *method, bool val_);
-    void createDynamicType(MethodInfo *method);
+    CodeRecorder *m_currentCodeRecorder = nullptr;
+    int cycleCount = 0;
+
+    FieldData createFunctionField(CodeRecorder *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
+    void createIntOnStack(CodeRecorder *method, int num_);
+    void createDoubleOnStack(CodeRecorder *method, double num_);
+    void createStringOnStack(CodeRecorder *method, const DoublePtrString &s_);
+    void createVarList(CodeRecorder *method);
+    void createDynamicType(CodeRecorder *method, int num_);
+    void createDynamicType(CodeRecorder *method, double num_);
+    void createDynamicType(CodeRecorder *method, const DoublePtrString &s_);
+    void createDynamicType(CodeRecorder *method, bool val_);
+    void createDynamicType(CodeRecorder *method);
 
     void treeBypassCodeGen(Program *);
     void treeBypassCodeGen(StatementList *);

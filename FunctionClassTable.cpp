@@ -45,6 +45,7 @@ void FunctionClassTable::generateClassTable(const std::string &classname_)
 
     // =========== MAIN =================
     m_function = new MethodInfo();
+    m_currentCodeRecorder = m_function;
     m_function->m_accessFlags = 0x0001;
     m_function->m_nameIndex = functionUTF8;
     m_function->m_descIndex = functionType;

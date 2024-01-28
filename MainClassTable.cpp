@@ -24,6 +24,7 @@ void MainClassTable::generateClassTable(const std::string &classname_)
 
     // =========== MAIN =================
     m_function = new MethodInfo();
+	m_currentCodeRecorder = m_function;
     m_function->m_accessFlags = 0x0009;
     m_function->m_nameIndex = mainNameID;
     m_function->m_descIndex = mainTypeID;
@@ -178,6 +179,7 @@ void MainClassTable::treeBypassVarLinking(StatementIfElse *node)
 
     for (int i = 0; i < node->elseifs.size(); i++)
     {
+		treeBypassVarLinking(node->elseifs[i]->condition);
         m_currentContext = m_currentContext->createChildContext();
 		treeBypassVarLinking(node->elseifs[i]->trueCode);
         m_currentContext = m_currentContext->m_parentContext;

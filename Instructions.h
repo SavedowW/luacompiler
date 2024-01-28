@@ -1,6 +1,7 @@
 #ifndef INSTRUCTIONS_H_
 #define INSTRUCTIONS_H_
 
+#define NOP 0x0
 #define GETSTATIC 0xb2
 #define PUTSTATIC 0xb3
 #define GETFIELD 0xb4
@@ -27,5 +28,14 @@
 #define ICONST_3 0x6
 #define ICONST_4 0x7
 #define ICONST_5 0x8
+#define IFEQ 0x99
+#define IFNE 0x9a
+#define IFLT 0x9b
+#define IFGE 0x9c
+#define IFGT 0x9d
+#define IFLE 0x9e
+#define GOTO 0xa7
+#define GOTO_W 0xc8
+
 
 #endif
