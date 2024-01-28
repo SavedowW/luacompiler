@@ -231,16 +231,20 @@ protected:
     size_t m_dtInitIdB = 1;
     size_t m_dtInitIdF = 1;
     size_t m_dtInitIdNIL = 1;
+    size_t m_dtCreateTable = 1;
     size_t m_dtFieldIdI = 1;
     size_t m_dtFieldIdD = 1;
     size_t m_dtFieldIdS = 1;
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
     size_t m_dtRevset = 1;
+    size_t m_dtSetDT = 1;
     size_t m_dt__add = 1;
     size_t m_dt__lt = 1;
     size_t m_dt__le = 1;
     size_t m_dt__eq = 1;
+    size_t m_dt__index = 1;
+    size_t m_dt__autoindex = 1;
     size_t m_dt_toBool = 1;
     size_t m_varlistClass = 1;
     size_t m_varlistInit = 1;
@@ -269,6 +273,7 @@ protected:
     void createDynamicType(CodeRecorder *method, float num_);
     void createDynamicType(CodeRecorder *method, const DoublePtrString &s_);
     void createDynamicType(CodeRecorder *method, bool val_);
+    void createDynamicTypeTable(CodeRecorder *method);
     void createDynamicType(CodeRecorder *method);
 
     void treeBypassCodeGen(Program *);

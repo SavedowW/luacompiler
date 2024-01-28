@@ -356,16 +356,20 @@ void ClassTable::generateUniversalTable()
     m_dtInitIdB = addOrConfirmMethodRefToTable("<init>", "(Z)V", "DynamicType");
     m_dtInitIdF = addOrConfirmMethodRefToTable("<init>", "(LFunctionClass;)V", "DynamicType");
     m_dtInitIdNIL = addOrConfirmMethodRefToTable("<init>", "()V", "DynamicType");
+    m_dtCreateTable = addOrConfirmMethodRefToTable("createTable", "()LDynamicType;", "DynamicType");
     m_dtFieldIdI = addOrConfirmFieldRefToTable("iValue", "I", "DynamicType");
     m_dtFieldIdD = addOrConfirmFieldRefToTable("dValue", "D", "DynamicType");
     m_dtFieldIdS = addOrConfirmFieldRefToTable("sValue", "Ljava/lang/String;", "DynamicType");
     m_dtFieldIdF = addOrConfirmFieldRefToTable("fValue", "LFunctionClass;", "DynamicType");
-    m_dtFieldIdF = addOrConfirmFieldRefToTable("fValue", "LFunctionClass;", "DynamicType");
+
+    m_dtSetDT = addOrConfirmMethodRefToTable("set", "(LDynamicType;)V", "DynamicType");
 
     m_dt__add = addOrConfirmMethodRefToTable("__add", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
     m_dt__lt = addOrConfirmMethodRefToTable("__lt", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
     m_dt__le = addOrConfirmMethodRefToTable("__le", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
     m_dt__eq = addOrConfirmMethodRefToTable("__eq", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
+    m_dt__index = addOrConfirmMethodRefToTable("__index", "(LDynamicType;)LDynamicType;", "DynamicType");
+    m_dt__autoindex = addOrConfirmMethodRefToTable("__autoindex", "()LDynamicType;", "DynamicType");
 
     m_dt_toBool = addOrConfirmMethodRefToTable("tobool", "(LDynamicType;)Z", "DynamicType");
 
@@ -905,6 +909,13 @@ void ClassTable::createDynamicType(CodeRecorder *method_, bool val_)
     method_->addBytes(m_dtInitIdB, 2); // <init>
 }
 
+void ClassTable::createDynamicTypeTable(CodeRecorder *method)
+{
+    // Create DT
+    method->addBytes(INVOKESTATIC, 1); // invokespecial
+    method->addBytes(m_dtCreateTable, 2); // <init>
+}
+
 void ClassTable::createDynamicType(CodeRecorder *method)
 {
     // Create DT
@@ -1218,9 +1229,6 @@ void ClassTable::treeBypassCodeGen(Expression *node)
 		case EXPRESSION_TYPE::BIN_CONCAT:
             // TODO: code gen
 		    break;
-		case EXPRESSION_TYPE::CELL_BY_EXPR:
-            // TODO: code gen
-		    break;
 		case EXPRESSION_TYPE::BIN_REM_DIV:
             // TODO: code gen
 		    break;
@@ -1316,17 +1324,74 @@ void ClassTable::treeBypassCodeGen(Expression *node)
             // TODO: code gen
             // Last unar operator
 		    break;
+        case EXPRESSION_TYPE::CELL_BY_EXPR:
+            treeBypassCodeGen(node->left);
+            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
+            {
+                createIntOnStack(m_currentCodeRecorder, 0);
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+            }
+
+            treeBypassCodeGen(node->right);
+            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL || node->right->type == EXPRESSION_TYPE::VARARG_REF)
+            {
+                createIntOnStack(m_currentCodeRecorder, 0);
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+            }
+
+            m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+            m_currentCodeRecorder->addBytes(m_dt__index, 2);
+
+
+		    break;
 		case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
-            // TODO: code gen
-            // expects table on top of stack
-            // performs assignment of cell
-            // keeps table on top
+            m_currentCodeRecorder->addBytes(DUP, 1);
+            if (node->left)
+            {
+                treeBypassCodeGen(node->left);
+                if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
+                {
+                    createIntOnStack(m_currentCodeRecorder, 0);
+                    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                    m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+                }
+
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_dt__index, 2);
+            }
+            else
+            {
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_dt__autoindex, 2);
+            }
+
+            // get right side
+            treeBypassCodeGen(node->right);
+            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
+            {
+                createIntOnStack(m_currentCodeRecorder, 0);
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+            }
+
+            // call set
+            m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+            m_currentCodeRecorder->addBytes(m_dtSetDT, 2);
 		    break;
 		case EXPRESSION_TYPE::TABLE_CONSTRUCT:
-            // TODO: code gen
-            // creates table on top of stack
-            // recursively assigns values to cells
-            //treeBypassCodeGen(node->lst);
+            createDynamicTypeTable(m_currentCodeRecorder);
+            if (node->lst)
+            {
+                for (auto *asgn : node->lst->lst)
+                {
+                    if (asgn->type != EXPRESSION_TYPE::KEY_VALUE_ASSOC)
+                        throw std::string("Only KEY_VALUE_ASSOC can be in table constructor");
+
+                    treeBypassCodeGen(asgn);
+                }
+            }
 		    break;
 		case EXPRESSION_TYPE::METHOD_NAME:
             // TODO: code gen
@@ -1391,6 +1456,8 @@ void ClassTable::treeBypassCodeGen(StatementForeachLoop *node)
 void ClassTable::treeBypassCodeGen(StatementForLoop *node)
 {
 	if (node==NULL)	return;
+
+    //m_currentCodeRecorder->addBytes(NOP, 3);
 
 	auto *codeblock = new CodeRecorder();
     auto *beginIter = new CodeRecorder();
@@ -1463,13 +1530,11 @@ void ClassTable::treeBypassCodeGen(StatementForLoop *node)
 
     // Iters start from here
 
-    m_currentCodeRecorder->addBytes(NOP, 3);
-
     m_currentCodeRecorder->addBytes(DUP, 1);
     m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
     m_currentCodeRecorder->addBytes(m_forLoopCond, 2);
     m_currentCodeRecorder->addBytes(IFEQ, 1);
-    m_currentCodeRecorder->addBytes((int16_t)(codeblock->m_byteCode.size() + 21));
+    m_currentCodeRecorder->addBytes((int16_t)(codeblock->m_byteCode.size() + 20));
 
     m_currentCodeRecorder = codeblock;
 
@@ -1481,7 +1546,7 @@ void ClassTable::treeBypassCodeGen(StatementForLoop *node)
     // Set iterator var
     m_currentCodeRecorder->addBytes(DUP, 1);
     createIntOnStack(m_currentCodeRecorder, 0);
-    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL);
+    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
     m_currentCodeRecorder->addBytes(m_varlistGet, 2);
     m_currentCodeRecorder->addBytes(GETSTATIC, 1);
     m_currentCodeRecorder->addBytes(fldRef, 2);
@@ -1495,8 +1560,9 @@ void ClassTable::treeBypassCodeGen(StatementForLoop *node)
 
     m_currentCodeRecorder = temp;
     m_currentCodeRecorder->append(codeblock);
+    m_currentCodeRecorder->addBytes(POP, 1);
 
-    m_currentCodeRecorder->addBytes(NOP, 3);
+    //m_currentCodeRecorder->addBytes(NOP, 3);
 }
 
 void ClassTable::treeBypassCodeGen(StatementRepeatLoop *node)
