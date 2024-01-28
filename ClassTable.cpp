@@ -30,8 +30,8 @@ IntegerInfo::IntegerInfo(int num_):
 {
 }
 
-DoubleInfo::DoubleInfo(double num_):
-    TableEntry(TableEntry::ENTRY_TYPE::DOUBLE),
+FloatInfo::FloatInfo(float num_):
+    TableEntry(TableEntry::ENTRY_TYPE::FLOAT),
     m_num(num_)
 {
 }
@@ -148,24 +148,24 @@ size_t ClassTable::addOrConfirmIntegerToTable(int num_)
     return m_constantPool.size();
 }
 
-size_t ClassTable::addOrConfirmDoubleToTable(double num_)
+size_t ClassTable::addOrConfirmFloatToTable(float num_)
 {
     for (int i = 0; i < m_constantPool.size(); ++i)
     {
         auto *el = m_constantPool[i];
-        if (el->m_type == TableEntry::ENTRY_TYPE::DOUBLE)
+        if (el->m_type == TableEntry::ENTRY_TYPE::FLOAT)
         {
-            auto *doublefield = dynamic_cast<DoubleInfo*>(el);
+            auto *doublefield = dynamic_cast<FloatInfo*>(el);
             if (doublefield->m_num == num_)
             {
-                std::cout << "Doubke \"" << num_ << "\" already exists\n";
+                std::cout << "Double \"" << num_ << "\" already exists\n";
                 return i + 1;
             }
         }
     }
 
     std::cout << "Added double \"" << num_ << "\" to the constant pool\n";
-    m_constantPool.push_back(new IntegerInfo(num_));
+    m_constantPool.push_back(new FloatInfo(num_));
     return m_constantPool.size();
 }
 
@@ -329,11 +329,11 @@ void ClassTable::writeInt(int32_t bytes_)
     }
 }
 
-void ClassTable::writeDouble(double bytes_)
+void ClassTable::writeFloat(float bytes_)
 {
     char *arr = (char*)&bytes_; 
     auto end = sizeof(bytes_);
-    for (auto i = 7; i >= 0 && i < 8; --i)
+    for (auto i = 3; i >= 0 && i < 4; --i)
     {
         m_output.write(arr + i, 1);
     }
@@ -351,7 +351,7 @@ void ClassTable::generateUniversalTable()
 
     m_dtClass = addOrConfirmClassToTable("DynamicType");
     m_dtInitIdI = addOrConfirmMethodRefToTable("<init>", "(I)V", "DynamicType");
-    m_dtInitIdD = addOrConfirmMethodRefToTable("<init>", "(D)V", "DynamicType");
+    m_dtInitIdFl = addOrConfirmMethodRefToTable("<init>", "(F)V", "DynamicType");
     m_dtInitIdS = addOrConfirmMethodRefToTable("<init>", "(Ljava/lang/String;)V", "DynamicType");
     m_dtInitIdB = addOrConfirmMethodRefToTable("<init>", "(Z)V", "DynamicType");
     m_dtInitIdF = addOrConfirmMethodRefToTable("<init>", "(LFunctionClass;)V", "DynamicType");
@@ -364,11 +364,13 @@ void ClassTable::generateUniversalTable()
 
     m_dt__add = addOrConfirmMethodRefToTable("__add", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
     m_dt__lt = addOrConfirmMethodRefToTable("__lt", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
+    m_dt__le = addOrConfirmMethodRefToTable("__le", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
     m_dt__eq = addOrConfirmMethodRefToTable("__eq", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
 
     m_dt_toBool = addOrConfirmMethodRefToTable("tobool", "(LDynamicType;)Z", "DynamicType");
 
     m_dtCallRef = addOrConfirmMethodRefToTable("__call", "(LDynamicType;LVarList;)LVarList;", "DynamicType");
+    m_dtRevset = addOrConfirmMethodRefToTable("revset", "(LDynamicType;LDynamicType;)V", "DynamicType");
     
     m_varlistClass = addOrConfirmClassToTable("VarList");
     m_varlistInit = addOrConfirmMethodRefToTable("<init>", "()V", "VarList");
@@ -377,6 +379,9 @@ void ClassTable::generateUniversalTable()
     m_varlistGet = addOrConfirmMethodRefToTable("get", "(I)LDynamicType;", "VarList");
     m_varlistAssign = addOrConfirmMethodRefToTable("multipleAssign", "(LVarList;LVarList;)V", "VarList");
     m_varlistAppend = addOrConfirmMethodRefToTable("append", "(LVarList;)V", "VarList");
+
+    m_forLoopIter = addOrConfirmMethodRefToTable("forTurn", "(LVarList;)LVarList;", "VarList");
+    m_forLoopCond = addOrConfirmMethodRefToTable("forCondition", "(LVarList;)Z", "VarList");
 }
 
 bool ClassTable::doesFieldExist(int nameId_)
@@ -391,6 +396,22 @@ bool ClassTable::doesFieldExist(int nameId_)
     }
 
     return false;
+}
+
+void CodeRecorder::markBreak()
+{
+    m_unsolvedBreakLocations.push_back(m_byteCode.size() - 3);
+}
+
+void CodeRecorder::solveBreaks()
+{
+    for (auto &el : m_unsolvedBreakLocations)
+    {
+        m_byteCode[el] = (char)GOTO;
+        setBytesAt(m_byteCode.size() - el, el+1);
+    }
+
+    m_unsolvedBreakLocations.clear();
 }
 
 void CodeRecorder::addBytes(uint64_t bytes_, size_t countBytes_)
@@ -414,9 +435,25 @@ void CodeRecorder::addBytes(int16_t bytes_)
     }
 }
 
+void CodeRecorder::setBytesAt(int16_t bytes_, int location_)
+{
+    char *arr = (char*)&bytes_;  // TODO: to reinterpret
+    auto end = sizeof(bytes_);
+    for (auto i = 1; i >= 0 && i < 2; --i)
+    {
+        m_byteCode[location_ + (1 - i)] = arr[i];
+    }
+}
+
 void CodeRecorder::append(CodeRecorder *moreCode_)
 {
+    auto bcsize = m_byteCode.size();
     m_byteCode.insert(m_byteCode.end(), moreCode_->m_byteCode.begin(), moreCode_->m_byteCode.end());
+    for (auto el : moreCode_->m_unsolvedBreakLocations)
+    {
+        el += bcsize;
+        m_unsolvedBreakLocations.push_back(el);
+    }
 }
 
 void ClassTable::generateClassFile()
@@ -434,7 +471,7 @@ void ClassTable::generateClassFile()
 
     for (int i = 0; i < m_constantPool.size(); ++i)
     {
-        writeBytes((int)m_constantPool[i]->m_type, 1); // TODO: to reinterpret
+            writeBytes((int)m_constantPool[i]->m_type, 1); // TODO: to reinterpret
         switch (m_constantPool[i]->m_type)
         {
             case (TableEntry::ENTRY_TYPE::UTF8):
@@ -452,10 +489,11 @@ void ClassTable::generateClassFile()
                 break;
             }
 
-            case (TableEntry::ENTRY_TYPE::DOUBLE):
+            case (TableEntry::ENTRY_TYPE::FLOAT):
             {
-                auto *properptr = dynamic_cast<DoubleInfo*>(m_constantPool[i]);
-                writeDouble(properptr->m_num);
+                auto *properptr = dynamic_cast<FloatInfo*>(m_constantPool[i]);
+                writeFloat(properptr->m_num);
+                //writeInt(properptr->m_num);
                 break;
             }
 
@@ -791,10 +829,10 @@ void ClassTable::createIntOnStack(CodeRecorder *method_, int num_)
     }
 }
 
-void ClassTable::createDoubleOnStack(CodeRecorder *method_, double num_)
+void ClassTable::createFloatOnStack(CodeRecorder *method_, float num_)
 {
-    auto numberId = addOrConfirmDoubleToTable(num_);
-    method_->addBytes(LDC2_W, 1); // ldc_w
+    auto numberId = addOrConfirmFloatToTable(num_);
+    method_->addBytes(LDC_W, 1); // ldc_w
     method_->addBytes(numberId, 2); // field with number
 }
 
@@ -828,17 +866,17 @@ void ClassTable::createDynamicType(CodeRecorder *method_, int num_)
     method_->addBytes(m_dtInitIdI, 2); // <init>
 }
 
-void ClassTable::createDynamicType(CodeRecorder *method_, double num_)
+void ClassTable::createDynamicType(CodeRecorder *method_, float num_)
 {
     // Create DT
     method_->addBytes(NEW, 1); // new
     method_->addBytes(m_dtClass, 2); // DynamicType
     method_->addBytes(DUP, 1); // dup
 
-    createDoubleOnStack(method_, num_);
+    createFloatOnStack(method_, num_);
 
     method_->addBytes(INVOKESPECIAL, 1); // invokespecial
-    method_->addBytes(m_dtInitIdD, 2); // <init>
+    method_->addBytes(m_dtInitIdFl, 2); // <init>
 }
 
 void ClassTable::createDynamicType(CodeRecorder *method_, const DoublePtrString &s_)
@@ -930,7 +968,8 @@ void ClassTable::treeBypassCodeGen(Statement *node)
 		break;
 		case STATEMENT_TYPE::BREAK:
 		{
-			// TODO: No type, just logic
+			m_currentCodeRecorder->addBytes(NOP, 3);
+            m_currentCodeRecorder->markBreak();
 		}
 		break;
 		case STATEMENT_TYPE::IF_ELSE:
@@ -1353,14 +1392,140 @@ void ClassTable::treeBypassCodeGen(StatementForLoop *node)
 {
 	if (node==NULL)	return;
 
-	// TODO:
+	auto *codeblock = new CodeRecorder();
+    auto *beginIter = new CodeRecorder();
+    auto *endIter = new CodeRecorder();
+    auto *stepIter = new CodeRecorder();
+
+    // Iterator var data
+    auto varname = std::string("CONTEXT_") + std::to_string(node->iterContext->contextID) + "_" + node->identifier;
+    auto fldRef = addOrConfirmFieldRefToTable(varname, "LDynamicType;", node->iterContext->className);
+
+    auto *temp = m_currentCodeRecorder;
+
+    m_currentCodeRecorder = codeblock;
+    treeBypassCodeGen(node->code);
+
+    m_currentCodeRecorder = beginIter;
+    treeBypassCodeGen(node->begin);
+
+    m_currentCodeRecorder = endIter;
+    treeBypassCodeGen(node->end);
+
+    m_currentCodeRecorder = stepIter;
+    treeBypassCodeGen(node->step);
+
+    m_currentCodeRecorder = temp;
+
+    createVarList(m_currentCodeRecorder);
+    m_currentCodeRecorder->addBytes(DUP, 1);
+    m_currentCodeRecorder->append(beginIter);
+    if (node->begin->type == EXPRESSION_TYPE::FUNCTION_CALL || node->begin->type == EXPRESSION_TYPE::VARARG_REF)
+    {
+        createIntOnStack(m_currentCodeRecorder, 0);
+        m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+        m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+    }
+    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+    m_currentCodeRecorder->addBytes(m_varlistAdd, 2);
+
+    m_currentCodeRecorder->addBytes(DUP, 1);
+    m_currentCodeRecorder->append(endIter);
+    if (node->end->type == EXPRESSION_TYPE::FUNCTION_CALL || node->end->type == EXPRESSION_TYPE::VARARG_REF)
+    {
+        createIntOnStack(m_currentCodeRecorder, 0);
+        m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+        m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+    }
+    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+    m_currentCodeRecorder->addBytes(m_varlistAdd, 2);
+
+    m_currentCodeRecorder->addBytes(DUP, 1);
+    m_currentCodeRecorder->append(stepIter);
+    if (node->step->type == EXPRESSION_TYPE::FUNCTION_CALL || node->step->type == EXPRESSION_TYPE::VARARG_REF)
+    {
+        createIntOnStack(m_currentCodeRecorder, 0);
+        m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+        m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+    }
+    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+    m_currentCodeRecorder->addBytes(m_varlistAdd, 2);
+
+    // Set iterator var
+    m_currentCodeRecorder->addBytes(DUP, 1);
+    createIntOnStack(m_currentCodeRecorder, 0);
+    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL);
+    m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+    m_currentCodeRecorder->addBytes(GETSTATIC, 1);
+    m_currentCodeRecorder->addBytes(fldRef, 2);
+    m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
+    m_currentCodeRecorder->addBytes(m_dtRevset, 2);
+
+    // Iters start from here
+
+    m_currentCodeRecorder->addBytes(NOP, 3);
+
+    m_currentCodeRecorder->addBytes(DUP, 1);
+    m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
+    m_currentCodeRecorder->addBytes(m_forLoopCond, 2);
+    m_currentCodeRecorder->addBytes(IFEQ, 1);
+    m_currentCodeRecorder->addBytes((int16_t)(codeblock->m_byteCode.size() + 21));
+
+    m_currentCodeRecorder = codeblock;
+
+    // Start of last iter segment
+    // Proceed iter
+    m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
+    m_currentCodeRecorder->addBytes(m_forLoopIter, 2);
+
+    // Set iterator var
+    m_currentCodeRecorder->addBytes(DUP, 1);
+    createIntOnStack(m_currentCodeRecorder, 0);
+    m_currentCodeRecorder->addBytes(INVOKEVIRTUAL);
+    m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+    m_currentCodeRecorder->addBytes(GETSTATIC, 1);
+    m_currentCodeRecorder->addBytes(fldRef, 2);
+    m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
+    m_currentCodeRecorder->addBytes(m_dtRevset, 2);
+
+    // Return to condition
+    m_currentCodeRecorder->addBytes(GOTO, 1);
+    m_currentCodeRecorder->addBytes((int16_t)(-codeblock->m_byteCode.size() - 6));
+    m_currentCodeRecorder->solveBreaks();
+
+    m_currentCodeRecorder = temp;
+    m_currentCodeRecorder->append(codeblock);
+
+    m_currentCodeRecorder->addBytes(NOP, 3);
 }
 
 void ClassTable::treeBypassCodeGen(StatementRepeatLoop *node)
 {
 	if (node==NULL)	return;
 
-    // TODO:
+
+    auto *codeblock = new CodeRecorder();
+    auto *condition = new CodeRecorder();
+
+    auto *temp = m_currentCodeRecorder;
+
+    m_currentCodeRecorder = condition;
+    treeBypassCodeGen(node->condition);
+
+    m_currentCodeRecorder = codeblock;
+    treeBypassCodeGen(node->trueCode);
+
+    m_currentCodeRecorder->append(condition);
+    m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
+    m_currentCodeRecorder->addBytes(m_dt_toBool, 2);
+    m_currentCodeRecorder->addBytes(IFEQ, 1);
+    m_currentCodeRecorder->addBytes((int16_t)(-m_currentCodeRecorder->m_byteCode.size() + 1));
+    m_currentCodeRecorder->solveBreaks();
+
+    m_currentCodeRecorder = temp;
+    m_currentCodeRecorder->append(codeblock);
+
+
 }
 
 void ClassTable::treeBypassCodeGen(StatementWhileLoop *node)
@@ -1385,19 +1550,23 @@ void ClassTable::treeBypassCodeGen(StatementWhileLoop *node)
     m_currentCodeRecorder->addBytes(m_dt_toBool, 2);
     m_currentCodeRecorder->addBytes(IFEQ, 1);
     m_currentCodeRecorder->addBytes(codeblock->m_byteCode.size() + 6, 2);
-    m_currentCodeRecorder->append(codeblock);
+
+    m_currentCodeRecorder = codeblock;
+
+    //m_currentCodeRecorder->append(codeblock);
     m_currentCodeRecorder->addBytes(GOTO, 1);
-    m_currentCodeRecorder->addBytes((int16_t)(-codeblock->m_byteCode.size() - condition->m_byteCode.size() - 6));
+    m_currentCodeRecorder->addBytes((int16_t)(-codeblock->m_byteCode.size() - condition->m_byteCode.size() - 5));
+    m_currentCodeRecorder->solveBreaks();
+
+    m_currentCodeRecorder = temp;
+    m_currentCodeRecorder->append(codeblock);
+
     delete codeblock;
 }
 
 void ClassTable::treeBypassCodeGen(StatementIfElse *node)
 {
 	if (node==NULL)	return;
-
-    m_currentCodeRecorder->addBytes(NOP, 1);
-    m_currentCodeRecorder->addBytes(NOP, 1);
-    m_currentCodeRecorder->addBytes(NOP, 1);
 
 	auto *condition = new CodeRecorder();
     auto *trueCode = new CodeRecorder();
@@ -1464,10 +1633,6 @@ void ClassTable::treeBypassCodeGen(StatementIfElse *node)
     }
 
     m_currentCodeRecorder->append(falseCode);
-
-    m_currentCodeRecorder->addBytes(NOP, 1);
-    m_currentCodeRecorder->addBytes(NOP, 1);
-    m_currentCodeRecorder->addBytes(NOP, 1);
 }
 
 void ClassTable::treeBypassCodeGen(StatementReturn *node)

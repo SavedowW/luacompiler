@@ -107,7 +107,7 @@ public:
 	bool isAssignable = false;
 	EXPRESSION_TYPE type;
 	int iValue;
-	double fValue;
+	float fValue;
 	DoublePtrString sValue;
 	bool bValue;
 	std::string identifier;
@@ -238,6 +238,7 @@ public:
 	Expression* step = nullptr;
 	StatementList* code = nullptr;
 	std::string identifier;
+	VarsContext *iterContext = nullptr;
 	virtual ~StatementForLoop() = default;
 };
 
@@ -290,7 +291,7 @@ namespace TreeFactory
 	Expression *CreateKeyValueAssoc(const char *identifier_, Expression *right_);
 	Expression *CreateTableContruct(ExpressionList *lst_);
 	Expression *CreateConstExp(int value);
-	Expression *CreateConstExp(double value);
+	Expression *CreateConstExp(float value);
 	Expression *CreateConstExp(DoublePtrString value);
 	Expression *CreateConstExp(bool value);
 	Expression *CreateNil();

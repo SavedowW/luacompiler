@@ -90,12 +90,12 @@ public:
     virtual ~IntegerInfo() = default;
 };
 
-class DoubleInfo : public TableEntry
+class FloatInfo : public TableEntry
 {
 public:
-    DoubleInfo(double num_);
-    int m_num;
-    virtual ~DoubleInfo() = default;
+    FloatInfo(float num_);
+    float m_num;
+    virtual ~FloatInfo() = default;
 };
 
 class StringInfo : public TableEntry
@@ -136,8 +136,12 @@ struct CodeRecorder
 {
     CodeRecorder() = default;
     std::vector<char> m_byteCode;
+    std::vector<int> m_unsolvedBreakLocations;
+    void markBreak();
+    void solveBreaks();
     void addBytes(uint64_t bytes_, size_t countBytes_);
     void addBytes(int16_t bytes_);
+    void setBytesAt(int16_t bytes_, int location_);
     void append(CodeRecorder *moreCode_);
     virtual ~CodeRecorder() = default;
 };
@@ -191,7 +195,7 @@ protected:
     size_t addOrConfirmUtf8ToTable(const std::string &s_);
     size_t addOrConfirmUtf8ToTable(const DoublePtrString &s_);
     size_t addOrConfirmIntegerToTable(int num_);
-    size_t addOrConfirmDoubleToTable(double num_);
+    size_t addOrConfirmFloatToTable(float num_);
     size_t addOrConfirmClassToTable(const std::string &s_);
     size_t addOrConfirmStringToTable(const std::string &s_);
     size_t addOrConfirmStringToTable(const DoublePtrString &s_);
@@ -201,7 +205,7 @@ protected:
     void writeBytes(uint64_t bytes_, size_t countBytes_);
     void writeBytes(const DoublePtrString &str_);
     void writeInt(int32_t bytes_);
-    void writeDouble(double bytes_);
+    void writeFloat(float bytes_);
     virtual void grabParams();
     void generateUniversalTable();
 
@@ -222,7 +226,7 @@ protected:
     // Code gen
     size_t m_dtClass = 1;
     size_t m_dtInitIdI = 1;
-    size_t m_dtInitIdD = 1;
+    size_t m_dtInitIdFl = 1;
     size_t m_dtInitIdS = 1;
     size_t m_dtInitIdB = 1;
     size_t m_dtInitIdF = 1;
@@ -232,8 +236,10 @@ protected:
     size_t m_dtFieldIdS = 1;
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
+    size_t m_dtRevset = 1;
     size_t m_dt__add = 1;
     size_t m_dt__lt = 1;
+    size_t m_dt__le = 1;
     size_t m_dt__eq = 1;
     size_t m_dt_toBool = 1;
     size_t m_varlistClass = 1;
@@ -244,6 +250,8 @@ protected:
     size_t m_varlistAssign = 1;
     size_t m_varlistAppend = 1;
     size_t m_codeAttrNameID = 1;
+    size_t m_forLoopIter = 1;
+    size_t m_forLoopCond = 1;
 
     VarsContext *m_ownContext = nullptr;
     MethodInfo *m_constructor = nullptr;
@@ -254,11 +262,11 @@ protected:
 
     FieldData createFunctionField(CodeRecorder *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
     void createIntOnStack(CodeRecorder *method, int num_);
-    void createDoubleOnStack(CodeRecorder *method, double num_);
+    void createFloatOnStack(CodeRecorder *method, float num_);
     void createStringOnStack(CodeRecorder *method, const DoublePtrString &s_);
     void createVarList(CodeRecorder *method);
     void createDynamicType(CodeRecorder *method, int num_);
-    void createDynamicType(CodeRecorder *method, double num_);
+    void createDynamicType(CodeRecorder *method, float num_);
     void createDynamicType(CodeRecorder *method, const DoublePtrString &s_);
     void createDynamicType(CodeRecorder *method, bool val_);
     void createDynamicType(CodeRecorder *method);

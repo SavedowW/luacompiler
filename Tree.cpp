@@ -303,7 +303,7 @@ Expression *TreeFactory::CreateConstExp(int value)
 
 // Создание double константы
 // value - значение
-Expression *TreeFactory::CreateConstExp(double value)
+Expression *TreeFactory::CreateConstExp(float value)
 {
 	Expression *crt = new Expression;
 	crt->type=EXPRESSION_TYPE::DOUBLE;

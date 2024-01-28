@@ -127,6 +127,7 @@ void MainClassTable::treeBypassVarLinking(StatementForLoop *node)
 	treeBypassVarLinking(node->step);
 
     m_currentContext = m_currentContext->createChildContext();
+	node->iterContext = m_currentContext->confirmLocalVar(node->identifier);
 	treeBypassVarLinking(node->code);
     m_currentContext = m_currentContext->m_parentContext;
 }
