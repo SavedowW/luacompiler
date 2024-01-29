@@ -1,5 +1,8 @@
-tbl = {name = "bob", id = 5}
+human = {age = 22}
 
-for k, v in pairs(tbl) do
-    print(k, v)
+function newhuman()
+    nevar = 5
+    print(human.age)
 end
+
+newhuman()

@@ -37,6 +37,9 @@ void MainClassTable::generateClassTable(const std::string &classname_)
     auto printdata = createFunctionField(m_function, "CONTEXT_0_print", "print", classname_);
     auto nextdata = createFunctionField(m_function, "CONTEXT_0_next", "next", classname_);
     auto pairsdata = createFunctionField(m_function, "CONTEXT_0_pairs", "pairs", classname_);
+    auto setmetatabledata = createFunctionField(m_function, "CONTEXT_0_setmetatable", "setmetatable", classname_);
+    auto getmetatabledata = createFunctionField(m_function, "CONTEXT_0_getmetatable", "getmetatable", classname_);
+    auto rawlendata = createFunctionField(m_function, "CONTEXT_0_rawlen", "rawlen", classname_);
 
     m_methodPool.push_back(m_function);
 

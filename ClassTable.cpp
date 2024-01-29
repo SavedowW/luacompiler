@@ -696,7 +696,7 @@ VarsContext *VarsContext::getOriginalFunctionContext()
     return context;
 }
 
-void ClassTable::`1FunctionClassVariables(VarsContext *currentContext)
+void ClassTable::1FunctionClassVariables(VarsContext *currentContext)
 {
     if (currentContext->m_parameters.size() > 0)
     {

@@ -241,10 +241,32 @@ protected:
     size_t m_dtRevset = 1;
     size_t m_dtSetDT = 1;
     size_t m_dt__add = 1;
+    size_t m_dt__sub = 1;
+    size_t m_dt__mul = 1;
+    size_t m_dt__div = 1;
+    size_t m_dt__mod = 1;
+    size_t m_dt__pow = 1;
+    size_t m_dt__unm = 1;
+    size_t m_dt__idiv = 1;
+    size_t m_dt__band = 1;
+    size_t m_dt__bor = 1;
+    size_t m_dt__bxor = 1;
+    size_t m_dt__bnot = 1;
+    size_t m_dt__shl = 1;
+    size_t m_dt__shr = 1;
+    size_t m_dt__concat = 1;
+    size_t m_dt__len = 1;
+    size_t m_dt__and = 1;
+    size_t m_dt__or = 1;
+    size_t m_dt__not = 1;
     size_t m_dt__lt = 1;
     size_t m_dt__le = 1;
     size_t m_dt__eq = 1;
+    size_t m_dt__neq = 1;
+    size_t m_dt__gt = 1;
+    size_t m_dt__ge = 1;
     size_t m_dt__index = 1;
+    size_t m_dt__newindex = 1;
     size_t m_dt__autoindex = 1;
     size_t m_dt_toBool = 1;
     size_t m_varlistClass = 1;
@@ -264,6 +286,7 @@ protected:
     MethodInfo *m_constructor = nullptr;
     MethodInfo *m_function = nullptr;
 
+    bool m_assignContext = false;
     CodeRecorder *m_currentCodeRecorder = nullptr;
     int cycleCount = 0;
 
