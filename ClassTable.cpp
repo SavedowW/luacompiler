@@ -647,10 +647,8 @@ VarsContext *VarsContext::confirmGlobalVar(const std::string &identifier_)
         if (!alreadyHasDependency)
             functionContext->m_dependencies.push_back({context, identifier_});
     }
-    else
-    {
+
         context->confirmLocalVar(identifier_);
-    }
 
     return context;
 }
@@ -696,7 +694,7 @@ VarsContext *VarsContext::getOriginalFunctionContext()
     return context;
 }
 
-void ClassTable::1FunctionClassVariables(VarsContext *currentContext)
+void ClassTable::generateFunctionClassVariables(VarsContext *currentContext)
 {
     if (currentContext->m_parameters.size() > 0)
     {
