@@ -1,9 +1,6 @@
-function fibonums(s, a, b)
-    if (b < 15) then
-        return fibonums(s..b..", ", b, a + b)
-    else
-        return s..b
-    end
+function f(lstname, ...)
+    print(lstname..":")
+    print(...)
 end
 
-print(fibonums("0, ", 0, 1))
+f("List 1", 1, 2, 3)
