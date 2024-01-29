@@ -34,7 +34,7 @@ void FunctionClassTable::generateClassTable(const std::string &classname_)
     m_constructor->m_descIndex = initType;
     m_constructor->m_attribCount = 1;
     m_constructor->m_codeAttrNameIndex = m_codeAttrNameID;
-    m_constructor->m_maxStack = 10;
+    m_constructor->m_maxStack = 512;
     m_constructor->m_maxLocals = 1;
 
     m_constructor->addBytes(0x2a, 1); // aload_0
@@ -51,7 +51,7 @@ void FunctionClassTable::generateClassTable(const std::string &classname_)
     m_function->m_descIndex = functionType;
     m_function->m_attribCount = 1;
     m_function->m_codeAttrNameIndex = m_codeAttrNameID;
-    m_function->m_maxStack = 10;
+    m_function->m_maxStack = 512;
     m_function->m_maxLocals = 2;
 
     m_methodPool.push_back(m_function);

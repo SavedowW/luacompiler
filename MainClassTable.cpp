@@ -31,7 +31,7 @@ void MainClassTable::generateClassTable(const std::string &classname_)
     m_function->m_descIndex = mainTypeID;
     m_function->m_attribCount = 1;
     m_function->m_codeAttrNameIndex = m_codeAttrNameID;
-    m_function->m_maxStack = 10;
+    m_function->m_maxStack = 50;
     m_function->m_maxLocals = 1;
 
     // === Initialize DynamicType with print function and put into field
@@ -43,7 +43,11 @@ void MainClassTable::generateClassTable(const std::string &classname_)
     auto rawlendata = createFunctionField(m_function, "CONTEXT_0_rawlen", "rawlen", classname_);
     auto typedata = createFunctionField(m_function, "CONTEXT_0_type", "typeFunc", classname_);
     auto tonumberdata = createFunctionField(m_function, "CONTEXT_0_tonumber", "tonumber", classname_);
+    auto tostringdata = createFunctionField(m_function, "CONTEXT_0_tostring", "tostring", classname_);
     auto stringdata = createTableField(m_function, "CONTEXT_0_string", classname_);
+    createFunctionInTableField(m_function, "upper", "stringupper", stringdata.m_fieldRefID, classname_);
+    createFunctionInTableField(m_function, "lower", "stringlower", stringdata.m_fieldRefID, classname_);
+    createFunctionInTableField(m_function, "sub", "stringsub", stringdata.m_fieldRefID, classname_);
     auto iodata = createTableField(m_function, "CONTEXT_0_io", classname_);
     createFunctionInTableField(m_function, "read", "ioread", iodata.m_fieldRefID, classname_);
 
@@ -64,11 +68,43 @@ void MainClassTable::generateClassTable(const std::string &classname_)
 
 void MainClassTable::generateClassFiles()
 {
-    generateClassFile();
+    system(std::string("del output.jar").c_str());
+
+	std::vector<std::string> classFiles = {
+		"DynamicType.class",
+		"FunctionClass.class",
+		"getmetatable.class",
+		"setmetatable.class",
+		"ioread.class",
+		"next.class",
+		"pairs.class",
+		"print.class",
+		"rawlen.class",
+		"tonumber.class",
+		"typeFunc.class",
+		"ValueType.class",
+		"VarList.class",
+		"tostring.class",
+		"stringlower.class",
+		"stringupper.class",
+		"stringsub.class",
+	};
+
+	classFiles.push_back(m_classname + ".class");
+
+    ClassTable::generateClassFile();
     for (auto &el : m_functionClasses)
     {
         el->generateClassFile();
+		classFiles.push_back(el->m_classname + ".class");
     }
+
+	std::string command("jar cfe output.jar ");
+	command += m_classname + " ";
+	for (const auto &filename : classFiles)
+		command += filename + " ";
+	std::cout << command << std::endl;
+	system(command.c_str());
 }
 
 void MainClassTable::generateCode()

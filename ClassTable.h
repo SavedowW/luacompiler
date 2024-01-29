@@ -189,8 +189,8 @@ public:
     virtual void generateCode() = 0;
 
 
-protected:
     std::string m_classname;    
+protected:
     std::ofstream m_output;
     size_t addOrConfirmUtf8ToTable(const std::string &s_);
     size_t addOrConfirmUtf8ToTable(const DoublePtrString &s_);
