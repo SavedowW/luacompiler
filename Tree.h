@@ -11,6 +11,7 @@ public:
 	DoublePtrString() = default;
 	DoublePtrString(const char *str_);
 	DoublePtrString(char *begin_, char *end_);
+	size_t getByteLen();
 
 	char *begin;
 	char *end;

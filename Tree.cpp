@@ -39,7 +39,8 @@ DoublePtrString DoublePtrString::clone() const
 	int len = end-begin+1;
 	s.begin = new char[len];
 	s.end = s.begin + len;
-	strncpy(s.begin, begin, len);
+	for (int i = 0; i < len; ++i)
+		s.begin[i] = begin[i];
 	return s;
 }
 
@@ -55,6 +56,20 @@ DoublePtrString::DoublePtrString(char *begin_, char *end_)
 {
 	begin = begin_;
 	end = end_;
+}
+
+size_t DoublePtrString::getByteLen()
+{
+	size_t sz = 0;
+    for (auto i = 0; i < end - begin - 1; ++i)
+	{
+		if (begin[i] == '\0')
+			sz += 2;
+		else
+			sz += 1;
+	}
+
+	return sz;
 }
 
 void DoublePtrString::printWithoutQuotes(std::ostream &out_)
@@ -318,6 +333,8 @@ Expression *TreeFactory::CreateConstExp(DoublePtrString value)
 	Expression *crt = new Expression;
 	crt->type=EXPRESSION_TYPE::STRING;
 	crt->sValue = value.clone();
+	std::cout << value << std::endl;
+	std::cout << crt->sValue << std::endl;
 	return crt;
 }
 

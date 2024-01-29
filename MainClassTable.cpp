@@ -22,6 +22,7 @@ void MainClassTable::generateClassTable(const std::string &classname_)
     auto mainNameID = addOrConfirmUtf8ToTable(std::string("main"));
     auto mainTypeID = addOrConfirmUtf8ToTable(std::string("([Ljava/lang/String;)V"));
 
+
     // =========== MAIN =================
     m_function = new MethodInfo();
 	m_currentCodeRecorder = m_function;
@@ -40,6 +41,7 @@ void MainClassTable::generateClassTable(const std::string &classname_)
     auto setmetatabledata = createFunctionField(m_function, "CONTEXT_0_setmetatable", "setmetatable", classname_);
     auto getmetatabledata = createFunctionField(m_function, "CONTEXT_0_getmetatable", "getmetatable", classname_);
     auto rawlendata = createFunctionField(m_function, "CONTEXT_0_rawlen", "rawlen", classname_);
+    auto typedata = createFunctionField(m_function, "CONTEXT_0_type", "typeFunc", classname_);
 
     m_methodPool.push_back(m_function);
 

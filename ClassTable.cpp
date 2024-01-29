@@ -316,7 +316,21 @@ void ClassTable::writeBytes(uint64_t bytes_, size_t countBytes_)
 
 void ClassTable::writeBytes(const DoublePtrString &str_)
 {
-    m_output.write(str_.begin, str_.end - str_.begin - 1);
+    for (const char *ptr = str_.begin; ptr != str_.end - 1; ++ptr)
+    {
+        if (*ptr != '\0')
+            m_output.write(ptr, 1);
+        else
+        {
+            /*char ch = 0xc0;
+            m_output.write(&ch, 1);
+            ch = 0x80;
+            m_output.write(&ch, 1);*/
+
+            writeBytes(0xc0, 1);
+            writeBytes(0x80, 1);
+        }
+    }
 }
 
 void ClassTable::writeInt(int32_t bytes_)
@@ -506,7 +520,7 @@ void ClassTable::generateClassFile()
             case (TableEntry::ENTRY_TYPE::UTF8):
             {
                 auto *properptr = dynamic_cast<Utf8Info*>(m_constantPool[i]);
-                writeBytes(properptr->m_str.end - properptr->m_str.begin - 1, 2);
+                writeBytes(properptr->m_str.getByteLen(), 2);
                 writeBytes(properptr->m_str);
                 break;
             }
@@ -916,6 +930,7 @@ void ClassTable::createDynamicType(CodeRecorder *method_, float num_)
 
 void ClassTable::createDynamicType(CodeRecorder *method_, const DoublePtrString &s_)
 {
+    std::cout << s_ << std::endl;
     // Create DT
     method_->addBytes(NEW, 1); // new
     method_->addBytes(m_dtClass, 2); // DynamicType
@@ -981,18 +996,14 @@ void ClassTable::treeBypassCodeGen(Statement *node)
 	{
 		case STATEMENT_TYPE::ASSIGN:
 		{
-            m_assignContext = true;
 			auto *realnode = dynamic_cast<StatementAssign*>(node);
 			treeBypassCodeGen(realnode);
-            m_assignContext = false;
 		}
 		break;
 		case STATEMENT_TYPE::MULTIPLE_ASSIGN:
 		{
-            m_assignContext = true;
 			auto *realnode = dynamic_cast<StatementMultipleAssign*>(node);
 			treeBypassCodeGen(realnode);
-            m_assignContext = false;
 		}
 		break;
 		case STATEMENT_TYPE::STMT_LIST:
@@ -1081,7 +1092,11 @@ void ClassTable::treeBypassCodeGen(StatementMultipleAssign *node)
         }
     }
 
+    m_assignContext = true;
+
     treeBypassCodeGen_CreateReferences(node->left); // Should create VarList with references
+
+    m_assignContext = false;
 
     treeBypassCodeGen(node->right); // Should create VarList
 
@@ -1105,11 +1120,15 @@ void ClassTable::treeBypassCodeGen(StatementAssign *node)
         m_currentCodeRecorder->addBytes(fldRef, 2); // putstatic
     }
 
+    m_assignContext = true;
+
     createVarList(m_currentCodeRecorder);
     m_currentCodeRecorder->addBytes(DUP, 1);
 	treeBypassCodeGen(node->left); // Should create DynamicType on stack that most likely references existing and accessable variable
     m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
     m_currentCodeRecorder->addBytes(m_varlistAddRef, 2);
+
+    m_assignContext = false;
 
     treeBypassCodeGen(node->right); // Should create VarList
 
@@ -1389,6 +1408,7 @@ void ClassTable::treeBypassCodeGen(Expression *node)
 
 		    break;
 		case EXPRESSION_TYPE::KEY_VALUE_ASSOC:
+            m_assignContext = true;
             m_currentCodeRecorder->addBytes(DUP, 1);
             if (node->left)
             {
@@ -1411,10 +1431,11 @@ void ClassTable::treeBypassCodeGen(Expression *node)
                 m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
                 m_currentCodeRecorder->addBytes(m_dt__autoindex, 2);
             }
+            m_assignContext = false;
 
             // get right side
             treeBypassCodeGen(node->right);
-            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
+            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL || node->right->type == EXPRESSION_TYPE::VARARG_REF)
             {
                 createIntOnStack(m_currentCodeRecorder, 0);
                 m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
@@ -1756,6 +1777,8 @@ void ClassTable::treeBypassCodeGen(StatementIfElse *node)
     auto *trueCode = new CodeRecorder();
     auto *falseCode = new CodeRecorder();
 
+    m_currentCodeRecorder->addBytes(NOP, 3);
+
     auto *temp = m_currentCodeRecorder;
 
     m_currentCodeRecorder = condition;
@@ -1817,13 +1840,22 @@ void ClassTable::treeBypassCodeGen(StatementIfElse *node)
     }
 
     m_currentCodeRecorder->append(falseCode);
+
+    m_currentCodeRecorder->addBytes(NOP, 3);
 }
 
 void ClassTable::treeBypassCodeGen(StatementReturn *node)
 {
 	if (node==NULL)	return;
-	
-	treeBypassCodeGen(node->lst);
 
-    m_function->addBytes(ARETURN, 1);
+    if (node->lst)
+    {
+	    treeBypassCodeGen(node->lst);
+        m_currentCodeRecorder->addBytes(ARETURN, 1);
+    }
+    else
+    {
+        createVarList(m_currentCodeRecorder);
+        m_currentCodeRecorder->addBytes(ARETURN, 1);
+    }
 }
