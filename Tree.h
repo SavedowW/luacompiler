@@ -248,6 +248,7 @@ public:
 	ParamList* params = nullptr;
 	Expression* data = nullptr;
 	StatementList* code = nullptr;
+	VarsContext *iterContext = nullptr;
 	virtual ~StatementForeachLoop() = default;
 };
 

@@ -488,9 +488,11 @@ Statement *TreeFactory::CreateNamedFunctionDefinition(Expression *functionName_,
 
 Statement *TreeFactory::CreateNamedFunctionDefinition(Expression *functionName_, const char *identifier_, ParamList *params_, StatementList *code_)
 {
-	auto *func = TreeFactory::CreateUnnamedFunctionDefinition(params_, code_);
+	//params_->lst.insert(params_->lst.begin(), "self");
+	//auto *func = TreeFactory::CreateUnnamedFunctionDefinition(params_, code_);
 	auto *name = TreeFactory::CreateMethodName(functionName_, identifier_);
-	auto *res = TreeFactory::CreateAssignStatement(name, TreeFactory::CreateExprList(func), false);
+	auto *res = TreeFactory::CreateNamedFunctionDefinition(name, params_, code_);
+	//auto *res = TreeFactory::CreateAssignStatement(name, TreeFactory::CreateExprList(func), false);
 	return res;
 }
 

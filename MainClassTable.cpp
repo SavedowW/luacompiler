@@ -35,6 +35,8 @@ void MainClassTable::generateClassTable(const std::string &classname_)
 
     // === Initialize DynamicType with print function and put into field
     auto printdata = createFunctionField(m_function, "CONTEXT_0_print", "print", classname_);
+    auto nextdata = createFunctionField(m_function, "CONTEXT_0_next", "next", classname_);
+    auto pairsdata = createFunctionField(m_function, "CONTEXT_0_pairs", "pairs", classname_);
 
     m_methodPool.push_back(m_function);
 
@@ -108,11 +110,16 @@ void MainClassTable::treeBypassVarLinking(StatementForeachLoop *node)
 	if (node==NULL)	return;
 	std::cout << node->name << std::endl;
 
-	treeBypassVarLinking(node->params);
-	treeBypassVarLinking(node->data);
-
-    m_currentContext = m_currentContext->createChildContext();
+	m_currentContext = m_currentContext->createChildContext();
+	node->iterContext = m_currentContext;
+	for (auto &el : node->params->lst)
+	{
+		m_currentContext->confirmLocalVar(el);
+	}
+	
 	treeBypassVarLinking(node->code);
+	treeBypassVarLinking(node->data);	
+
     m_currentContext = m_currentContext->m_parentContext;
 
 }

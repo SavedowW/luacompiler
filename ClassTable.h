@@ -237,6 +237,7 @@ protected:
     size_t m_dtFieldIdS = 1;
     size_t m_dtFieldIdF = 1;
     size_t m_dtCallRef = 1;
+    size_t m_dtCallMethodRef = 1;
     size_t m_dtRevset = 1;
     size_t m_dtSetDT = 1;
     size_t m_dt__add = 1;
@@ -256,6 +257,8 @@ protected:
     size_t m_codeAttrNameID = 1;
     size_t m_forLoopIter = 1;
     size_t m_forLoopCond = 1;
+    size_t m_foreachHead = 1;
+    size_t m_foreachCondition = 1;
 
     VarsContext *m_ownContext = nullptr;
     MethodInfo *m_constructor = nullptr;
@@ -265,7 +268,7 @@ protected:
     int cycleCount = 0;
 
     FieldData createFunctionField(CodeRecorder *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
-    void createIntOnStack(CodeRecorder *method, int num_);
+    int createIntOnStack(CodeRecorder *method, int num_);
     void createFloatOnStack(CodeRecorder *method, float num_);
     void createStringOnStack(CodeRecorder *method, const DoublePtrString &s_);
     void createVarList(CodeRecorder *method);
