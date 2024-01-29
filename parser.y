@@ -237,6 +237,7 @@ param_list:  /* empty */ {$$ = TreeFactory::CreateParamList();}
     ;
 
 param_listE: param_list_no_vararg ',' VARARG_PARAM {std::cout << "Created final param list with vararg\n"; $$ = TreeFactory::AddVarargToParamList($1);}
+    | VARARG_PARAM {std::cout << "Created final param list only vararg\n"; $$ = TreeFactory::CreateParamListWithVararg();}
     ;
 
 param_list_no_vararg: IDENTIFIER {std::cout << "Created param list\n"; $$ = TreeFactory::CreateParamList($1);}

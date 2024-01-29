@@ -311,6 +311,7 @@ namespace TreeFactory
 	ParamList *CreateParamList(const char *identifier_);
 	ParamList *CreateParamList();
 	ParamList *AppendParamList(ParamList *plst_, const char *identifier_);
+	ParamList *CreateParamListWithVararg();
 	ParamList *AddVarargToParamList(ParamList *plst_);
 	Expression *CreateUnnamedFunctionDefinition(ParamList *params_, StatementList *code_);
 	Statement *CreateNamedFunctionDefinition(Expression *functionName_, ParamList *params_, StatementList *code_);

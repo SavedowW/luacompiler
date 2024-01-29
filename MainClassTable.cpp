@@ -512,7 +512,7 @@ void MainClassTable::treeBypassVarLinking(Expression *node)
         }
 		    break;
 		case EXPRESSION_TYPE::VARARG_REF:
-            throw std::string("VARARG_REF shouldn't exist");
+            // Vararg is ignored here
 		    break;
 	}
 }

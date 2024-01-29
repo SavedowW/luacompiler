@@ -117,14 +117,17 @@ std::ostream& operator<< (std::ostream& out_, const DoublePtrString& s_)
 {
     char *ptr = s_.begin;
 	out_ << '"';
-    while (ptr != s_.end - 1)
-    {
-        if (*ptr == '\0')
-            out_ << '?';
-        else
-            out_ << *ptr;
-        ptr++;
-    }
+	if (s_.begin != s_.end)
+	{
+    	while (ptr != s_.end - 1)
+    	{
+    	    if (*ptr == '\0')
+    	        out_ << '?';
+    	    else
+    	        out_ << *ptr;
+    	    ptr++;
+    	}
+	}
     out_ << '"';
 	return out_;
 }
@@ -470,6 +473,15 @@ ParamList *TreeFactory::AppendParamList(ParamList *plst_, const char *identifier
 	plst_->lst.push_back(identifier_);
 	return plst_;
 }
+
+ParamList *TreeFactory::CreateParamListWithVararg()
+{
+	std::cout << "Create function call\n";
+	ParamList *plist = new ParamList;
+	plist->hasVararg = true;
+	return plist;
+}
+
 
 ParamList *TreeFactory::AddVarargToParamList(ParamList *plst_)
 {

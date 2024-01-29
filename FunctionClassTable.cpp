@@ -105,4 +105,22 @@ void FunctionClassTable::grabParams()
         m_function->addBytes(param.paramFldRef, 2); // putstatic
 
     }
+
+    if (m_params->hasVararg)
+    {
+        m_function->addBytes(ALOAD_1, 1); // aload_1
+        createIntOnStack(m_function, m_params->lst.size());
+        m_function->addBytes(INVOKEVIRTUAL, 1); // invokevirtual
+        m_function->addBytes(m_varlistSetVarargPoint, 2); // VarList::get
+    }
+}
+
+void FunctionClassTable::handleVararg()
+{
+    if (!m_params->hasVararg)
+        throw std::string("Vararg used in non-vararg function");
+
+    m_function->addBytes(ALOAD_1, 1); // aload_1
+    m_function->addBytes(INVOKEVIRTUAL, 1); // invokevirtual
+    m_function->addBytes(m_varlistGetVararg, 2); // VarList::get
 }

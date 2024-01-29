@@ -276,6 +276,8 @@ protected:
     size_t m_varlistGet = 1;
     size_t m_varlistAssign = 1;
     size_t m_varlistAppend = 1;
+    size_t m_varlistSetVarargPoint = 1;
+    size_t m_varlistGetVararg = 1;
     size_t m_codeAttrNameID = 1;
     size_t m_forLoopIter = 1;
     size_t m_forLoopCond = 1;
@@ -320,6 +322,8 @@ protected:
     void treeBypassCodeGen(StatementWhileLoop *);
     void treeBypassCodeGen(StatementIfElse *);
     void treeBypassCodeGen(StatementReturn *);
+
+    virtual void handleVararg();
 };
 
 #endif

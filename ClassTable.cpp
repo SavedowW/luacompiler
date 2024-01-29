@@ -420,6 +420,8 @@ void ClassTable::generateUniversalTable()
     m_varlistGet = addOrConfirmMethodRefToTable("get", "(I)LDynamicType;", "VarList");
     m_varlistAssign = addOrConfirmMethodRefToTable("multipleAssign", "(LVarList;LVarList;)V", "VarList");
     m_varlistAppend = addOrConfirmMethodRefToTable("append", "(LVarList;)V", "VarList");
+    m_varlistSetVarargPoint = addOrConfirmMethodRefToTable("setVarargPoint", "(I)V", "VarList");
+    m_varlistGetVararg = addOrConfirmMethodRefToTable("getVararg", "()LVarList;", "VarList");
 
     m_forLoopIter = addOrConfirmMethodRefToTable("forTurn", "(LVarList;)LVarList;", "VarList");
     m_forLoopCond = addOrConfirmMethodRefToTable("forCondition", "(LVarList;)Z", "VarList");
@@ -1159,7 +1161,7 @@ void ClassTable::treeBypassCodeGen(ExpressionList *node)
     {
         m_currentCodeRecorder->addBytes(DUP, 1);
 		treeBypassCodeGen(node->lst[i]); // Creates DynamicType unless function call or vararg
-        if (node->lst[i]->type == EXPRESSION_TYPE::FUNCTION_CALL)
+        if (node->lst[i]->type == EXPRESSION_TYPE::FUNCTION_CALL || node->lst[i]->type == EXPRESSION_TYPE::VARARG_REF)
         {
             // If function call is the last element, append it entirely
             if (i == node->lst.size() - 1)
@@ -1194,7 +1196,7 @@ void ClassTable::treeBypassCodeGen_CreateReferences(ExpressionList *node)
     {
         m_currentCodeRecorder->addBytes(DUP, 1);
 		treeBypassCodeGen(node->lst[i]); // Creates DynamicType unless function call or vararg
-        if (node->lst[i]->type == EXPRESSION_TYPE::FUNCTION_CALL)
+        if (node->lst[i]->type == EXPRESSION_TYPE::FUNCTION_CALL  || node->lst[i]->type == EXPRESSION_TYPE::VARARG_REF)
         {
             throw std::string("Function calls or varargs can't be on the left side of assignment");
         }
@@ -1208,7 +1210,7 @@ void ClassTable::treeBypassCodeGen_CreateReferences(ExpressionList *node)
 
 void ClassTable::treeBypassCodeGen(ParamList *node)
 {
-	// Parameters are already grabbed by the function, no need to do anything
+	std::cout << "here\n";
 }
 
 void ClassTable::treeBypassCodeGen(Expression *node)
@@ -1340,14 +1342,14 @@ void ClassTable::treeBypassCodeGen(Expression *node)
         if (operRef == -1)
             operRef = m_dt__pow;
             treeBypassCodeGen(node->left);
-            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL)
+            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
             {
                 createIntOnStack(m_currentCodeRecorder, 0);
                 m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
                 m_currentCodeRecorder->addBytes(m_varlistGet, 2);
             }
             treeBypassCodeGen(node->right);
-            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL)
+            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
             {
                 createIntOnStack(m_currentCodeRecorder, 0);
                 m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
@@ -1373,7 +1375,7 @@ void ClassTable::treeBypassCodeGen(Expression *node)
             if (operRef == -1)
             operRef = m_dt__unm;
             treeBypassCodeGen(node->left);
-            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL)
+            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
             {
                 createIntOnStack(m_currentCodeRecorder, 0);
                 m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
@@ -1514,7 +1516,7 @@ void ClassTable::treeBypassCodeGen(Expression *node)
         }
 		    break;
 		case EXPRESSION_TYPE::VARARG_REF:
-            throw std::string("VARARG_REF shouldn't exist");
+            handleVararg();
 		    break;
 	}
 }
@@ -1858,4 +1860,9 @@ void ClassTable::treeBypassCodeGen(StatementReturn *node)
         createVarList(m_currentCodeRecorder);
         m_currentCodeRecorder->addBytes(ARETURN, 1);
     }
+}
+
+void ClassTable::handleVararg()
+{
+    throw std::string("Vararg used in non-vararg function");
 }
