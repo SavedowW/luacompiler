@@ -377,6 +377,7 @@ void ClassTable::generateUniversalTable()
     m_dtFieldIdF = addOrConfirmFieldRefToTable("fValue", "LFunctionClass;", "DynamicType");
 
     m_dtSetDT = addOrConfirmMethodRefToTable("set", "(LDynamicType;)V", "DynamicType");
+    m_dtSetF = addOrConfirmMethodRefToTable("set", "(LFunctionClass;)V", "DynamicType");
 
     m_dt__add = addOrConfirmMethodRefToTable("__add", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
     m_dt__sub = addOrConfirmMethodRefToTable("__sub", "(LDynamicType;LDynamicType;)LDynamicType;", "DynamicType");
@@ -503,6 +504,7 @@ void CodeRecorder::append(CodeRecorder *moreCode_)
 
 void ClassTable::generateClassFile()
 {
+    system((std::string("del ") + m_classname + ".class").c_str());
     m_output.open(m_classname + ".class", std::ios::binary | std::ios::trunc);
     if (!m_output.is_open())
     {
@@ -828,6 +830,62 @@ FieldData ClassTable::createFunctionField(CodeRecorder *method, const std::strin
 
     return {fldName, fldDesc, fldRef};
 
+}
+
+FieldData ClassTable::createTableField(CodeRecorder *method, const std::string &tableName, const std::string &className)
+{
+    auto fldName = addOrConfirmUtf8ToTable(tableName);
+    auto fldDesc = addOrConfirmUtf8ToTable(std::string("LDynamicType;"));
+    auto fldRef = addOrConfirmFieldRefToTable(tableName, "LDynamicType;", className);
+
+    // Create DynamicType
+    method->addBytes(INVOKESTATIC, 1);
+    method->addBytes(m_dtCreateTable, 2); // new
+
+    // Put function into static field
+    method->addBytes(PUTSTATIC, 1); // putstatic
+    method->addBytes(fldRef, 2); // print field
+
+    if (!doesFieldExist(fldName))
+    {
+        auto *mainfield = new FieldInfo();
+        mainfield->m_accessFlags = 0x0009;
+        mainfield->m_nameIndex = fldName;
+        mainfield->m_descIndex = fldDesc;
+        m_fieldPool.push_back(mainfield);
+    }
+
+    return {fldName, fldDesc, fldRef};
+}
+
+void ClassTable::createFunctionInTableField(CodeRecorder *method, const std::string &functionField, const std::string &functionOwnerClassName, int tableRef, const std::string &className)
+{
+    //auto fldName = addOrConfirmUtf8ToTable(functionName);
+    //auto fldDesc = addOrConfirmUtf8ToTable(std::string("LDynamicType;"));
+    //auto fldRef = addOrConfirmFieldRefToTable(functionName, "LDynamicType;", className);
+
+    auto functionClass = addOrConfirmClassToTable(functionOwnerClassName);
+    auto fuhctionInit = addOrConfirmMethodRefToTable("<init>", "()V", functionOwnerClassName);
+
+    // Get DT from table
+    method->addBytes(GETSTATIC, 1);
+    method->addBytes(tableRef, 2);
+    auto *funcstr = new DoublePtrString(functionField.c_str());
+    createDynamicType(method, *funcstr);
+    //createStringOnStack(method, *funcstr);
+    method->addBytes(INVOKEVIRTUAL, 1);
+    method->addBytes(m_dt__newindex, 2);
+
+    // Initialize DynamicType
+    method->addBytes(NEW, 1);
+    method->addBytes(functionClass, 2);
+    method->addBytes(DUP, 1);
+    method->addBytes(INVOKESPECIAL, 1); // invokespecial
+    method->addBytes(fuhctionInit, 2); // <init>
+
+    // Put function into static field
+    method->addBytes(INVOKEVIRTUAL, 1); // putstatic
+    method->addBytes(m_dtSetF, 2); // print field
 }
 
 int ClassTable::createIntOnStack(CodeRecorder *method_, int num_)
@@ -1536,8 +1594,7 @@ void ClassTable::treeBypassCodeGen(StatementGotoLabel *node)
 void ClassTable::treeBypassCodeGen(StatementForeachLoop *node)
 {
 	if (node==NULL)	return;
-	
-    m_currentCodeRecorder->addBytes(NOP, 3);
+
 
     std::vector<std::string> varnames;
     std::vector<int> varrefs;
@@ -1590,10 +1647,6 @@ void ClassTable::treeBypassCodeGen(StatementForeachLoop *node)
 
     m_currentCodeRecorder->addBytes(GOTO, 1);
     m_currentCodeRecorder->addBytes((int16_t)(-codeblock->m_byteCode.size() - 10 - totalspecificsize));
-
-    
-
-    m_currentCodeRecorder->addBytes(NOP, 3);
 
 }
 
@@ -1779,8 +1832,6 @@ void ClassTable::treeBypassCodeGen(StatementIfElse *node)
     auto *trueCode = new CodeRecorder();
     auto *falseCode = new CodeRecorder();
 
-    m_currentCodeRecorder->addBytes(NOP, 3);
-
     auto *temp = m_currentCodeRecorder;
 
     m_currentCodeRecorder = condition;
@@ -1842,8 +1893,6 @@ void ClassTable::treeBypassCodeGen(StatementIfElse *node)
     }
 
     m_currentCodeRecorder->append(falseCode);
-
-    m_currentCodeRecorder->addBytes(NOP, 3);
 }
 
 void ClassTable::treeBypassCodeGen(StatementReturn *node)

@@ -1,6 +1,11 @@
-function f(lstname, ...)
-    print(lstname..":")
-    print(...)
+function returner(param)
+    return function()
+        print(param)
+    end
 end
 
-f("List 1", 1, 2, 3)
+res1 = returner(5)
+res2 = returner(99)
+
+res1()
+res2()

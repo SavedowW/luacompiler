@@ -42,6 +42,10 @@ void MainClassTable::generateClassTable(const std::string &classname_)
     auto getmetatabledata = createFunctionField(m_function, "CONTEXT_0_getmetatable", "getmetatable", classname_);
     auto rawlendata = createFunctionField(m_function, "CONTEXT_0_rawlen", "rawlen", classname_);
     auto typedata = createFunctionField(m_function, "CONTEXT_0_type", "typeFunc", classname_);
+    auto tonumberdata = createFunctionField(m_function, "CONTEXT_0_tonumber", "tonumber", classname_);
+    auto stringdata = createTableField(m_function, "CONTEXT_0_string", classname_);
+    auto iodata = createTableField(m_function, "CONTEXT_0_io", classname_);
+    createFunctionInTableField(m_function, "read", "ioread", iodata.m_fieldRefID, classname_);
 
     m_methodPool.push_back(m_function);
 

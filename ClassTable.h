@@ -239,6 +239,7 @@ protected:
     size_t m_dtCallRef = 1;
     size_t m_dtCallMethodRef = 1;
     size_t m_dtRevset = 1;
+    size_t m_dtSetF = 1;
     size_t m_dtSetDT = 1;
     size_t m_dt__add = 1;
     size_t m_dt__sub = 1;
@@ -293,6 +294,8 @@ protected:
     int cycleCount = 0;
 
     FieldData createFunctionField(CodeRecorder *method, const std::string &functionName, const std::string &functionOwnerClassName, const std::string &className);
+    FieldData createTableField(CodeRecorder *method, const std::string &tableName, const std::string &className);
+    void createFunctionInTableField(CodeRecorder *method, const std::string &functionField, const std::string &functionOwnerClassName, int tableRef, const std::string &className);
     int createIntOnStack(CodeRecorder *method, int num_);
     void createFloatOnStack(CodeRecorder *method, float num_);
     void createStringOnStack(CodeRecorder *method, const DoublePtrString &s_);
