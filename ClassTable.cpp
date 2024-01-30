@@ -1410,10 +1410,80 @@ void ClassTable::treeBypassCodeGen(Expression *node)
             m_currentCodeRecorder->addBytes(operRef, 2);
 		    break;
         case EXPRESSION_TYPE::LOG_AND:
-            // TODO:
+        {
+            CodeRecorder *rightOper = new CodeRecorder();
+            auto *temp = m_currentCodeRecorder;
+
+            //m_currentCodeRecorder->addBytes(NEW, 1);
+            //m_currentCodeRecorder->addBytes(m_dtClass, 2);
+            //m_currentCodeRecorder->addBytes(DUP, 1);
+
+            treeBypassCodeGen(node->left);
+            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
+            {
+                createIntOnStack(m_currentCodeRecorder, 0);
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+            }
+
+            m_currentCodeRecorder = rightOper;
+            treeBypassCodeGen(node->right);
+            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL || node->right->type == EXPRESSION_TYPE::VARARG_REF)
+            {
+                createIntOnStack(m_currentCodeRecorder, 0);
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+            }
+
+            m_currentCodeRecorder = temp;
+
+            m_currentCodeRecorder->addBytes(DUP, 1);
+            m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
+            m_currentCodeRecorder->addBytes(m_dt_toBool, 2);
+            m_currentCodeRecorder->addBytes(IFEQ, 1);
+            m_currentCodeRecorder->addBytes((int16_t)(rightOper->m_byteCode.size() + 4));
+            m_currentCodeRecorder->addBytes(POP, 1);
+            m_currentCodeRecorder->append(rightOper);
+
+        }
             break;
 		case EXPRESSION_TYPE::LOG_OR:
-		    // TODO:
+		{
+            CodeRecorder *rightOper = new CodeRecorder();
+            auto *temp = m_currentCodeRecorder;
+
+            //m_currentCodeRecorder->addBytes(NEW, 1);
+            //m_currentCodeRecorder->addBytes(m_dtClass, 2);
+            //m_currentCodeRecorder->addBytes(DUP, 1);
+
+            treeBypassCodeGen(node->left);
+            if (node->left->type == EXPRESSION_TYPE::FUNCTION_CALL || node->left->type == EXPRESSION_TYPE::VARARG_REF)
+            {
+                createIntOnStack(m_currentCodeRecorder, 0);
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+            }
+
+            m_currentCodeRecorder = rightOper;
+            treeBypassCodeGen(node->right);
+            if (node->right->type == EXPRESSION_TYPE::FUNCTION_CALL || node->right->type == EXPRESSION_TYPE::VARARG_REF)
+            {
+                createIntOnStack(m_currentCodeRecorder, 0);
+                m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+                m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+            }
+
+            m_currentCodeRecorder = temp;
+
+            m_currentCodeRecorder->addBytes(DUP, 1);
+            m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
+            m_currentCodeRecorder->addBytes(m_dt_toBool, 2);
+            m_currentCodeRecorder->addBytes(IFNE, 1);
+            m_currentCodeRecorder->addBytes((int16_t)(rightOper->m_byteCode.size() + 4));
+            m_currentCodeRecorder->addBytes(POP, 1);
+            m_currentCodeRecorder->append(rightOper);
+
+        }
             break;
         case EXPRESSION_TYPE::LOG_NOT:
             if (operRef == -1)
