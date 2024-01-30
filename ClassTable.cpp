@@ -1376,14 +1376,6 @@ void ClassTable::treeBypassCodeGen(Expression *node)
             if (operRef == -1)
             operRef = m_dt__bxor;
 		    [[fallthrough]]
-        case EXPRESSION_TYPE::LOG_AND:
-            if (operRef == -1)
-            operRef = m_dt__and;
-		    [[fallthrough]]
-		case EXPRESSION_TYPE::LOG_OR:
-            if (operRef == -1)
-            operRef = m_dt__or;
-		    [[fallthrough]]
         case EXPRESSION_TYPE::REL_NOT_EQUALS:
             if (operRef == -1)
             operRef = m_dt__neq;
@@ -1417,6 +1409,12 @@ void ClassTable::treeBypassCodeGen(Expression *node)
             m_currentCodeRecorder->addBytes(INVOKESTATIC, 1);
             m_currentCodeRecorder->addBytes(operRef, 2);
 		    break;
+        case EXPRESSION_TYPE::LOG_AND:
+            // TODO:
+            break;
+		case EXPRESSION_TYPE::LOG_OR:
+		    // TODO:
+            break;
         case EXPRESSION_TYPE::LOG_NOT:
             if (operRef == -1)
             operRef = m_dt__not;

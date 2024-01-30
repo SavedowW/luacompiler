@@ -108,8 +108,10 @@ block_noret: block_noret stmt {printf("Extended sequence\n"); $$ = TreeFactory::
 
 stmt: assignable_expr '=' expr_listE {printf("Created assign const expr\n"); $$ = TreeFactory::CreateAssignStatement($1, $3, false);}
     | LOCAL assignable_expr '=' expr_listE {printf("Created assign const expr to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
+    | LOCAL assignable_expr {printf("Created assign const expr to local\n"); $$ = TreeFactory::CreateAssignStatement($2, nullptr, true);}
     | assignable_expr_list '=' expr_listE {printf("Created chunk assignment\n"); $$ = TreeFactory::CreateAssignStatement($1, $3, false);}
     | LOCAL assignable_expr_list '=' expr_listE {printf("Created chunk assignment to local\n"); $$ = TreeFactory::CreateAssignStatement($2, $4, true);}
+    | LOCAL assignable_expr_list {printf("Created chunk assignment to local\n"); $$ = TreeFactory::CreateAssignStatement($2, nullptr, true);}
     | if_stmt {printf("Merged single IF into stmt\n"); $$ = $1;}
     | WHILE expr DO chunk END {printf("Merged into single WHILE\n"); $$ = TreeFactory::makeWhileLoopStatement($2, $4);}
     | REPEAT chunk UNTIL expr {printf("Merged into single REPEAT\n"); $$ = TreeFactory::makeRepeatLoopStatement($4, $2);}

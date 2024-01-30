@@ -219,7 +219,14 @@ Statement *TreeFactory::CreateAssignStatement(Expression *left_, ExpressionList 
 	StatementAssign *sa = new StatementAssign;
 	sa->type = STATEMENT_TYPE::ASSIGN;
 	sa->left = left_;
-	sa->right = right_;
+	if (right_ != nullptr)
+	{
+		sa->right = right_;
+	}
+	else
+	{
+		sa->right = TreeFactory::CreateExprList(TreeFactory::CreateNil());
+	}
 	sa->isLocal = isLocal_;
 	return sa;
 }
@@ -230,7 +237,14 @@ Statement *TreeFactory::CreateAssignStatement(ExpressionList *left_, ExpressionL
 	StatementMultipleAssign *sa = new StatementMultipleAssign;
 	sa->type = STATEMENT_TYPE::MULTIPLE_ASSIGN;
 	sa->left = left_;
-	sa->right = right_;
+	if (right_ != nullptr)
+	{
+		sa->right = right_;
+	}
+	else
+	{
+		sa->right = TreeFactory::CreateExprList(TreeFactory::CreateNil());
+	}
 	sa->isLocal = isLocal_;
 	return sa;
 }
