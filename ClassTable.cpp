@@ -1904,6 +1904,13 @@ void ClassTable::treeBypassCodeGen(StatementIfElse *node)
 
     m_currentCodeRecorder = condition;
     treeBypassCodeGen(node->condition);
+    if (node->condition->type == EXPRESSION_TYPE::FUNCTION_CALL || node->condition->type == EXPRESSION_TYPE::VARARG_REF)
+    {
+        createIntOnStack(m_currentCodeRecorder, 0);
+        m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+        m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+    }
+
     m_currentCodeRecorder = trueCode;
     treeBypassCodeGen(node->trueCode);
     m_currentCodeRecorder = falseCode;
@@ -1921,6 +1928,13 @@ void ClassTable::treeBypassCodeGen(StatementIfElse *node)
 
         m_currentCodeRecorder = elseifCond;
         treeBypassCodeGen(el->condition);
+        int additionalsize = 0;
+        if (el->condition->type == EXPRESSION_TYPE::FUNCTION_CALL || el->condition->type == EXPRESSION_TYPE::VARARG_REF)
+        {
+            additionalsize = createIntOnStack(m_currentCodeRecorder, 0);
+            m_currentCodeRecorder->addBytes(INVOKEVIRTUAL, 1);
+            m_currentCodeRecorder->addBytes(m_varlistGet, 2);
+        }
 
         m_currentCodeRecorder = elseifCode;
         treeBypassCodeGen(el->trueCode);
